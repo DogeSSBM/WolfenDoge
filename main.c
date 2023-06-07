@@ -64,9 +64,9 @@ void drawFp(const View view, const Wall map[WALLS], const Player player)
     setColor(GREY3);
     fillRectCoordLength(iC(view.pos.x,view.mid.y), iC(view.len.x,view.mid.y));
 
-    const float hsec = view.len.x/90;
+    const float hsec = (float)view.len.x/90;
     for(uint i = 0; i < 90; i++){
-        int hpos = i*hsec;
+        int hpos = hsec+i*hsec;
         float dst = 1000.0f;
         Coordf pos = cfAdd(player.pos, degMagToCf((player.ang-45.0f)+i, 1000.0f));
         for(int w = 0; w < WALLS; w++){
@@ -80,7 +80,7 @@ void drawFp(const View view, const Wall map[WALLS], const Player player)
         }
         fillRectCenteredCoordLength(
             iC(view.pos.x+hpos, view.pos.y+view.len.y/2),
-            iC(hsec, view.len.y-(view.len.y*(dst/1000.0f)))
+            iC(hsec+1, view.len.y-(view.len.y*(dst/1000.0f)))
         );
     }
 
