@@ -138,7 +138,10 @@ void drawBv(const View view, const Wall map[WALLS], const Player player)
 Player playerMove(Player player)
 {
     player.ang = degReduce(player.ang + keyState(SDL_SCANCODE_D) - keyState(SDL_SCANCODE_A));
-    player.pos =  cfAdd(player.pos, degMagToCf(player.ang, 2*(float)(keyState(SDL_SCANCODE_W) - keyState(SDL_SCANCODE_S))));
+    player.pos = cfAdd(
+        player.pos,
+        degMagToCf(player.ang, 2*(float)(keyState(SDL_SCANCODE_W) - keyState(SDL_SCANCODE_S)))
+    );
     return player;
 }
 
