@@ -1,3 +1,6 @@
+*.out
+*.tags
+
 # Prerequisites
 *.d
 
