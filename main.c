@@ -4,29 +4,14 @@
 
 typedef struct{
     Coord pos;
-    Coord mid;
     Length len;
 }View;
-
-void calcViews(View views[4])
-{
-    const Length hlen = getWindowMid();
-    const Length qlen = coordDivi(hlen, 2);
-    Coord pos = {0};
-    for(uint i = 0; i < 4; i++){
-        views[i].len = hlen;
-        views[i].pos = pos;
-        views[i].mid = coordAdd(pos, qlen);
-        pos = coordShift(pos, dirROR(i), dirLR(dirROR(i))?hlen.x:hlen.y);
-    }
-}
 
 typedef struct Player{
     Coordf pos;
     float ang;
     float speed;
 }Player;
-
 
 typedef struct Wall{
     Color c;
@@ -60,13 +45,13 @@ bool lineIntersection(const Coordf p0, const Coordf p1, const Coordf p2, const C
 void drawFp(const View view, const Wall map[WALLS], const Player player)
 {
     setColor(GREY2);
-    fillRectCoordLength(view.pos, iC(view.len.x,view.mid.y));
+    fillRectCoordLength(view.pos, iC(view.len.x,view.len.y/2));
     setColor(GREY3);
-    fillRectCoordLength(iC(view.pos.x,view.mid.y), iC(view.len.x,view.mid.y));
+    fillRectCoordLength(iC(view.pos.x,view.len.y/2), iC(view.len.x,view.len.y/2));
 
     const float hsec = (float)view.len.x/90;
-    for(uint i = 0; i < 90; i++){
-        int hpos = hsec+i*hsec;
+    for(int i = 0; i < 90; i++){
+        int hpos = hsec/2+i*hsec;
         float dst = 1000.0f;
         Coordf pos = cfAdd(player.pos, degMagToCf((player.ang-45.0f)+i, 1000.0f));
         for(int w = 0; w < WALLS; w++){
@@ -74,29 +59,27 @@ void drawFp(const View view, const Wall map[WALLS], const Player player)
             if(lineIntersection(player.pos, pos, map[w].a, map[w].b, &pos)){
                 if((cur = cfDist(player.pos, pos)) < dst){
                     dst = cur;
-                    setColor(map[w].c);
+                    Color c = map[w].c;
+                    c.r = clamp(c.r-((dst/1000.0f)*255), 0, 256);
+                    c.g = clamp(c.g-((dst/1000.0f)*255), 0, 256);
+                    c.b = clamp(c.b-((dst/1000.0f)*255), 0, 256);
+                    setColor(c);
                 }
             }
         }
+
         fillRectCenteredCoordLength(
             iC(view.pos.x+hpos, view.pos.y+view.len.y/2),
-            iC(hsec+1, view.len.y-(view.len.y*(dst/1000.0f)))
+            iC(hsec+1, view.len.y-(view.len.y*(dst/1000.0f+1.0f/dst)))
         );
     }
 
 }
 
-bool inWallIndexes(int *wallIndexes, const int index)
-{
-    for(int i = 0; i < WALLS && wallIndexes[i] != -1; i++)
-        if(wallIndexes[i] == index)
-            return true;
-    return false;
-}
-
 void drawBv(const View view, const Wall map[WALLS], const Player player)
 {
-    setColor(GREY2);
+    setColor(BLACK);
+    fillRectCoordLength(view.pos, view.len);
     const float scale = (float)coordMin(view.len) / BOUNDS;
 
     for(uint i = 0; i < WALLS; i++){
@@ -135,7 +118,19 @@ void drawBv(const View view, const Wall map[WALLS], const Player player)
     fillCircleCoord(ppos, 2);
 }
 
-Player playerMove(Player player)
+Player playerMoveMouse(Player player)
+{
+    const Scancode dirkey[4] = {SDL_SCANCODE_A, SDL_SCANCODE_W, SDL_SCANCODE_D, SDL_SCANCODE_S};
+    player.ang = degReduce(player.ang + (mouse.vec.x*2)/3);
+    Coord strafe = {0} ;
+    for(uint i = 0; i < 4; i++)
+        strafe = coordShift(strafe, i, 2*keyState(dirkey[i]));
+
+    player.pos = cfAdd(player.pos, cfRotateDeg(CCf(strafe), player.ang));
+    return player;
+}
+
+Player playerMoveKeys(Player player)
 {
     player.ang = degReduce(player.ang + keyState(SDL_SCANCODE_D) - keyState(SDL_SCANCODE_A));
     player.pos = cfAdd(
@@ -149,12 +144,9 @@ int main(void)
 {
     init();
     gfx.outlined = false;
-    setWindowResizable(false);
-    setWindowLen(iC(800, 800));
     winSetPosCoord(coordAddi(coordDivi(getWinDisplayLen(), 2), -400));
     setColor(WHITE);
-    View views[4] = {0};
-
+    SDL_SetRelativeMouseMode(true);
     const Wall map[WALLS] = {
         { .c = GREEN,   .a={.x=  0.0f, .y=  0.0f}, .b={.x=750.0f, .y=  0.0f} },
         { .c = MAGENTA, .a={.x=750.0f, .y=  0.0f}, .b={.x=750.0f, .y=750.0f} },
@@ -175,12 +167,11 @@ int main(void)
         if(keyPressed(SDL_SCANCODE_ESCAPE))
             return 0;
 
-        calcViews(views);
+        const Length wlen = getWindowLen();
+        player = playerMoveMouse(player);
 
-        player = playerMove(player);
-
-        drawFp(views[0], map, player);
-        drawBv(views[1], map, player);
+        drawFp((View){.len = wlen}, map, player);
+        drawBv((View){.len = coordDivi(wlen, 4), .pos = {.x=wlen.x/4*3}}, map, player);
 
         frameEnd(t);
     }
