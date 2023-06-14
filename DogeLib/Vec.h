@@ -106,7 +106,7 @@ Coordf radMagToCf(const float rad, const float mag)
 // creates a vector given angle in rads and a magnitude
 Coordf degMagToCf(const float deg, const float mag)
 {
-    return cfMulf(radToCf(degToRad(deg)), mag);
+    return radMagToCf(degToRad(deg), mag);
 }
 
 Coordf cfNormalize(const Coordf coord)

@@ -49,31 +49,33 @@ void drawFp(const View view, const Wall map[WALLS], const Player player)
     setColor(GREY3);
     fillRectCoordLength(iC(view.pos.x,view.len.y/2), iC(view.len.x,view.len.y/2));
 
+    const Coordf startingPos = cfAdd(player.pos, cfRotateDeg((const Coordf){.x=1024.0f,.y=-1024.0f}, player.ang));
+    const float scanAng = degReduce(player.ang+90.0f);
     const float hsec = (float)view.len.x/90;
     for(int i = 0; i < 90; i++){
-        int hpos = hsec/2+i*hsec;
-        float dst = 1000.0f;
-        Coordf pos = cfAdd(player.pos, degMagToCf((player.ang-45.0f)+i, 1000.0f));
+        float dst = 6000.0f;
+        Coordf pos = cfAdd(startingPos, degMagToCf(scanAng, ((float)i/90.0f)*2048.0f));
         for(int w = 0; w < WALLS; w++){
             float cur = 0;
-            if(lineIntersection(player.pos, pos, map[w].a, map[w].b, &pos)){
-                if((cur = cfDist(player.pos, pos)) < dst){
-                    dst = cur;
-                    Color c = map[w].c;
-                    c.r = clamp(c.r-((dst/1000.0f)*255), 0, 256);
-                    c.g = clamp(c.g-((dst/1000.0f)*255), 0, 256);
-                    c.b = clamp(c.b-((dst/1000.0f)*255), 0, 256);
-                    setColor(c);
-                }
+            if(
+                lineIntersection(player.pos, pos, map[w].a, map[w].b, &pos) &&
+                (cur = cfDist(player.pos, pos)) < dst
+            ){
+                dst = cur;
+                Color c = map[w].c;
+                c.r = clamp(c.r-((dst/1000.0f)*255), 0, 256);
+                c.g = clamp(c.g-((dst/1000.0f)*255), 0, 256);
+                c.b = clamp(c.b-((dst/1000.0f)*255), 0, 256);
+                setColor(c);
             }
         }
-
+        
+        const float height = view.len.y-(view.len.y*(dst/1000.0f));
         fillRectCenteredCoordLength(
-            iC(view.pos.x+hpos, view.pos.y+view.len.y/2),
-            iC(hsec+1, view.len.y-(view.len.y*(dst/1000.0f+1.0f/dst)))
+            iC(view.pos.x+hsec/2+i*hsec, view.pos.y+view.len.y/2),
+            iC(hsec+1, (int)height)
         );
     }
-
 }
 
 void drawBv(const View view, const Wall map[WALLS], const Player player)
@@ -150,8 +152,8 @@ int main(void)
     const Wall map[WALLS] = {
         { .c = GREEN,   .a={.x=  0.0f, .y=  0.0f}, .b={.x=750.0f, .y=  0.0f} },
         { .c = MAGENTA, .a={.x=750.0f, .y=  0.0f}, .b={.x=750.0f, .y=750.0f} },
-        { .c = GREEN,   .a={.x=  0.0f, .y=  0.0f}, .b={.x=  0.0f, .y=750.0f} },
-        { .c = MAGENTA, .a={.x=  0.0f, .y=750.0f}, .b={.x=750.0f, .y=750.0f} },
+        { .c = MAGENTA, .a={.x=  0.0f, .y=  0.0f}, .b={.x=  0.0f, .y=750.0f} },
+        { .c = GREEN,   .a={.x=  0.0f, .y=750.0f}, .b={.x=750.0f, .y=750.0f} },
 
         { .c = BLUE,    .a={.x=250.0f, .y=250.0f}, .b={.x=500.0f, .y=250.0f} },
         { .c = BLUE,    .a={.x=500.0f, .y=250.0f}, .b={.x=500.0f, .y=500.0f} },
