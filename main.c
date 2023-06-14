@@ -69,7 +69,7 @@ void drawFp(const View view, const Wall map[WALLS], const Player player)
                 setColor(c);
             }
         }
-        
+
         const float height = view.len.y-(view.len.y*(dst/1000.0f));
         fillRectCenteredCoordLength(
             iC(view.pos.x+hsec/2+i*hsec, view.pos.y+view.len.y/2),
