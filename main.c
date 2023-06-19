@@ -51,10 +51,12 @@ void drawFp(const View view, const Wall map[WALLS], const Player player)
 
     const Coordf startingPos = cfAdd(player.pos, cfRotateDeg((const Coordf){.x=1024.0f,.y=-1024.0f}, player.ang));
     const float scanAng = degReduce(player.ang+90.0f);
+
     const float hsec = (float)view.len.x/90;
     for(int i = 0; i < 90; i++){
         float dst = 6000.0f;
         Coordf pos = cfAdd(startingPos, degMagToCf(scanAng, ((float)i/90.0f)*2048.0f));
+        const float viewAng = atanf((0.5-i/90.0f) / 0.5);
         for(int w = 0; w < WALLS; w++){
             float cur = 0;
             if(
@@ -69,11 +71,11 @@ void drawFp(const View view, const Wall map[WALLS], const Player player)
                 setColor(c);
             }
         }
-
-        const float height = view.len.y-(view.len.y*(dst/1000.0f));
+        float correctedDst = dst*cosf(viewAng);
+        float height1 = view.len.y / correctedDst * 150;
         fillRectCenteredCoordLength(
             iC(view.pos.x+hsec/2+i*hsec, view.pos.y+view.len.y/2),
-            iC(hsec+1, (int)height)
+            iC(hsec+1, (int)height1)
         );
     }
 }
