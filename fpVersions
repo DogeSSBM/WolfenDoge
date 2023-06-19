@@ -56,7 +56,7 @@ void drawFp(const View view, const Wall map[WALLS], const Player player)
     for(int i = 0; i < 90; i++){
         float dst = 6000.0f;
         Coordf pos = cfAdd(startingPos, degMagToCf(scanAng, ((float)i/90.0f)*2048.0f));
-        const float viewAng = atanf((0.5-i/90.0f) / 0.5);
+        Color c = {0};
         for(int w = 0; w < WALLS; w++){
             float cur = 0;
             if(
@@ -64,18 +64,18 @@ void drawFp(const View view, const Wall map[WALLS], const Player player)
                 (cur = cfDist(player.pos, pos)) < dst
             ){
                 dst = cur;
-                Color c = map[w].c;
-                c.r = clamp(c.r-((dst/1000.0f)*255), 0, 256);
-                c.g = clamp(c.g-((dst/1000.0f)*255), 0, 256);
-                c.b = clamp(c.b-((dst/1000.0f)*255), 0, 256);
-                setColor(c);
+                c = map[w].c;
             }
         }
-        float correctedDst = dst*cosf(viewAng);
-        float height1 = view.len.y / correctedDst * 150;
+        const float viewTan = (0.5-i/90.0f) / 0.5;
+        const int correctedDst = (int)(dst/sqrtf(viewTan*viewTan+1.0f));
+        c.r = clamp(c.r-((correctedDst/1000.0f)*255), 0, 256);
+        c.g = clamp(c.g-((correctedDst/1000.0f)*255), 0, 256);
+        c.b = clamp(c.b-((correctedDst/1000.0f)*255), 0, 256);
+        setColor(c);
         fillRectCenteredCoordLength(
             iC(view.pos.x+hsec/2+i*hsec, view.pos.y+view.len.y/2),
-            iC(hsec+1, (int)height1)
+            iC(hsec+1, (view.len.y*120) / correctedDst)
         );
     }
 }
