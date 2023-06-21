@@ -14,6 +14,16 @@ float cfMax(const Coordf pos)
     return fmost(pos.x, pos.y);
 }
 
+Coord coordAbs(const Coord pos)
+{
+    return (const Coord){.x=pos.x<0?-pos.x:pos.x, .y=pos.y<0?-pos.y:pos.y};
+}
+
+bool checkCtrlKey(const Scancode key)
+{
+    return keyPressed(key) && (keyState(SDL_SCANCODE_LCTRL) || keyState(SDL_SCANCODE_RCTRL));
+}
+
 typedef struct{
     Coord pos;
     Length len;
@@ -195,31 +205,91 @@ Coordf mapBounds(Wall *map)
     return bound;
 }
 
-void editMap(Wall *map)
+Coord resizeTransform(const Length oldLen, const Length newLen, const Coord pos)
 {
-    Player player = {.pos = {.x=125.0f, .y=125.0f}};
-    Coordf off = fC(0,0);
-    SDL_SetRelativeMouseMode(false);
+    return CfC(cfMul(CCf(newLen), cfDiv(CCf(pos), CCf(oldLen))));
+}
 
+// Coord rescaleTransform(const )
+
+Coordf screenToMap(const Coord off, const float scale, const Coord pos)
+{
+    return cfMulf(CCf(coordSub(pos, off)), scale);
+}
+
+Coord mapToScreen(const Coord off, const float scale, const Coordf pos)
+{
+    return coordAdd(CfC(cfDivf(pos, scale)), off);
+}
+
+void editMap()
+{
+    float scale = 1.0f;
+    // float snaplen = 24.0f;
+    Coord off = {0};
+    SDL_SetRelativeMouseMode(false);
+    Length wlen = getWindowLen();
+    bool rdrag = false;
+    Coord mrd = {0};
+    Wall *map = NULL;
+    Color c = MAGENTA;
     while(1){
         const uint t = frameStart();
+        if(checkCtrlKey(SDL_SCANCODE_Q) || checkCtrlKey(SDL_SCANCODE_W))
+            exit(EXIT_SUCCESS);
 
-        const Length wlen = getWindowLen();
-        const View birdsView = {.len = wlen};
-        const View firstView = {.len = coordDivi(wlen, 4), .pos = {.x=wlen.x-wlen.x/4}};
-        const Coordf bound = mapBounds(map);
-        float scale = (float)coordMin(birdsView.len) / cfMax(bound);
-        if(keyPressed(SDL_SCANCODE_ESCAPE))
-            return;
+        if(windowResized()){
+            const Length wlenOld = wlen;
+            wlen = getWindowLen();
+            off = resizeTransform(wlenOld, wlen, off);
+        }
 
-        player = playerMoveKeys(player);
+        if(mouseScrolledY()){
+            const float oldScale = scale;
+            scale = fclamp(scale * (mouseScrolledY() > 0 ? 1.2f : .8f) , .01f, 100.0f);
+            if(oldScale != scale){
 
-        if(mouseBtnState(MOUSE_M))
-            off = cfAdd(off, cfMulf(CCf(mouseMovement()), scale));
-        // Coordf mouseMapPos = toView()
+            }
+        }
 
-        drawBv(birdsView, map, player, scale, off);
-        drawFp(firstView, map, player);
+        if(mouseBtnState(MOUSE_M) || keyState(SDL_SCANCODE_LSHIFT)){
+            off = coordAdd(off, mouseMovement());
+            mrd = coordAdd(mrd, mouseMovement());
+        }
+
+        if(mouseBtnPressed(MOUSE_R)){
+            mrd = mouse.pos;
+            rdrag = true;
+        }
+
+        if(rdrag && keyPressed(SDL_SCANCODE_ESCAPE))
+            rdrag = false;
+
+        if(rdrag && mouseBtnReleased(MOUSE_R)){
+            rdrag = false;
+            map = wallAppend(map, wallNew(c, screenToMap(off, scale, mrd), screenToMap(off, scale, mouse.pos)));
+        }
+        if(rdrag){
+            setColor(c);
+            drawLineCoords(mrd, mouse.pos);
+            setColor(YELLOW);
+            fillCircleCoord(mouse.pos, 8);
+            setColor(GREEN);
+            fillCircleCoord(mrd, 8);
+        }
+
+        Wall *cur = map;
+        while(cur){
+            const Coord a = mapToScreen(off, scale, cur->a);
+            const Coord b = mapToScreen(off, scale, cur->b);
+            setColor(cur->c);
+            drawLineCoords(a, b);
+            cur = cur->next;
+        }
+
+        setColor(RED);
+        drawHLine(0, off.y, wlen.x);
+        drawVLine(off.x, 0, wlen.y);
 
         frameEnd(t);
     }
@@ -240,9 +310,9 @@ int main(void)
     map = wallAppend(map, wallNew(BLUE,     (const Coordf){.x=250.0f, .y=250.0f},   (const Coordf){.x=250.0f, .y=500.0f}));
     map = wallAppend(map, wallNew(BLUE,     (const Coordf){.x=250.0f, .y=500.0f},   (const Coordf){.x=500.0f, .y=500.0f}));
 
-    editMap(map);
+    editMap();
     SDL_SetRelativeMouseMode(true);
-    
+
     Player player = {.pos = {.x=125.0f, .y=125.0f}};
 
     while(1){
