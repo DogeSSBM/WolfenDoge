@@ -19,17 +19,11 @@ bool cfSame(const Coordf a, const Coordf b)
     return a.x == b.x && a.y == b.y;
 }
 
-Coordf cfMod(const Coordf pos, const uint mod)
+Coordf cfMod(const Coordf pos, const float mod)
 {
-    if(mod == 0)
-        return pos;
-    const Coordf diff = {
-        .x = fabs(pos.x - (int)pos.x),
-        .y = fabs(pos.y - (int)pos.y)
-    };
     return (const Coordf){
-        .x = (int)pos.x%mod + (pos.x<0?-diff.x:diff.x),
-        .y = (int)pos.y%mod + (pos.y<0?-diff.y:diff.y)
+        .x = fmod(pos.x, mod),
+        .y = fmod(pos.y, mod)
     };
 }
 
@@ -39,6 +33,19 @@ Coordf cfSub(const Coordf a, const Coordf b)
         .x = a.x-b.x,
         .y = a.y-b.y
     };
+}
+
+Coordf cfAddf(const Coordf pos, const float f)
+{
+    return (const Coordf){
+        .x=pos.x+f,
+        .y=pos.y+f
+    };
+}
+
+Coordf cfSnap(const Coordf pos, const float scale)
+{
+    return cfSub(pos, cfMod(pos, scale));
 }
 
 Coord coordAbs(const Coord pos)
@@ -502,8 +509,13 @@ Wall* mapEdit(Wall *map, char *fileName)
                 const float oldScale = scale;
                 scale = fclamp(scale * (mouseScrolledY() > 0 ? 1.2f : .8f) , .01f, 100.0f);
                 if(oldScale != scale){
-                    const Coordf oldPos = screenToMap(off, oldScale, mouse.pos);
-                    const Coordf newPos = screenToMap(off, scale, mouse.pos);
+                    const Coordf mopos = screenToMap(off, oldScale, coordDivi(wlen,2));
+                    const Coordf mpos = screenToMap(off, scale, coordDivi(wlen,2));
+                    const Coord dif = CfC(cfSub(mpos, mopos));
+                    off = coordAdd(off, coordDivi(dif, 2));
+                    // const Coordf offMag = cfAddf(cfDiv(CCf(mouse.pos), CCf(wlen)), -.05f);
+                    // off = mapToScreen(off, scale, cfMul(cfSub(mpos, mopos), offMag));
+
 
                 }
             }
@@ -569,7 +581,13 @@ Wall* mapEdit(Wall *map, char *fileName)
         drawVLine(off.x, 0, wlen.y);
 
         // if(snap){
-        //     for(float x =)
+        //     const Coordf start = cfSnap(screenToMap(off, scale, off), scale);
+        //     Coord spos = mapToScreen(off, scale, start);
+        //     for(Coordf pos = start; spos.x < wlen.x || spos.y < wlen.y; cfAddf(pos, snap)){
+        //         spos = mapToScreen(off, scale, pos);
+        //         drawVLine(spos.x, 0, wlen.y);
+        //         drawHLine(0, spos.y, wlen.x);
+        //     }
         // }
 
         if(selectedPos)
