@@ -120,8 +120,8 @@ Ray castRay(const Coordf origin, const Coordf distantPoint, Wall *map)
 {
     Ray ray = {
         .wall = map,
-        .dst = 6000.0f,
-        .pos = {.x = 6000.0f, .y = 6000.0f}
+        .dst = 60000.0f,
+        .pos = {.x = 60000.0f, .y = 60000.0f}
     };
     while(map){
         float curDst = 0;
@@ -146,19 +146,19 @@ void drawFp(const View view, Wall *map, const Player player)
     setColor(GREY3);
     fillRectCoordLength(iC(view.pos.x,view.len.y/2), iC(view.len.x,view.len.y/2));
 
-    const Coordf startingPos = cfAdd(player.pos, cfRotateDeg((const Coordf){.x=1024.0f,.y=-1024.0f}, player.ang));
+    const Coordf startingPos = cfAdd(player.pos, cfRotateDeg((const Coordf){.x=2048.0f,.y=-2048.0f}, player.ang));
     const float scanAng = degReduce(player.ang+90.0f);
 
     const float hsec = (float)view.len.x/90;
     for(int i = 0; i < 90; i++){
-        Ray ray = castRay(player.pos, cfAdd(startingPos, degMagToCf(scanAng, ((float)i/90.0f)*2048.0f)), map);
+        Ray ray = castRay(player.pos, cfAdd(startingPos, degMagToCf(scanAng, ((float)i/90.0f)*4096.0f)), map);
         const float viewTan = (0.5-i/90.0f) / 0.5;
         const int correctedDst = (int)(ray.dst/sqrtf(viewTan*viewTan+1.0f));
         if(ray.wall){
             Color c = ray.wall->c;
-            c.r = clamp(c.r-((correctedDst/1000.0f)*255), 0, 256);
-            c.g = clamp(c.g-((correctedDst/1000.0f)*255), 0, 256);
-            c.b = clamp(c.b-((correctedDst/1000.0f)*255), 0, 256);
+            c.r = clamp(c.r-(((correctedDst*1.2f)/2000.0f)*255), 0, 256);
+            c.g = clamp(c.g-(((correctedDst*1.2f)/2000.0f)*255), 0, 256);
+            c.b = clamp(c.b-(((correctedDst*1.2f)/2000.0f)*255), 0, 256);
             setColor(c);
         }else{
             setColor(BLACK);
@@ -322,7 +322,10 @@ Coord resizeTransform(const Length oldLen, const Length newLen, const Coord pos)
     return CfC(cfMul(CCf(newLen), cfDiv(CCf(pos), CCf(oldLen))));
 }
 
-// Coord rescaleTransform(const )
+Coordf resizeTransformf(const Lengthf oldLen, const Lengthf newLen, const Coordf pos)
+{
+    return cfMul(newLen, cfDiv(pos, oldLen));
+}
 
 Coordf screenToMap(const Coord off, const float scale, const Coord pos)
 {
@@ -332,6 +335,11 @@ Coordf screenToMap(const Coord off, const float scale, const Coord pos)
 Coord mapToScreen(const Coord off, const float scale, const Coordf pos)
 {
     return coordAdd(CfC(cfDivf(pos, scale)), off);
+}
+
+Coordf absOff(const Coord len, const Coord pos)
+{
+    return cfDiv(CCf(pos), CCf(len));
 }
 
 Wall* mapDefault(void)
@@ -494,6 +502,8 @@ Wall* mapEdit(Wall *map, char *fileName)
                 const float oldScale = scale;
                 scale = fclamp(scale * (mouseScrolledY() > 0 ? 1.2f : .8f) , .01f, 100.0f);
                 if(oldScale != scale){
+                    const Coordf oldPos = screenToMap(off, oldScale, mouse.pos);
+                    const Coordf newPos = screenToMap(off, scale, mouse.pos);
 
                 }
             }
