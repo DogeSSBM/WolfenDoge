@@ -19,6 +19,20 @@ bool cfSame(const Coordf a, const Coordf b)
     return a.x == b.x && a.y == b.y;
 }
 
+Coordf cfMod(const Coordf pos, const uint mod)
+{
+    if(mod == 0)
+        return pos;
+    const Coordf diff = {
+        fabs(pos.x - (int)pos.x),
+        fabs(pos.y - (int)pos.y)
+    }
+    return (const Coordf){
+        .x = (int)pos.x%mod + (pos.x<0?-diff.x:diff.x),
+        .y = (int)pos.y%mod + (pos.y<0?-diff.y:diff.y)
+    }
+}
+
 Coord coordAbs(const Coord pos)
 {
     return (const Coord){.x=pos.x<0?-pos.x:pos.x, .y=pos.y<0?-pos.y:pos.y};
@@ -399,7 +413,8 @@ Wall* posNearest(Wall *map, const Coordf pos, Coordf **nearest)
 Wall* mapEdit(Wall *map, char *fileName)
 {
     float scale = 1.0f;
-    // float snaplen = 24.0f;
+    bool snap = true;
+    uint snaplen = 24;
     Coord off = {0};
     SDL_SetRelativeMouseMode(false);
     Length wlen = getWindowLen();
@@ -421,6 +436,8 @@ Wall* mapEdit(Wall *map, char *fileName)
         if(checkCtrlKey(SDL_SCANCODE_S)){
             mapSave(map, fileName);
             return map;
+        }else if(keyPressed(SDL_SCANCODE_S)){
+            snap = !snap;
         }
 
         if(keyPressed(SDL_SCANCODE_ESCAPE)){
@@ -437,10 +454,14 @@ Wall* mapEdit(Wall *map, char *fileName)
         }
 
         if(mouseScrolledY()){
-            const float oldScale = scale;
-            scale = fclamp(scale * (mouseScrolledY() > 0 ? 1.2f : .8f) , .01f, 100.0f);
-            if(oldScale != scale){
+            if(keyState(SDL_SCANCODE_LCTRL) || keyState(SDL_SCANCODE_RCTRL)){
+                snaplen = imax(1, snaplen + mouseScrolledY);
+            }else{
+                const float oldScale = scale;
+                scale = fclamp(scale * (mouseScrolledY() > 0 ? 1.2f : .8f) , .01f, 100.0f);
+                if(oldScale != scale){
 
+                }
             }
         }
 
@@ -464,7 +485,11 @@ Wall* mapEdit(Wall *map, char *fileName)
         }
 
         if(ldrag && selectedPos){
-            *selectedPos = cfAdd(*selectedPos, screenToMap(off,scale, mouseMovement()));
+            if(snap){
+                *selectedPos = cfMod(cfAdd(*selectedPos, screenToMap(off,scale, mouseMovement())), snaplen);
+            }else{
+                *selectedPos = cfAdd(*selectedPos, screenToMap(off,scale, mouseMovement()));
+            }
         }
 
         if(mouseBtnPressed(MOUSE_R)){
@@ -498,6 +523,10 @@ Wall* mapEdit(Wall *map, char *fileName)
         setColor(RED);
         drawHLine(0, off.y, wlen.x);
         drawVLine(off.x, 0, wlen.y);
+        // 
+        // if(snap){
+        //     for(float x =)
+        // }
 
         if(selectedPos)
             fillCircleCoord(mapToScreen(off, scale, *selectedPos), 8);
