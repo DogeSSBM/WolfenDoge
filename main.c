@@ -46,6 +46,15 @@ Coord coordAbs(const Coord pos)
     return (const Coord){.x=pos.x<0?-pos.x:pos.x, .y=pos.y<0?-pos.y:pos.y};
 }
 
+u8* colorIndex(const Color c, const int i)
+{
+    if(iabs(i)%3 == 0)
+        return &(c.r);
+    if(iabs(i)%3 == 1)
+        return &(c.g);
+    return &(c.b);
+}
+
 bool checkCtrlKey(const Scancode key)
 {
     return keyPressed(key) && (keyState(SDL_SCANCODE_LCTRL) || keyState(SDL_SCANCODE_RCTRL));
@@ -435,6 +444,7 @@ Wall* mapEdit(Wall *map, char *fileName)
     Coordf *selectedPos = NULL;
 
     Color c = MAGENTA;
+    int ci = 0;
     while(1){
         const uint t = frameStart();
         if(checkCtrlKey(SDL_SCANCODE_Q) || checkCtrlKey(SDL_SCANCODE_W)){
@@ -447,6 +457,9 @@ Wall* mapEdit(Wall *map, char *fileName)
         }else if(keyPressed(SDL_SCANCODE_S)){
             snap = !snap;
         }
+
+        ci = wrap(ci + keyPressed(SDL_SCANCODE_RIGHT) - keyPressed(SDL_SCANCODE_LEFT), 0, 3);
+        *c = clamp((int)(*c) + keyPressed(SDL_SCANCODE_UP) - keyPressed(SDL_SCANCODE_DOWN), 0, 255);
 
         if(keyPressed(SDL_SCANCODE_ESCAPE)){
             selectedWall = NULL;
@@ -546,6 +559,9 @@ Wall* mapEdit(Wall *map, char *fileName)
             fillCircleCoord(mapToScreen(off, scale, *selectedPos), 8);
         if(selectedWall)
             drawCircleCoord(mapToScreen(off, scale, &(selectedWall->a) == selectedPos ? selectedWall->b : selectedWall->a), 8);
+
+        setColor(c);
+        fillCircleCoord(wlen, 8);
 
         frameEnd(t);
     }
