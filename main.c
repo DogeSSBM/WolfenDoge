@@ -46,13 +46,13 @@ Coord coordAbs(const Coord pos)
     return (const Coord){.x=pos.x<0?-pos.x:pos.x, .y=pos.y<0?-pos.y:pos.y};
 }
 
-u8* colorIndex(const Color c, const int i)
+u8* colorIndex(Color *c, const int i)
 {
     if(iabs(i)%3 == 0)
-        return &(c.r);
+        return &(c->r);
     if(iabs(i)%3 == 1)
-        return &(c.g);
-    return &(c.b);
+        return &(c->g);
+    return &(c->b);
 }
 
 bool checkCtrlKey(const Scancode key)
@@ -154,11 +154,15 @@ void drawFp(const View view, Wall *map, const Player player)
         Ray ray = castRay(player.pos, cfAdd(startingPos, degMagToCf(scanAng, ((float)i/90.0f)*2048.0f)), map);
         const float viewTan = (0.5-i/90.0f) / 0.5;
         const int correctedDst = (int)(ray.dst/sqrtf(viewTan*viewTan+1.0f));
-        Color c = ray.wall->c;
-        c.r = clamp(c.r-((correctedDst/1000.0f)*255), 0, 256);
-        c.g = clamp(c.g-((correctedDst/1000.0f)*255), 0, 256);
-        c.b = clamp(c.b-((correctedDst/1000.0f)*255), 0, 256);
-        setColor(c);
+        if(ray.wall){
+            Color c = ray.wall->c;
+            c.r = clamp(c.r-((correctedDst/1000.0f)*255), 0, 256);
+            c.g = clamp(c.g-((correctedDst/1000.0f)*255), 0, 256);
+            c.b = clamp(c.b-((correctedDst/1000.0f)*255), 0, 256);
+            setColor(c);
+        }else{
+            setColor(BLACK);
+        }
         fillRectCenteredCoordLength(
             iC(view.pos.x+hsec/2+i*hsec, view.pos.y+view.len.y/2),
             iC(hsec+1, imin(view.len.y, (view.len.y*120) / (correctedDst ? correctedDst : .01f)))
@@ -459,7 +463,10 @@ Wall* mapEdit(Wall *map, char *fileName)
         }
 
         ci = wrap(ci + keyPressed(SDL_SCANCODE_RIGHT) - keyPressed(SDL_SCANCODE_LEFT), 0, 3);
-        *c = clamp((int)(*c) + keyPressed(SDL_SCANCODE_UP) - keyPressed(SDL_SCANCODE_DOWN), 0, 255);
+        u8* b = colorIndex(&c, ci);
+        int change = (keyPressed(SDL_SCANCODE_UP) - keyPressed(SDL_SCANCODE_DOWN));
+        change *= (1+(keyState(SDL_SCANCODE_LCTRL) || keyState(SDL_SCANCODE_RCTRL)))*10;
+        *b = clamp((int)(*b) + change, 0, 255);
 
         if(keyPressed(SDL_SCANCODE_ESCAPE)){
             selectedWall = NULL;
