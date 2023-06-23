@@ -24,13 +24,21 @@ Coordf cfMod(const Coordf pos, const uint mod)
     if(mod == 0)
         return pos;
     const Coordf diff = {
-        fabs(pos.x - (int)pos.x),
-        fabs(pos.y - (int)pos.y)
-    }
+        .x = fabs(pos.x - (int)pos.x),
+        .y = fabs(pos.y - (int)pos.y)
+    };
     return (const Coordf){
         .x = (int)pos.x%mod + (pos.x<0?-diff.x:diff.x),
         .y = (int)pos.y%mod + (pos.y<0?-diff.y:diff.y)
-    }
+    };
+}
+
+Coordf cfSub(const Coordf a, const Coordf b)
+{
+    return (const Coordf){
+        .x = a.x-b.x,
+        .y = a.y-b.y
+    };
 }
 
 Coord coordAbs(const Coord pos)
@@ -453,9 +461,15 @@ Wall* mapEdit(Wall *map, char *fileName)
             off = resizeTransform(wlenOld, wlen, off);
         }
 
+        if((keyPressed(SDL_SCANCODE_DELETE) || keyPressed(SDL_SCANCODE_BACKSPACE)) && selectedWall){
+            map = wallDelete(map, selectedWall);
+            selectedWall = NULL;
+            selectedPos = NULL;
+        }
+
         if(mouseScrolledY()){
             if(keyState(SDL_SCANCODE_LCTRL) || keyState(SDL_SCANCODE_RCTRL)){
-                snaplen = imax(1, snaplen + mouseScrolledY);
+                snaplen = imax(1, snaplen + mouseScrolledY());
             }else{
                 const float oldScale = scale;
                 scale = fclamp(scale * (mouseScrolledY() > 0 ? 1.2f : .8f) , .01f, 100.0f);
@@ -486,7 +500,7 @@ Wall* mapEdit(Wall *map, char *fileName)
 
         if(ldrag && selectedPos){
             if(snap){
-                *selectedPos = cfMod(cfAdd(*selectedPos, screenToMap(off,scale, mouseMovement())), snaplen);
+                *selectedPos = cfAdd(*selectedPos, screenToMap(off,scale, mouseMovement()));
             }else{
                 *selectedPos = cfAdd(*selectedPos, screenToMap(off,scale, mouseMovement()));
             }
@@ -523,7 +537,7 @@ Wall* mapEdit(Wall *map, char *fileName)
         setColor(RED);
         drawHLine(0, off.y, wlen.x);
         drawVLine(off.x, 0, wlen.y);
-        // 
+
         // if(snap){
         //     for(float x =)
         // }
