@@ -14,6 +14,11 @@ float cfMax(const Coordf pos)
     return fmost(pos.x, pos.y);
 }
 
+bool cfSame(const Coordf a, const Coordf b)
+{
+    return a.x == b.x && a.y == b.y;
+}
+
 Coord coordAbs(const Coord pos)
 {
     return (const Coord){.x=pos.x<0?-pos.x:pos.x, .y=pos.y<0?-pos.y:pos.y};
@@ -197,6 +202,28 @@ Wall* wallAppend(Wall *head, Wall *tail)
     return head;
 }
 
+Wall* wallDelete(Wall *map, Wall *del)
+{
+    if(!del)
+        return map;
+    if(!map)
+        return NULL;
+    if(del == map){
+        Wall *next = map->next;
+        free(map);
+        return next;
+    }
+    Wall *cur = map;
+    while(cur && cur->next != del)
+        cur = cur->next;
+    if(!cur)
+        return map;
+    Wall *next = cur->next->next;
+    free(cur->next);
+    cur->next = next;
+    return map;
+}
+
 uint wallListLen(Wall *map)
 {
     uint len = 0;
@@ -342,6 +369,33 @@ void mapSave(Wall *map, char *fileName)
     free(mapPacked);
 }
 
+Wall* posNearest(Wall *map, const Coordf pos, Coordf **nearest)
+{
+    if(!map){
+        nearest = NULL;
+        return NULL;
+    }
+    Wall *wall = map;
+    *nearest = &(map->a);
+    float dst = cfDist(pos, map->a);
+    while(map){
+        float curDst = cfDist(pos, map->a);
+        if(curDst < dst){
+            dst = curDst;
+            wall = map;
+            *nearest = &(map->a);
+        }
+        curDst = cfDist(pos, map->b);
+        if(curDst < dst){
+            dst = curDst;
+            wall = map;
+            *nearest = &(map->b);
+        }
+        map = map->next;
+    }
+    return wall;
+}
+
 Wall* mapEdit(Wall *map, char *fileName)
 {
     float scale = 1.0f;
@@ -351,6 +405,11 @@ Wall* mapEdit(Wall *map, char *fileName)
     Length wlen = getWindowLen();
     bool rdrag = false;
     Coord mrd = {0};
+    Coord mld = {0};
+    bool ldrag = false;
+
+    Wall *selectedWall = NULL;
+    Coordf *selectedPos = NULL;
 
     Color c = MAGENTA;
     while(1){
@@ -362,6 +421,13 @@ Wall* mapEdit(Wall *map, char *fileName)
         if(checkCtrlKey(SDL_SCANCODE_S)){
             mapSave(map, fileName);
             return map;
+        }
+
+        if(keyPressed(SDL_SCANCODE_ESCAPE)){
+            selectedWall = NULL;
+            selectedPos = NULL;
+            rdrag = false;
+            ldrag = false;
         }
 
         if(windowResized()){
@@ -381,6 +447,24 @@ Wall* mapEdit(Wall *map, char *fileName)
         if(mouseBtnState(MOUSE_M) || keyState(SDL_SCANCODE_LSHIFT)){
             off = coordAdd(off, mouseMovement());
             mrd = coordAdd(mrd, mouseMovement());
+            mld = coordAdd(mld, mouseMovement());
+        }
+
+        if(!selectedWall && mouseBtnReleased(MOUSE_L)){
+            selectedWall = posNearest(map, screenToMap(off, scale, mouse.pos), &selectedPos);
+        }
+
+        if(mouseBtnPressed(MOUSE_L) && selectedPos){
+            ldrag = true;
+            mld = mouse.pos;
+        }
+
+        if(ldrag && mouseBtnReleased(MOUSE_L)){
+            ldrag = false;
+        }
+
+        if(ldrag && selectedPos){
+            *selectedPos = cfAdd(*selectedPos, screenToMap(off,scale, mouseMovement()));
         }
 
         if(mouseBtnPressed(MOUSE_R)){
@@ -388,13 +472,11 @@ Wall* mapEdit(Wall *map, char *fileName)
             rdrag = true;
         }
 
-        if(rdrag && keyPressed(SDL_SCANCODE_ESCAPE))
-            rdrag = false;
-
         if(rdrag && mouseBtnReleased(MOUSE_R)){
             rdrag = false;
             map = wallAppend(map, wallNew(c, screenToMap(off, scale, mrd), screenToMap(off, scale, mouse.pos)));
         }
+
         if(rdrag){
             setColor(c);
             drawLineCoords(mrd, mouse.pos);
@@ -416,6 +498,11 @@ Wall* mapEdit(Wall *map, char *fileName)
         setColor(RED);
         drawHLine(0, off.y, wlen.x);
         drawVLine(off.x, 0, wlen.y);
+
+        if(selectedPos)
+            fillCircleCoord(mapToScreen(off, scale, *selectedPos), 8);
+        if(selectedWall)
+            drawCircleCoord(mapToScreen(off, scale, &(selectedWall->a) == selectedPos ? selectedWall->b : selectedWall->a), 8);
 
         frameEnd(t);
     }
@@ -447,8 +534,9 @@ int main(int argc, char **argv)
     while(1){
         const uint t = frameStart();
 
-        if(keyPressed(SDL_SCANCODE_ESCAPE))
+        if(keyPressed(SDL_SCANCODE_ESCAPE) || checkCtrlKey(SDL_SCANCODE_Q) || checkCtrlKey(SDL_SCANCODE_W)){
             return 0;
+        }
 
         if(checkCtrlKey(SDL_SCANCODE_E)){
             map = mapEdit(map, fileName);
