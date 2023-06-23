@@ -43,6 +43,12 @@ typedef struct Wall{
 }Wall;
 
 typedef struct{
+    Color c;
+    Coordf a;
+    Coordf b;
+}WallPacked;
+
+typedef struct{
     Wall *wall;
     float dst;
     Coordf pos;
@@ -191,6 +197,50 @@ Wall* wallAppend(Wall *head, Wall *tail)
     return head;
 }
 
+uint wallListLen(Wall *map)
+{
+    uint len = 0;
+    while(map){
+        len++;
+        map = map->next;
+    }
+    return len;
+}
+
+void wallFreeList(Wall *list)
+{
+    while(list){
+        Wall *next = list->next;
+        free(list);
+        list = next;
+    }
+}
+
+WallPacked* mapPack(Wall *map)
+{
+    const uint len = wallListLen(map);
+    if(len == 0)
+        return NULL;
+    WallPacked *mapPacked = calloc(len, sizeof(WallPacked));
+    for(uint i = 0; i < len; i++){
+        mapPacked[i].c = map->c;
+        mapPacked[i].a = map->a;
+        mapPacked[i].b = map->b;
+        map = map->next;
+    }
+    return mapPacked;
+}
+
+Wall* mapUnpack(WallPacked *mapPacked, const uint len)
+{
+    if(len == 0)
+        return NULL;
+    Wall *map = NULL;
+    for(uint i = 0; i < len; i++)
+        map = wallAppend(map, wallNew(mapPacked[i].c, mapPacked[i].a, mapPacked[i].b));
+    return map;
+}
+
 Coordf mapBounds(Wall *map)
 {
     Coordf bound = {0};
@@ -222,7 +272,77 @@ Coord mapToScreen(const Coord off, const float scale, const Coordf pos)
     return coordAdd(CfC(cfDivf(pos, scale)), off);
 }
 
-void editMap()
+Wall* mapDefault(void)
+{
+    Wall *map =           wallNew(GREEN,    (const Coordf){.x=  0.0f, .y=  0.0f},   (const Coordf){.x=750.0f, .y=  0.0f});
+    map = wallAppend(map, wallNew(MAGENTA,  (const Coordf){.x=750.0f, .y=  0.0f},   (const Coordf){.x=750.0f, .y=750.0f}));
+    map = wallAppend(map, wallNew(MAGENTA,  (const Coordf){.x=  0.0f, .y=  0.0f},   (const Coordf){.x=  0.0f, .y=750.0f}));
+    map = wallAppend(map, wallNew(GREEN,    (const Coordf){.x=  0.0f, .y=750.0f},   (const Coordf){.x=750.0f, .y=750.0f}));
+    map = wallAppend(map, wallNew(BLUE,     (const Coordf){.x=250.0f, .y=250.0f},   (const Coordf){.x=500.0f, .y=250.0f}));
+    map = wallAppend(map, wallNew(BLUE,     (const Coordf){.x=500.0f, .y=250.0f},   (const Coordf){.x=500.0f, .y=500.0f}));
+    map = wallAppend(map, wallNew(BLUE,     (const Coordf){.x=250.0f, .y=250.0f},   (const Coordf){.x=250.0f, .y=500.0f}));
+    map = wallAppend(map, wallNew(BLUE,     (const Coordf){.x=250.0f, .y=500.0f},   (const Coordf){.x=500.0f, .y=500.0f}));
+    return map;
+}
+
+Wall* mapLoad(char *fileName)
+{
+    File *file = NULL;
+    assertExpr(fileName);
+    if((file = fopen(fileName, "rb")) == NULL){
+        printf("Couldn't open file \"%s\"\n", fileName);
+        return NULL;
+    }
+    uint len = 0;
+    fread(&len, sizeof(uint), 1, file);
+    if(feof(file) || len == 0){
+        printf("Error reading len of map in file \"%s\"\n", fileName);
+        fclose(file);
+        return NULL;
+    }
+    WallPacked *mapPacked = calloc(len, sizeof(WallPacked));
+    fread(mapPacked, sizeof(WallPacked), len, file);
+    if(fgetc(file) != EOF || !feof(file))
+        printf("Not at end of file after reading expected len (%u)\n", len);
+    Wall* map = mapUnpack(mapPacked, len);
+    free(mapPacked);
+    return map;
+}
+
+void defaultMapFileName(char *fileName)
+{
+    uint i = 0;
+    File *file = NULL;
+    sprintf(fileName, "map.bork");
+    while((file = fopen(fileName, "rb")) != NULL){
+        fclose(file);
+        i++;
+        sprintf(fileName, "map(%u).bork", i);
+    }
+}
+
+void mapSave(Wall *map, char *fileName)
+{
+    if(!map){
+        printf("Map is empty, skipping save\n");
+        return;
+    }
+    File *file = NULL;
+    char defaultName[64] = {0};
+    if(!fileName){
+        defaultMapFileName(defaultName);
+        fileName = defaultName;
+    }
+    file = fopen(fileName, "wb");
+    const uint len = wallListLen(map);
+    WallPacked *mapPacked = mapPack(map);
+    fwrite(&len, sizeof(uint), 1, file);
+    fwrite(mapPacked, sizeof(WallPacked), len, file);
+    fclose(file);
+    free(mapPacked);
+}
+
+Wall* mapEdit(Wall *map, char *fileName)
 {
     float scale = 1.0f;
     // float snaplen = 24.0f;
@@ -231,12 +351,18 @@ void editMap()
     Length wlen = getWindowLen();
     bool rdrag = false;
     Coord mrd = {0};
-    Wall *map = NULL;
+
     Color c = MAGENTA;
     while(1){
         const uint t = frameStart();
-        if(checkCtrlKey(SDL_SCANCODE_Q) || checkCtrlKey(SDL_SCANCODE_W))
-            exit(EXIT_SUCCESS);
+        if(checkCtrlKey(SDL_SCANCODE_Q) || checkCtrlKey(SDL_SCANCODE_W)){
+            return map;
+        }
+
+        if(checkCtrlKey(SDL_SCANCODE_S)){
+            mapSave(map, fileName);
+            return map;
+        }
 
         if(windowResized()){
             const Length wlenOld = wlen;
@@ -295,22 +421,25 @@ void editMap()
     }
 }
 
-int main(void)
+int main(int argc, char **argv)
 {
+    assertExpr(argc <= 2);
     init();
     gfx.outlined = false;
     winSetPosCoord(coordAddi(coordDivi(getWinDisplayLen(), 2), -400));
-    setColor(WHITE);
-    Wall *map =           wallNew(GREEN,    (const Coordf){.x=  0.0f, .y=  0.0f},   (const Coordf){.x=750.0f, .y=  0.0f});
-    map = wallAppend(map, wallNew(MAGENTA,  (const Coordf){.x=750.0f, .y=  0.0f},   (const Coordf){.x=750.0f, .y=750.0f}));
-    map = wallAppend(map, wallNew(MAGENTA,  (const Coordf){.x=  0.0f, .y=  0.0f},   (const Coordf){.x=  0.0f, .y=750.0f}));
-    map = wallAppend(map, wallNew(GREEN,    (const Coordf){.x=  0.0f, .y=750.0f},   (const Coordf){.x=750.0f, .y=750.0f}));
-    map = wallAppend(map, wallNew(BLUE,     (const Coordf){.x=250.0f, .y=250.0f},   (const Coordf){.x=500.0f, .y=250.0f}));
-    map = wallAppend(map, wallNew(BLUE,     (const Coordf){.x=500.0f, .y=250.0f},   (const Coordf){.x=500.0f, .y=500.0f}));
-    map = wallAppend(map, wallNew(BLUE,     (const Coordf){.x=250.0f, .y=250.0f},   (const Coordf){.x=250.0f, .y=500.0f}));
-    map = wallAppend(map, wallNew(BLUE,     (const Coordf){.x=250.0f, .y=500.0f},   (const Coordf){.x=500.0f, .y=500.0f}));
+    Wall *map = NULL;
+    char *fileName;
+    char defaultName[64] = {0};
+    if(argc < 2){
+        defaultMapFileName(defaultName);
+        fileName = defaultName;
+        map = mapDefault();
+    }else{
+        fileName = argv[1];
+        map = mapLoad(fileName);
+    }
 
-    editMap();
+    assertExpr(map);
     SDL_SetRelativeMouseMode(true);
 
     Player player = {.pos = {.x=125.0f, .y=125.0f}};
@@ -320,6 +449,11 @@ int main(void)
 
         if(keyPressed(SDL_SCANCODE_ESCAPE))
             return 0;
+
+        if(checkCtrlKey(SDL_SCANCODE_E)){
+            map = mapEdit(map, fileName);
+            SDL_SetRelativeMouseMode(true);
+        }
 
         const Length wlen = getWindowLen();
         const View firstView = {.len = wlen};
