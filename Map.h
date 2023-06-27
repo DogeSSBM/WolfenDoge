@@ -199,12 +199,46 @@ Wall* mapDefault(void)
     return map;
 }
 
+int numKeyPressed(void)
+{
+    const Scancode key[10] = {
+        SDL_SCANCODE_0,
+        SDL_SCANCODE_1,
+        SDL_SCANCODE_2,
+        SDL_SCANCODE_3,
+        SDL_SCANCODE_4,
+        SDL_SCANCODE_5,
+        SDL_SCANCODE_6,
+        SDL_SCANCODE_7,
+        SDL_SCANCODE_8,
+        SDL_SCANCODE_9
+    };
+    for(int i = 0; i < 10; i++){
+        if(keyPressed(key[i]))
+            return i;
+    }
+    return -1;
+}
+
 int editColor(Color *c, int ci)
 {
+    static int nums[3] = {0};
     ci = wrap(ci + keyPressed(SDL_SCANCODE_RIGHT) - keyPressed(SDL_SCANCODE_LEFT), 0, 3);
     u8* b = colorIndex(c, ci);
     const int change = (keyPressed(SDL_SCANCODE_UP) - keyPressed(SDL_SCANCODE_DOWN))*(keyCtrlState()?10:1);
     *b = clamp((int)(*b) + change, 0, 255);
+    if(change){
+        nums[2] = (*(colorIndex(c, ci))) / 100;
+        nums[2] = ((*(colorIndex(c, ci)) / 10)%10);
+        nums[0] = (*(colorIndex(c, ci)) %10);
+    }
+    const int num = numKeyPressed();
+    if(num != -1){
+        nums[2] = nums[1];
+        nums[1] = nums[0];
+        nums[0] = num;
+        *b = clamp(nums[2]*100+nums[1]*10+nums[0], 0, 255);
+    }
     return ci;
 }
 
@@ -252,6 +286,7 @@ void drawOriginLines(const Offset off, const Length wlen)
 
 void drawGrid(const Offset off, const Length wlen, const float scale, const float snaplen)
 {
+    setColor(GREY);
     Coordf mpos = cfSnap(screenToMap(off, scale, iC(0,0)), snaplen);
     Coord spos = mapToScreen(off, scale, mpos);
     while(spos.x < wlen.x || spos.y < wlen.y){
@@ -261,6 +296,25 @@ void drawGrid(const Offset off, const Length wlen, const float scale, const floa
         spos = mapToScreen(off, scale, mpos);
     }
 }
+
+void drawColor(const Length wlen, Color c, const int ci)
+{
+    const uint tscale = (wlen.x/3)/10;
+    setTextSize(tscale);
+    Coord pos = {.x = wlen.x-(wlen.x/3+tscale*2), .y = wlen.y-(tscale + tscale/4)};
+    setColor(c);
+    fillSquareCoord(iC(pos.x - tscale*2, pos.y), tscale);
+    char letter[3] = {'R', 'G', 'B'};
+    const Color indexcolor[3] = {RED, GREEN, BLUE};
+    for(int i = 0; i < 3; i++){
+        char buf[16] = {0};
+        sprintf(buf, "%c: %3u", letter[i], *(colorIndex(&c, i)));
+        setTextColor(i == ci ? indexcolor[i] : WHITE);
+        drawTextCoord(buf, pos);
+        pos.x += 4*tscale;
+    }
+}
+
 
 Wall* mapEdit(Wall *map, char *fileName)
 {
@@ -401,6 +455,8 @@ Wall* mapEdit(Wall *map, char *fileName)
 
         setColor(c);
         fillCircleCoord(wlen, 8);
+
+        drawColor(wlen, c, ci);
 
         frameEnd(t);
     }

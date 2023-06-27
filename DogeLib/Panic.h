@@ -1,7 +1,7 @@
-#ifndef PANIC_H
-#define PANIC_H
+#ifndef DOGELIB_PANIC_H
+#define DOGELIB_PANIC_H
 
-void panic_helper(const char *func, const char *file, const int line, const char * format, ...)
+void panicHelper(const char *func, const char *file, const int line, const char * format, ...)
 {
     fprintf(stderr, "Panic -\n");
     fprintf(stderr, "\tFile: %s\n", file);
@@ -15,7 +15,7 @@ void panic_helper(const char *func, const char *file, const int line, const char
     fprintf(stderr, "\"\n");
     exit(EXIT_FAILURE);
 }
-#define panic(...)  panic_helper(__func__, __FILE__, __LINE__, __VA_ARGS__)
+#define panic(...)  panicHelper(__func__, __FILE__, __LINE__, __VA_ARGS__)
 
 void notNullHelper(const char *func, const char *file, const int line, void *ptr)
 {
@@ -57,6 +57,22 @@ void assertLogExprHelper(const char *func, const char *file, const int line, con
 }
 #define assertLogExpr(expr) assertLogExprHelper(__func__, __FILE__, __LINE__, expr, #expr)
 
+void logExprHelper(const char *func, const char *file, const int line, const char * format, const char *exprs,...)
+{
+    fprintf(stderr, "Log -\n");
+    fprintf(stderr, "\tFile: %s\n", file);
+    fprintf(stderr, "\tLine: %i\n", line);
+    fprintf(stderr, "\tFunc: %s\n", func);
+    fprintf(stderr, "\tMessage: \"");
+    va_list args;
+    va_start(args, exprs);
+    vfprintf(stderr, format, args);
+    va_end(args);
+    fprintf(stderr, "\"\n");
+    fprintf(stderr, "\tExprs: \"%s\"\n", exprs);
+}
+#define logExpr(format, ...)  logExprHelper(__func__, __FILE__, __LINE__, format, #__VA_ARGS__, __VA_ARGS__)
+
 void assertExprMsgHelper(const char *func, const char *file, const int line, const bool val, const char *expr, const char *format, ...)
 {
     if(!val){
@@ -97,4 +113,4 @@ void assertLogExprMsgHelper(const char *func, const char *file, const int line, 
 }
 #define assertLogExprMsg(expr, ...) assertLogExprMsgHelper(__func__, __FILE__, __LINE__, expr, #expr, __VA_ARGS__)
 
-#endif /* end of include guard: PANIC_H */
+#endif /* end of include guard: DOGELIB_PANIC_H */

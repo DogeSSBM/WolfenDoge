@@ -138,6 +138,48 @@ bool lineIntersection(const Coordf p0, const Coordf p1, const Coordf p2, const C
     return false;
 }
 
+Offset wasdKeyStateOffset(void)
+{
+    return (const Offset){
+        .x = keyState(SDL_SCANCODE_D) - keyState(SDL_SCANCODE_A),
+        .y = keyState(SDL_SCANCODE_S) - keyState(SDL_SCANCODE_W)
+    };
+}
+
+Offset arrowKeyStateOffset(void)
+{
+    return (const Offset){
+        .x = keyState(SDL_SCANCODE_RIGHT) - keyState(SDL_SCANCODE_LEFT),
+        .y = keyState(SDL_SCANCODE_DOWN) - keyState(SDL_SCANCODE_UP)
+    };
+}
+
+Offset dirKeyStateOffset(void)
+{
+    return coordLeast(coordAdd(wasdKeyStateOffset(), arrowKeyStateOffset()), iC(1,1));
+}
+
+Offset wasdKeyPressedOffset(void)
+{
+    return (const Offset){
+        .x = keyPressed(SDL_SCANCODE_D) - keyPressed(SDL_SCANCODE_A),
+        .y = keyPressed(SDL_SCANCODE_S) - keyPressed(SDL_SCANCODE_W)
+    };
+}
+
+Offset arrowKeyPressedOffset(void)
+{
+    return (const Offset){
+        .x = keyPressed(SDL_SCANCODE_RIGHT) - keyPressed(SDL_SCANCODE_LEFT),
+        .y = keyPressed(SDL_SCANCODE_DOWN) - keyPressed(SDL_SCANCODE_UP)
+    };
+}
+
+Offset dirKeyPressedOffset(void)
+{
+    return coordLeast(coordAdd(wasdKeyPressedOffset(), arrowKeyPressedOffset()), iC(1,1));
+}
+
 Ray castRay(const Coordf origin, const Coordf distantPoint, Wall *map)
 {
     Ray ray = {
@@ -219,13 +261,9 @@ void drawBv(const View view, Wall *map, const Player player, const float scale, 
 
 Player playerMoveMouse(Player player)
 {
-    const Scancode dirkey[4] = {SDL_SCANCODE_A, SDL_SCANCODE_W, SDL_SCANCODE_D, SDL_SCANCODE_S};
     player.ang = degReduce(player.ang + (mouse.vec.x*2)/3);
-    Coord strafe = {0} ;
-    for(uint i = 0; i < 4; i++)
-        strafe = coordShift(strafe, i, 2*keyState(dirkey[i]));
-
-    player.pos = cfAdd(player.pos, cfRotateDeg(CCf(strafe), player.ang));
+    Coord strafe = coordMuli(wasdKeyStateOffset(), 2);
+    player.pos = cfAdd(player.pos, cfRotateDeg(CCf(strafe), player.ang+90.0f));
     return player;
 }
 
