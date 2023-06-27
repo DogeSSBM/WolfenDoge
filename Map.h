@@ -319,12 +319,6 @@ void drawColor(const Length wlen, Color c, const int ci)
     }
 }
 
-// Minfo mlUpdate(Wall *map, Minfo ml)
-// {
-//
-//
-// }
-
 void mlrUpdate(Minfo *ml, Minfo *mr, const Offset off, const float scale, const float snaplen)
 {
     ml->spos = mouse.pos;
@@ -335,6 +329,37 @@ void mlrUpdate(Minfo *ml, Minfo *mr, const Offset off, const float scale, const 
     mr->msnap = ml->msnap;
     ml->ssnap = mapToScreen(off, scale, ml->msnap);
     mr->ssnap = ml->ssnap;
+}
+
+Minfo mlUpdate(Minfo ml, Selection *sel, Wall *map, const float scale, const bool snap, const float snaplen)
+{
+    if(!sel->wall && mouseBtnReleased(MOUSE_L)){
+        sel->wall = posNearest(map, ml.mpos, &(sel->pos));
+    }
+
+    if(mouseBtnPressed(MOUSE_L) && sel->pos){
+        ml.drag = true;
+        ml.sposd = ml.spos;
+        ml.ssnapd = ml.ssnap;
+        ml.mposd = ml.mpos;
+        ml.msnapd = ml.msnap;
+        sel->posOrig = *(sel->pos);
+        if(snap)
+            sel->posOrig = cfSnapMid(*(sel->pos), snaplen);
+    }
+
+    if(ml.drag && mouseBtnReleased(MOUSE_L)){
+        ml.drag = false;
+    }
+
+    if(ml.drag && sel->pos){
+        if(snap)
+            *(sel->pos) = cfAdd(sel->posOrig, cfSnapMid(cfSub(ml.mpos, ml.mposd), snaplen));
+        else
+            *(sel->pos) = cfAdd(*(sel->pos), cfMulf(CCf(mouseMovement()), scale));
+    }
+
+    return ml;
 }
 
 Wall* mapEdit(Wall *map, char *fileName)
@@ -391,33 +416,7 @@ Wall* mapEdit(Wall *map, char *fileName)
             ml.sposd = ml.spos;// coordAdd(ml.sposd, mouseMovement());
         }
 
-        // ml = mlUpdate();
-
-        if(!sel.wall && mouseBtnReleased(MOUSE_L)){
-            sel.wall = posNearest(map, ml.mpos, &sel.pos);
-        }
-
-        if(mouseBtnPressed(MOUSE_L) && sel.pos){
-            ml.drag = true;
-            ml.sposd = ml.spos;
-            ml.ssnapd = ml.ssnap;
-            ml.mposd = ml.mpos;
-            ml.msnapd = ml.msnap;
-            sel.posOrig = *sel.pos;
-            if(snap)
-                sel.posOrig = cfSnapMid(*sel.pos, snaplen);
-        }
-
-        if(ml.drag && mouseBtnReleased(MOUSE_L)){
-            ml.drag = false;
-        }
-
-        if(ml.drag && sel.pos){
-            if(snap)
-                *sel.pos = cfAdd(sel.posOrig, cfSnapMid(cfSub(ml.mpos, ml.mposd), snaplen));
-            else
-                *sel.pos = cfAdd(*sel.pos, cfMulf(CCf(mouseMovement()), scale));
-        }
+        ml = mlUpdate(ml, &sel, map, scale, snap, snaplen);
 
         if(sel.wall && sel.pos && keyPressed(SDL_SCANCODE_R)){
             sel.pos = sel.pos == &(sel.wall->a) ? &(sel.wall->b) : &(sel.wall->a);
