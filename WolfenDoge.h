@@ -31,6 +31,24 @@ typedef struct{
     Coordf b;
 }WallPacked;
 
+typedef struct{
+    Coord spos;
+    Coordf mpos;
+    Coord sposd;
+    Coordf mposd;
+    Coord ssnap;
+    Coordf msnap;
+    Coord ssnapd;
+    Coordf msnapd;
+    bool drag;
+}Minfo;
+
+typedef struct{
+    Wall *wall;
+    Coordf posOrig;
+    Coordf *pos;
+}Selection;
+
 #include "Decls.h"
 #include "Map.h"
 

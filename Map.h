@@ -220,7 +220,7 @@ int numKeyPressed(void)
     return -1;
 }
 
-int editColor(Color *c, int ci)
+int editColor(Color *c, int ci, Wall *selectedWall)
 {
     static int nums[3] = {0};
     ci = wrap(ci + keyPressed(SDL_SCANCODE_RIGHT) - keyPressed(SDL_SCANCODE_LEFT), 0, 3);
@@ -239,6 +239,10 @@ int editColor(Color *c, int ci)
         nums[0] = num;
         *b = clamp(nums[2]*100+nums[1]*10+nums[0], 0, 255);
     }
+
+    if(keyPressed(SDL_SCANCODE_C) && selectedWall)
+        selectedWall->c = *c;
+
     return ci;
 }
 
@@ -315,26 +319,29 @@ void drawColor(const Length wlen, Color c, const int ci)
     }
 }
 
+// Minfo mlUpdate(Wall *map, Minfo ml)
+// {
+//
+//
+// }
 
 Wall* mapEdit(Wall *map, char *fileName)
 {
     float scale = 1.0f;
     bool snap = true;
     float snaplen = 50.0f;
-    Coordf mmpos = {0};
     Coord off = {0};
     SDL_SetRelativeMouseMode(false);
     Length wlen = getWindowLen();
-    bool rdrag = false;
-    Coordf mmrd = {0};
-    Coord mrd = {0};
-    Coordf mmld = {0};
-    Coord mld = {0};
-    bool ldrag = false;
 
-    Wall *selectedWall = NULL;
-    Coordf selectedPosOrig = {0};
-    Coordf *selectedPos = NULL;
+    Minfo ml = {0};
+    Minfo mr = {0};
+
+    Selection sel = {0};
+
+    // Wall *selectedWall = NULL;
+    // Coordf selectedPosOrig = {0};
+    // Coordf *selectedPos = NULL;
 
     Color c = MAGENTA;
     int ci = 0;
@@ -345,16 +352,21 @@ Wall* mapEdit(Wall *map, char *fileName)
         }
 
         snap = checkKeyS(map, fileName, snap, snaplen);
-
-        ci = editColor(&c, ci);
-
-        mmpos = screenToMap(off, scale, mouse.pos);
+        ci = editColor(&c, ci, sel.wall);
+        ml.spos = mouse.pos;
+        mr.spos = ml.spos;
+        ml.mpos = screenToMap(off, scale, ml.spos);
+        mr.mpos = ml.mpos;
+        ml.msnap = cfSnapMid(ml.mpos, snaplen);
+        mr.msnap = ml.msnap;
+        ml.ssnap = mapToScreen(off, scale, ml.msnap);
+        mr.ssnap = ml.ssnap;
 
         if(keyPressed(SDL_SCANCODE_ESCAPE)){
-            selectedWall = NULL;
-            selectedPos = NULL;
-            rdrag = false;
-            ldrag = false;
+            sel.wall = NULL;
+            sel.pos = NULL;
+            mr.drag = false;
+            ml.drag = false;
         }
 
         if(windowResized()){
@@ -363,76 +375,75 @@ Wall* mapEdit(Wall *map, char *fileName)
             off = resizeTransform(wlenOld, wlen, off);
         }
 
-        if((keyPressed(SDL_SCANCODE_DELETE) || keyPressed(SDL_SCANCODE_BACKSPACE)) && selectedWall){
-            map = wallDelete(map, selectedWall);
-            selectedWall = NULL;
-            selectedPos = NULL;
+        if((keyPressed(SDL_SCANCODE_DELETE) || keyPressed(SDL_SCANCODE_BACKSPACE)) && sel.wall){
+            map = wallDelete(map, sel.wall);
+            sel.wall = NULL;
+            sel.pos = NULL;
         }
 
-        checkScroll(&off, mmpos, snap, &snaplen, &scale);
+        checkScroll(&off, ml.mpos, snap, &snaplen, &scale);
 
         if(mouseBtnState(MOUSE_M) || keyState(SDL_SCANCODE_LSHIFT)){
             off = coordAdd(off, mouseMovement());
-            mrd = coordAdd(mrd, mouseMovement());
-            mld = coordAdd(mld, mouseMovement());
+            mr.sposd = mr.spos;// coordAdd(mr.sposd, mouseMovement());
+            ml.sposd = ml.spos;// coordAdd(ml.sposd, mouseMovement());
         }
 
-        if(!selectedWall && mouseBtnReleased(MOUSE_L)){
-            selectedWall = posNearest(map, mmpos, &selectedPos);
+        // ml = mlUpdate();
+
+        if(!sel.wall && mouseBtnReleased(MOUSE_L)){
+            sel.wall = posNearest(map, ml.mpos, &sel.pos);
         }
 
-        if(mouseBtnPressed(MOUSE_L) && selectedPos){
-            ldrag = true;
-            mld = mouse.pos;
-            mmld = mmpos;
-            selectedPosOrig = *selectedPos;
+        if(mouseBtnPressed(MOUSE_L) && sel.pos){
+            ml.drag = true;
+            ml.sposd = ml.spos;
+            ml.ssnapd = ml.ssnap;
+            ml.mposd = ml.mpos;
+            ml.msnapd = ml.msnap;
+            sel.posOrig = *sel.pos;
             if(snap)
-                selectedPosOrig = cfSnapMid(selectedPosOrig, snaplen);
+                sel.posOrig = cfSnapMid(*sel.pos, snaplen);
         }
 
-        if(ldrag && mouseBtnReleased(MOUSE_L)){
-            ldrag = false;
+        if(ml.drag && mouseBtnReleased(MOUSE_L)){
+            ml.drag = false;
         }
 
-        if(ldrag && selectedPos){
+        if(ml.drag && sel.pos){
             if(snap)
-                *selectedPos = cfAdd(selectedPosOrig, cfSnapMid(cfSub(mmpos, mmld), snaplen));
+                *sel.pos = cfAdd(sel.posOrig, cfSnapMid(cfSub(ml.mpos, ml.mposd), snaplen));
             else
-                *selectedPos = cfAdd(*selectedPos, cfMulf(CCf(mouseMovement()), scale));
+                *sel.pos = cfAdd(*sel.pos, cfMulf(CCf(mouseMovement()), scale));
+        }
+
+        if(sel.wall && sel.pos && keyPressed(SDL_SCANCODE_R)){
+            sel.pos = sel.pos == &(sel.wall->a) ? &(sel.wall->b) : &(sel.wall->a);
         }
 
         if(mouseBtnPressed(MOUSE_R)){
-            mrd = mouse.pos;
-            mmrd = screenToMap(off, scale, mrd);
-            if(snap){
-                mmrd = cfSnapMid(mmrd, snaplen);
-                mrd = mapToScreen(off, scale, mmrd);
-            }
-            rdrag = true;
+            mr.sposd = mr.spos;
+            mr.ssnapd = mr.ssnap;
+            mr.mposd = mr.mpos;
+            mr.msnapd = mr.msnap;
+            mr.drag = true;
         }
 
-        if(rdrag && mouseBtnReleased(MOUSE_R)){
-            rdrag = false;
-            Coordf b = screenToMap(off, scale, mouse.pos);
-            if(snap)
-                b = cfSnapMid(b, snaplen);
-            Wall *newWall = wallNew(c, mmrd, b);
+        if(mr.drag && mouseBtnReleased(MOUSE_R)){
+            mr.drag = false;
+            Wall *newWall = wallNew(c, snap ? mr.msnapd : mr.mposd, snap ? mr.msnap : mr.mpos);
             map = wallAppend(map, newWall);
-            selectedWall = newWall;
-            selectedPos = &(newWall->a);
+            sel.wall = newWall;
+            sel.pos = &(newWall->a);
         }
 
-        if(rdrag){
-            Coordf m = screenToMap(off, scale, mouse.pos);
-            if(snap)
-                m = cfSnapMid(m, snaplen);
-            const Coord b = mapToScreen(off, scale, m);
+        if(mr.drag){
             setColor(c);
-            drawLineCoords(mrd, b);
+            drawLineCoords(snap ? mr.ssnapd : mr.sposd, snap ? mr.ssnap : mr.spos);
             setColor(YELLOW);
-            fillCircleCoord(b, 8);
+            fillCircleCoord(snap ? mr.ssnap : mr.spos, 8);
             setColor(GREEN);
-            fillCircleCoord(mrd, 8);
+            fillCircleCoord(snap ? mr.ssnapd : mr.sposd, 8);
         }
 
         if(snap)
@@ -448,10 +459,10 @@ Wall* mapEdit(Wall *map, char *fileName)
             cur = cur->next;
         }
 
-        if(selectedPos)
-            fillCircleCoord(mapToScreen(off, scale, *selectedPos), 8);
-        if(selectedWall)
-            drawCircleCoord(mapToScreen(off, scale, &(selectedWall->a) == selectedPos ? selectedWall->b : selectedWall->a), 8);
+        if(sel.pos)
+            fillCircleCoord(mapToScreen(off, scale, *sel.pos), 8);
+        if(sel.wall)
+            drawCircleCoord(mapToScreen(off, scale, &(sel.wall->a) == sel.pos ? sel.wall->b : sel.wall->a), 8);
 
         setColor(c);
         fillCircleCoord(wlen, 8);
