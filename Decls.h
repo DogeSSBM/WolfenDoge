@@ -53,6 +53,8 @@ Coordf cfAddf(const Coordf, const float);
 
 Coordf cfSnap(const Coordf, const float);
 
+Coordf cfSnapMid(const Coordf, const float);
+
 Coord coordAbs(const Coord);
 
 u8* colorIndex(Color *, const int);

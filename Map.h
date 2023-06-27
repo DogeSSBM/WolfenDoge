@@ -203,17 +203,20 @@ Wall* mapEdit(Wall *map, char *fileName)
 {
     float scale = 1.0f;
     bool snap = true;
-    uint snaplen = 24;
+    float snaplen = 50.0f;
     Coordf mmpos = {0};
     Coord off = {0};
     SDL_SetRelativeMouseMode(false);
     Length wlen = getWindowLen();
     bool rdrag = false;
+    Coordf mmrd = {0};
     Coord mrd = {0};
+    Coordf mmld = {0};
     Coord mld = {0};
     bool ldrag = false;
 
     Wall *selectedWall = NULL;
+    Coordf selectedPosOrig = {0};
     Coordf *selectedPos = NULL;
 
     Color c = MAGENTA;
@@ -226,9 +229,11 @@ Wall* mapEdit(Wall *map, char *fileName)
 
         if(checkCtrlKey(SDL_SCANCODE_S)){
             mapSave(map, fileName);
+            // printf("Saved \"%s\"\n", fileName);
             return map;
         }else if(keyPressed(SDL_SCANCODE_S)){
             snap = !snap;
+            printf("Snap (%4.0f) %s\n", snaplen, snap?"On":"Off");
         }
 
         ci = wrap(ci + keyPressed(SDL_SCANCODE_RIGHT) - keyPressed(SDL_SCANCODE_LEFT), 0, 3);
@@ -258,9 +263,10 @@ Wall* mapEdit(Wall *map, char *fileName)
             selectedPos = NULL;
         }
 
+        float oldSnaplen = snaplen;
         if(mouseScrolledY()){
             if(keyState(SDL_SCANCODE_LCTRL) || keyState(SDL_SCANCODE_RCTRL)){
-                snaplen = imax(1, snaplen + mouseScrolledY());
+                snaplen = (float)imax(1, (int)snaplen + mouseScrolledY());
             }else{
                 const float oldScale = scale;
                 scale = fclamp(scale * (mouseScrolledY() > 0 ? 1.2f : .8f) , .01f, 100.0f);
@@ -271,6 +277,9 @@ Wall* mapEdit(Wall *map, char *fileName)
                 }
             }
         }
+        snaplen = (float)imax(1, (int)snaplen + checkCtrlKey(SDL_SCANCODE_EQUALS)-checkCtrlKey(SDL_SCANCODE_MINUS));
+        if(snaplen != oldSnaplen)
+        printf("Snap %4.0f (%s)\n", snaplen, snap?"On":"Off");
 
         if(mouseBtnState(MOUSE_M) || keyState(SDL_SCANCODE_LSHIFT)){
             off = coordAdd(off, mouseMovement());
@@ -285,6 +294,10 @@ Wall* mapEdit(Wall *map, char *fileName)
         if(mouseBtnPressed(MOUSE_L) && selectedPos){
             ldrag = true;
             mld = mouse.pos;
+            mmld = mmpos;
+            selectedPosOrig = *selectedPos;
+            if(snap)
+                selectedPosOrig = cfSnapMid(selectedPosOrig, snaplen);
         }
 
         if(ldrag && mouseBtnReleased(MOUSE_L)){
@@ -292,29 +305,56 @@ Wall* mapEdit(Wall *map, char *fileName)
         }
 
         if(ldrag && selectedPos){
-            // *selectedPos = screenToMap(off, scale, mld);
-            *selectedPos = cfAdd(*selectedPos, cfMulf(CCf(mouseMovement()), scale));
-
-            // *selectedPos = CCf(coordMuli(coordDivi(CfC(*selectedPos), (int)scale), (int)scale));
+            if(snap)
+                *selectedPos = cfAdd(selectedPosOrig, cfSnapMid(cfSub(mmpos, mmld), snaplen));
+            else
+                *selectedPos = cfAdd(*selectedPos, cfMulf(CCf(mouseMovement()), scale));
         }
 
         if(mouseBtnPressed(MOUSE_R)){
             mrd = mouse.pos;
+            mmrd = screenToMap(off, scale, mrd);
+            if(snap){
+                mmrd = cfSnapMid(mmrd, snaplen);
+                mrd = mapToScreen(off, scale, mmrd);
+            }
             rdrag = true;
         }
 
         if(rdrag && mouseBtnReleased(MOUSE_R)){
             rdrag = false;
-            map = wallAppend(map, wallNew(c, screenToMap(off, scale, mrd), screenToMap(off, scale, mouse.pos)));
+            Coordf b = screenToMap(off, scale, mouse.pos);
+            if(snap)
+                b = cfSnapMid(b, snaplen);
+            map = wallAppend(map, wallNew(c, mmrd, b));
         }
 
         if(rdrag){
+            Coordf m = screenToMap(off, scale, mouse.pos);
+            if(snap)
+                m = cfSnapMid(m, snaplen);
+            const Coord b = mapToScreen(off, scale, m);
             setColor(c);
-            drawLineCoords(mrd, mouse.pos);
+            drawLineCoords(mrd, b);
             setColor(YELLOW);
-            fillCircleCoord(mouse.pos, 8);
+            fillCircleCoord(b, 8);
             setColor(GREEN);
             fillCircleCoord(mrd, 8);
+        }
+
+        setColor(GREY);
+        drawHLine(0, off.y, wlen.x);
+        drawVLine(off.x, 0, wlen.y);
+
+        if(snap){
+            Coordf mpos = cfSnap(screenToMap(off, scale, iC(0,0)), snaplen);
+            Coord spos = mapToScreen(off, scale, mpos);
+            while(spos.x < wlen.x || spos.y < wlen.y){
+                drawVLine(spos.x, 0, wlen.y);
+                drawHLine(0, spos.y, wlen.x);
+                mpos = cfAddf(mpos, snaplen);
+                spos = mapToScreen(off, scale, mpos);
+            }
         }
 
         Wall *cur = map;
@@ -325,18 +365,6 @@ Wall* mapEdit(Wall *map, char *fileName)
             drawLineCoords(a, b);
             cur = cur->next;
         }
-
-        setColor(RED);
-        drawHLine(0, off.y, wlen.x);
-        drawVLine(off.x, 0, wlen.y);
-
-        // if(snap){
-        //
-        //         drawVLine(spos.x, 0, wlen.y);
-        //         drawHLine(0, spos.y, wlen.x);
-        //         ;
-        //     }
-        // }
 
         if(selectedPos)
             fillCircleCoord(mapToScreen(off, scale, *selectedPos), 8);
