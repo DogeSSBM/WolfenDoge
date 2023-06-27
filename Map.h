@@ -325,6 +325,18 @@ void drawColor(const Length wlen, Color c, const int ci)
 //
 // }
 
+void mlrUpdate(Minfo *ml, Minfo *mr, const Offset off, const float scale, const float snaplen)
+{
+    ml->spos = mouse.pos;
+    mr->spos = ml->spos;
+    ml->mpos = screenToMap(off, scale, ml->spos);
+    mr->mpos = ml->mpos;
+    ml->msnap = cfSnapMid(ml->mpos, snaplen);
+    mr->msnap = ml->msnap;
+    ml->ssnap = mapToScreen(off, scale, ml->msnap);
+    mr->ssnap = ml->ssnap;
+}
+
 Wall* mapEdit(Wall *map, char *fileName)
 {
     float scale = 1.0f;
@@ -339,10 +351,6 @@ Wall* mapEdit(Wall *map, char *fileName)
 
     Selection sel = {0};
 
-    // Wall *selectedWall = NULL;
-    // Coordf selectedPosOrig = {0};
-    // Coordf *selectedPos = NULL;
-
     Color c = MAGENTA;
     int ci = 0;
     while(1){
@@ -353,14 +361,8 @@ Wall* mapEdit(Wall *map, char *fileName)
 
         snap = checkKeyS(map, fileName, snap, snaplen);
         ci = editColor(&c, ci, sel.wall);
-        ml.spos = mouse.pos;
-        mr.spos = ml.spos;
-        ml.mpos = screenToMap(off, scale, ml.spos);
-        mr.mpos = ml.mpos;
-        ml.msnap = cfSnapMid(ml.mpos, snaplen);
-        mr.msnap = ml.msnap;
-        ml.ssnap = mapToScreen(off, scale, ml.msnap);
-        mr.ssnap = ml.ssnap;
+
+        mlrUpdate(&ml, &mr, off, scale, snaplen);
 
         if(keyPressed(SDL_SCANCODE_ESCAPE)){
             sel.wall = NULL;
