@@ -288,8 +288,10 @@ void drawOriginLines(const Offset off, const Length wlen)
         drawVLine(off.x, 0, wlen.y);
 }
 
-void drawGrid(const Offset off, const Length wlen, const float scale, const float snaplen)
+void drawGrid(const Offset off, const Length wlen, const float scale, const bool snap, const float snaplen)
 {
+    if(!snap)
+        return;
     setColor(GREY);
     Coordf mpos = cfSnap(screenToMap(off, scale, iC(0,0)), snaplen);
     Coord spos = mapToScreen(off, scale, mpos);
@@ -329,6 +331,14 @@ void drawEditorMap(Wall *map, const Offset off, const float scale)
         drawLineCoords(a, b);
         cur = cur->next;
     }
+}
+
+void drawSel(const Selection sel, const Offset off, const float scale)
+{
+    if(sel.pos)
+        fillCircleCoord(mapToScreen(off, scale, *sel.pos), 8);
+    if(sel.wall)
+        drawCircleCoord(mapToScreen(off, scale, &(sel.wall->a) == sel.pos ? sel.wall->b : sel.wall->a), 8);
 }
 
 void mlrUpdate(Minfo *ml, Minfo *mr, Selection *sel, const Offset off, const float scale, const float snaplen)
@@ -427,6 +437,26 @@ Wall* updateDel(Wall *map, Selection *sel)
     return map;
 }
 
+Length updateResize(Length wlen, Offset *off)
+{
+    if(windowResized()){
+        const Length wlenOld = wlen;
+        wlen = getWindowLen();
+        *off = resizeTransform(wlenOld, wlen, *off);
+    }
+    return wlen;
+}
+
+Offset updatePan(Offset off, Minfo *ml, Minfo *mr)
+{
+    if(mouseBtnState(MOUSE_M) || keyState(SDL_SCANCODE_LSHIFT)){
+        off = coordAdd(off, mouseMovement());
+        mr->sposd = mr->spos;
+        ml->sposd = ml->spos;
+    }
+    return off;
+}
+
 Wall* mapEdit(Wall *map, char *fileName)
 {
     float scale = 1.0f;
@@ -445,49 +475,24 @@ Wall* mapEdit(Wall *map, char *fileName)
     int ci = 0;
     while(1){
         const uint t = frameStart();
-        if(checkCtrlKey(SDL_SCANCODE_Q) || checkCtrlKey(SDL_SCANCODE_W)){
+        if(checkCtrlKey(SDL_SCANCODE_Q) || checkCtrlKey(SDL_SCANCODE_W))
             return map;
-        }
 
         snap = checkKeyS(map, fileName, snap, snaplen);
         ci = editColor(&c, ci, sel.wall);
-
         mlrUpdate(&ml, &mr, &sel, off, scale, snaplen);
-
-        if(windowResized()){
-            const Length wlenOld = wlen;
-            wlen = getWindowLen();
-            off = resizeTransform(wlenOld, wlen, off);
-        }
-
+        wlen = updateResize(wlen, &off);
         map = updateDel(map, &sel);
-
         checkScroll(&off, ml.mpos, snap, &snaplen, &scale);
-
-        if(mouseBtnState(MOUSE_M) || keyState(SDL_SCANCODE_LSHIFT)){
-            off = coordAdd(off, mouseMovement());
-            mr.sposd = mr.spos;
-            ml.sposd = ml.spos;
-        }
-
+        off = updatePan(off, &ml, &mr);
         ml = mlUpdate(ml, &sel, map, scale, snap, snaplen);
         mr = mrUpdate(mr, &sel, &map, c, snap);
         sel = selCheckRev(sel);
 
-        if(snap)
-            drawGrid(off, wlen, scale, snaplen);
+        drawGrid(off, wlen, scale, snap, snaplen);
         drawOriginLines(off, wlen);
-
         drawEditorMap(map, off, scale);
-
-        if(sel.pos)
-            fillCircleCoord(mapToScreen(off, scale, *sel.pos), 8);
-        if(sel.wall)
-            drawCircleCoord(mapToScreen(off, scale, &(sel.wall->a) == sel.pos ? sel.wall->b : sel.wall->a), 8);
-
-        setColor(c);
-        fillCircleCoord(wlen, 8);
-
+        drawSel(sel, off, scale);
         drawColor(wlen, c, ci);
 
         frameEnd(t);
