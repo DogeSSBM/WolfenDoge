@@ -241,6 +241,27 @@ void checkScroll(Offset *off, const Coordf mmpos, const bool snap, float *snaple
         printf("Snap %4.0f (%s)\n", *snaplen, snap?"On":"Off");
 }
 
+void drawOriginLines(const Offset off, const Length wlen)
+{
+    setColor(WHITE);
+    if(inBound(off.y, 0, wlen.y))
+        drawHLine(0, off.y, wlen.x);
+    if(inBound(off.x, 0, wlen.x))
+        drawVLine(off.x, 0, wlen.y);
+}
+
+void drawGrid(const Offset off, const Length wlen, const float scale, const float snaplen)
+{
+    Coordf mpos = cfSnap(screenToMap(off, scale, iC(0,0)), snaplen);
+    Coord spos = mapToScreen(off, scale, mpos);
+    while(spos.x < wlen.x || spos.y < wlen.y){
+        drawVLine(spos.x, 0, wlen.y);
+        drawHLine(0, spos.y, wlen.x);
+        mpos = cfAddf(mpos, snaplen);
+        spos = mapToScreen(off, scale, mpos);
+    }
+}
+
 Wall* mapEdit(Wall *map, char *fileName)
 {
     float scale = 1.0f;
@@ -360,20 +381,9 @@ Wall* mapEdit(Wall *map, char *fileName)
             fillCircleCoord(mrd, 8);
         }
 
-        if(snap){
-            Coordf mpos = cfSnap(screenToMap(off, scale, iC(0,0)), snaplen);
-            Coord spos = mapToScreen(off, scale, mpos);
-            while(spos.x < wlen.x || spos.y < wlen.y){
-                drawVLine(spos.x, 0, wlen.y);
-                drawHLine(0, spos.y, wlen.x);
-                mpos = cfAddf(mpos, snaplen);
-                spos = mapToScreen(off, scale, mpos);
-            }
-        }
-
-        setColor(WHITE);
-        drawHLine(0, off.y, wlen.x);
-        drawVLine(off.x, 0, wlen.y);
+        if(snap)
+            drawGrid(off, wlen, scale, snaplen);
+        drawOriginLines(off, wlen);
 
         Wall *cur = map;
         while(cur){
