@@ -292,11 +292,10 @@ Wall* mapEdit(Wall *map, char *fileName)
         }
 
         if(ldrag && selectedPos){
-            if(snap){
-                *selectedPos = cfAdd(*selectedPos, screenToMap(off,scale, mouseMovement()));
-            }else{
-                *selectedPos = cfAdd(*selectedPos, screenToMap(off,scale, mouseMovement()));
-            }
+            // *selectedPos = screenToMap(off, scale, mld);
+            *selectedPos = cfAdd(*selectedPos, cfMulf(CCf(mouseMovement()), scale));
+
+            // *selectedPos = CCf(coordMuli(coordDivi(CfC(*selectedPos), (int)scale), (int)scale));
         }
 
         if(mouseBtnPressed(MOUSE_R)){
@@ -332,12 +331,10 @@ Wall* mapEdit(Wall *map, char *fileName)
         drawVLine(off.x, 0, wlen.y);
 
         // if(snap){
-        //     const Coordf start = cfSnap(screenToMap(off, scale, off), scale);
-        //     Coord spos = mapToScreen(off, scale, start);
-        //     for(Coordf pos = start; spos.x < wlen.x || spos.y < wlen.y; cfAddf(pos, snap)){
-        //         spos = mapToScreen(off, scale, pos);
+        //
         //         drawVLine(spos.x, 0, wlen.y);
         //         drawHLine(0, spos.y, wlen.x);
+        //         ;
         //     }
         // }
 

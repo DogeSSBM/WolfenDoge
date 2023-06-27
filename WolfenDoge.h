@@ -54,7 +54,7 @@ bool cfSame(const Coordf a, const Coordf b)
     return a.x == b.x && a.y == b.y;
 }
 
-Coordf cfMod(const Coordf pos, const float mod)
+Coordf cfModf(const Coordf pos, const float mod)
 {
     return (const Coordf){
         .x = fmod(pos.x, mod),
@@ -80,7 +80,7 @@ Coordf cfAddf(const Coordf pos, const float f)
 
 Coordf cfSnap(const Coordf pos, const float scale)
 {
-    return cfSub(pos, cfMod(pos, scale));
+    return cfSub(pos, cfModf(pos, scale));
 }
 
 u8* colorIndex(Color *c, const int i)
