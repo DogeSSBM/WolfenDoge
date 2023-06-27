@@ -246,6 +246,11 @@ int editColor(Color *c, int ci, Wall *selectedWall)
     return ci;
 }
 
+bool checkEditorExit(void)
+{
+    return checkCtrlKey(SDL_SCANCODE_Q) || checkCtrlKey(SDL_SCANCODE_W);
+}
+
 bool checkKeyS(Wall *map, char *fileName, bool snap, const float snaplen)
 {
     if(checkCtrlKey(SDL_SCANCODE_S)){
@@ -459,23 +464,21 @@ Offset updatePan(Offset off, Minfo *ml, Minfo *mr)
 
 Wall* mapEdit(Wall *map, char *fileName)
 {
+    SDL_SetRelativeMouseMode(false);
     float scale = 1.0f;
     bool snap = true;
     float snaplen = 50.0f;
     Coord off = {0};
-    SDL_SetRelativeMouseMode(false);
     Length wlen = getWindowLen();
-
     Minfo ml = {0};
     Minfo mr = {0};
-
     Selection sel = {0};
-
     Color c = MAGENTA;
     int ci = 0;
+
     while(1){
         const uint t = frameStart();
-        if(checkCtrlKey(SDL_SCANCODE_Q) || checkCtrlKey(SDL_SCANCODE_W))
+        if(checkEditorExit())
             return map;
 
         snap = checkKeyS(map, fileName, snap, snaplen);
