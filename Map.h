@@ -319,7 +319,7 @@ void drawColor(const Length wlen, Color c, const int ci)
     }
 }
 
-void mlrUpdate(Minfo *ml, Minfo *mr, const Offset off, const float scale, const float snaplen)
+void mlrUpdate(Minfo *ml, Minfo *mr, Selection *sel, const Offset off, const float scale, const float snaplen)
 {
     ml->spos = mouse.pos;
     mr->spos = ml->spos;
@@ -329,6 +329,12 @@ void mlrUpdate(Minfo *ml, Minfo *mr, const Offset off, const float scale, const 
     mr->msnap = ml->msnap;
     ml->ssnap = mapToScreen(off, scale, ml->msnap);
     mr->ssnap = ml->ssnap;
+    if(keyPressed(SDL_SCANCODE_ESCAPE)){
+        sel->wall = NULL;
+        sel->pos = NULL;
+        mr->drag = false;
+        ml->drag = false;
+    }
 }
 
 Minfo mlUpdate(Minfo ml, Selection *sel, Wall *map, const float scale, const bool snap, const float snaplen)
@@ -362,6 +368,43 @@ Minfo mlUpdate(Minfo ml, Selection *sel, Wall *map, const float scale, const boo
     return ml;
 }
 
+Minfo mrUpdate(Minfo mr, Selection *sel, Wall **map, const Color c, const bool snap)
+{
+    if(mouseBtnPressed(MOUSE_R)){
+        mr.sposd = mr.spos;
+        mr.ssnapd = mr.ssnap;
+        mr.mposd = mr.mpos;
+        mr.msnapd = mr.msnap;
+        mr.drag = true;
+    }
+
+    if(mr.drag && mouseBtnReleased(MOUSE_R)){
+        mr.drag = false;
+        Wall *newWall = wallNew(c, snap ? mr.msnapd : mr.mposd, snap ? mr.msnap : mr.mpos);
+        *map = wallAppend(*map, newWall);
+        sel->wall = newWall;
+        sel->pos = &(newWall->a);
+    }
+
+    if(mr.drag){
+        setColor(c);
+        drawLineCoords(snap ? mr.ssnapd : mr.sposd, snap ? mr.ssnap : mr.spos);
+        setColor(YELLOW);
+        fillCircleCoord(snap ? mr.ssnap : mr.spos, 8);
+        setColor(GREEN);
+        fillCircleCoord(snap ? mr.ssnapd : mr.sposd, 8);
+    }
+
+    return mr;
+}
+
+Selection selCheckRev(Selection sel)
+{
+    if(sel.wall && sel.pos && keyPressed(SDL_SCANCODE_R))
+        sel.pos = sel.pos == &(sel.wall->a) ? &(sel.wall->b) : &(sel.wall->a);
+    return sel;
+}
+
 Wall* mapEdit(Wall *map, char *fileName)
 {
     float scale = 1.0f;
@@ -387,14 +430,7 @@ Wall* mapEdit(Wall *map, char *fileName)
         snap = checkKeyS(map, fileName, snap, snaplen);
         ci = editColor(&c, ci, sel.wall);
 
-        mlrUpdate(&ml, &mr, off, scale, snaplen);
-
-        if(keyPressed(SDL_SCANCODE_ESCAPE)){
-            sel.wall = NULL;
-            sel.pos = NULL;
-            mr.drag = false;
-            ml.drag = false;
-        }
+        mlrUpdate(&ml, &mr, &sel, off, scale, snaplen);
 
         if(windowResized()){
             const Length wlenOld = wlen;
@@ -417,35 +453,8 @@ Wall* mapEdit(Wall *map, char *fileName)
         }
 
         ml = mlUpdate(ml, &sel, map, scale, snap, snaplen);
-
-        if(sel.wall && sel.pos && keyPressed(SDL_SCANCODE_R)){
-            sel.pos = sel.pos == &(sel.wall->a) ? &(sel.wall->b) : &(sel.wall->a);
-        }
-
-        if(mouseBtnPressed(MOUSE_R)){
-            mr.sposd = mr.spos;
-            mr.ssnapd = mr.ssnap;
-            mr.mposd = mr.mpos;
-            mr.msnapd = mr.msnap;
-            mr.drag = true;
-        }
-
-        if(mr.drag && mouseBtnReleased(MOUSE_R)){
-            mr.drag = false;
-            Wall *newWall = wallNew(c, snap ? mr.msnapd : mr.mposd, snap ? mr.msnap : mr.mpos);
-            map = wallAppend(map, newWall);
-            sel.wall = newWall;
-            sel.pos = &(newWall->a);
-        }
-
-        if(mr.drag){
-            setColor(c);
-            drawLineCoords(snap ? mr.ssnapd : mr.sposd, snap ? mr.ssnap : mr.spos);
-            setColor(YELLOW);
-            fillCircleCoord(snap ? mr.ssnap : mr.spos, 8);
-            setColor(GREEN);
-            fillCircleCoord(snap ? mr.ssnapd : mr.sposd, 8);
-        }
+        mr = mrUpdate(mr, &sel, &map, c, snap);
+        sel = selCheckRev(sel);
 
         if(snap)
             drawGrid(off, wlen, scale, snaplen);
