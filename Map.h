@@ -319,6 +319,18 @@ void drawColor(const Length wlen, Color c, const int ci)
     }
 }
 
+void drawEditorMap(Wall *map, const Offset off, const float scale)
+{
+    Wall *cur = map;
+    while(cur){
+        const Coord a = mapToScreen(off, scale, cur->a);
+        const Coord b = mapToScreen(off, scale, cur->b);
+        setColor(cur->c);
+        drawLineCoords(a, b);
+        cur = cur->next;
+    }
+}
+
 void mlrUpdate(Minfo *ml, Minfo *mr, Selection *sel, const Offset off, const float scale, const float snaplen)
 {
     ml->spos = mouse.pos;
@@ -405,6 +417,16 @@ Selection selCheckRev(Selection sel)
     return sel;
 }
 
+Wall* updateDel(Wall *map, Selection *sel)
+{
+    if((keyPressed(SDL_SCANCODE_DELETE) || keyPressed(SDL_SCANCODE_BACKSPACE)) && sel->wall){
+        map = wallDelete(map, sel->wall);
+        sel->wall = NULL;
+        sel->pos = NULL;
+    }
+    return map;
+}
+
 Wall* mapEdit(Wall *map, char *fileName)
 {
     float scale = 1.0f;
@@ -438,18 +460,14 @@ Wall* mapEdit(Wall *map, char *fileName)
             off = resizeTransform(wlenOld, wlen, off);
         }
 
-        if((keyPressed(SDL_SCANCODE_DELETE) || keyPressed(SDL_SCANCODE_BACKSPACE)) && sel.wall){
-            map = wallDelete(map, sel.wall);
-            sel.wall = NULL;
-            sel.pos = NULL;
-        }
+        map = updateDel(map, &sel);
 
         checkScroll(&off, ml.mpos, snap, &snaplen, &scale);
 
         if(mouseBtnState(MOUSE_M) || keyState(SDL_SCANCODE_LSHIFT)){
             off = coordAdd(off, mouseMovement());
-            mr.sposd = mr.spos;// coordAdd(mr.sposd, mouseMovement());
-            ml.sposd = ml.spos;// coordAdd(ml.sposd, mouseMovement());
+            mr.sposd = mr.spos;
+            ml.sposd = ml.spos;
         }
 
         ml = mlUpdate(ml, &sel, map, scale, snap, snaplen);
@@ -460,14 +478,7 @@ Wall* mapEdit(Wall *map, char *fileName)
             drawGrid(off, wlen, scale, snaplen);
         drawOriginLines(off, wlen);
 
-        Wall *cur = map;
-        while(cur){
-            const Coord a = mapToScreen(off, scale, cur->a);
-            const Coord b = mapToScreen(off, scale, cur->b);
-            setColor(cur->c);
-            drawLineCoords(a, b);
-            cur = cur->next;
-        }
+        drawEditorMap(map, off, scale);
 
         if(sel.pos)
             fillCircleCoord(mapToScreen(off, scale, *sel.pos), 8);
