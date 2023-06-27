@@ -199,6 +199,48 @@ Wall* mapDefault(void)
     return map;
 }
 
+int editColor(Color *c, int ci)
+{
+    ci = wrap(ci + keyPressed(SDL_SCANCODE_RIGHT) - keyPressed(SDL_SCANCODE_LEFT), 0, 3);
+    u8* b = colorIndex(c, ci);
+    const int change = (keyPressed(SDL_SCANCODE_UP) - keyPressed(SDL_SCANCODE_DOWN))*(keyCtrlState()?10:1);
+    *b = clamp((int)(*b) + change, 0, 255);
+    return ci;
+}
+
+bool checkKeyS(Wall *map, char *fileName, bool snap, const float snaplen)
+{
+    if(checkCtrlKey(SDL_SCANCODE_S)){
+        mapSave(map, fileName);
+        printf("Saved \"%s\"\n", fileName);
+    }else if(keyPressed(SDL_SCANCODE_S)){
+        snap = !snap;
+        printf("Snap (%4.0f) %s\n", snaplen, snap?"On":"Off");
+    }
+    return snap;
+}
+
+void checkScroll(Offset *off, const Coordf mmpos, const bool snap, float *snaplen, float *scale)
+{
+    float oldSnaplen = *snaplen;
+    if(mouseScrolledY()){
+        if(keyState(SDL_SCANCODE_LCTRL) || keyState(SDL_SCANCODE_RCTRL)){
+            *snaplen = (float)imax(1, (int)*snaplen + mouseScrolledY());
+        }else{
+            const float oldScale = *scale;
+            *scale = fclamp(*scale * (mouseScrolledY() > 0 ? 1.2f : .8f) , .01f, 100.0f);
+            if(oldScale != *scale){
+                const Coord ompos = mapToScreen(*off, *scale, mmpos);
+                const Coord diff = coordSub(mouse.pos, ompos);
+                *off = coordAdd(*off, diff);
+            }
+        }
+    }
+    *snaplen = (float)imax(1, (int)*snaplen + checkCtrlKey(SDL_SCANCODE_EQUALS)-checkCtrlKey(SDL_SCANCODE_MINUS));
+    if(*snaplen != oldSnaplen)
+        printf("Snap %4.0f (%s)\n", *snaplen, snap?"On":"Off");
+}
+
 Wall* mapEdit(Wall *map, char *fileName)
 {
     float scale = 1.0f;
@@ -227,20 +269,9 @@ Wall* mapEdit(Wall *map, char *fileName)
             return map;
         }
 
-        if(checkCtrlKey(SDL_SCANCODE_S)){
-            mapSave(map, fileName);
-            // printf("Saved \"%s\"\n", fileName);
-            return map;
-        }else if(keyPressed(SDL_SCANCODE_S)){
-            snap = !snap;
-            printf("Snap (%4.0f) %s\n", snaplen, snap?"On":"Off");
-        }
+        snap = checkKeyS(map, fileName, snap, snaplen);
 
-        ci = wrap(ci + keyPressed(SDL_SCANCODE_RIGHT) - keyPressed(SDL_SCANCODE_LEFT), 0, 3);
-        u8* b = colorIndex(&c, ci);
-        int change = (keyPressed(SDL_SCANCODE_UP) - keyPressed(SDL_SCANCODE_DOWN));
-        change *= (1+(keyState(SDL_SCANCODE_LCTRL) || keyState(SDL_SCANCODE_RCTRL)))*10;
-        *b = clamp((int)(*b) + change, 0, 255);
+        ci = editColor(&c, ci);
 
         mmpos = screenToMap(off, scale, mouse.pos);
 
@@ -263,23 +294,7 @@ Wall* mapEdit(Wall *map, char *fileName)
             selectedPos = NULL;
         }
 
-        float oldSnaplen = snaplen;
-        if(mouseScrolledY()){
-            if(keyState(SDL_SCANCODE_LCTRL) || keyState(SDL_SCANCODE_RCTRL)){
-                snaplen = (float)imax(1, (int)snaplen + mouseScrolledY());
-            }else{
-                const float oldScale = scale;
-                scale = fclamp(scale * (mouseScrolledY() > 0 ? 1.2f : .8f) , .01f, 100.0f);
-                if(oldScale != scale){
-                    const Coord ompos = mapToScreen(off, scale, mmpos);
-                    const Coord diff = coordSub(mouse.pos, ompos);
-                    off = coordAdd(off, diff);
-                }
-            }
-        }
-        snaplen = (float)imax(1, (int)snaplen + checkCtrlKey(SDL_SCANCODE_EQUALS)-checkCtrlKey(SDL_SCANCODE_MINUS));
-        if(snaplen != oldSnaplen)
-        printf("Snap %4.0f (%s)\n", snaplen, snap?"On":"Off");
+        checkScroll(&off, mmpos, snap, &snaplen, &scale);
 
         if(mouseBtnState(MOUSE_M) || keyState(SDL_SCANCODE_LSHIFT)){
             off = coordAdd(off, mouseMovement());
@@ -326,7 +341,10 @@ Wall* mapEdit(Wall *map, char *fileName)
             Coordf b = screenToMap(off, scale, mouse.pos);
             if(snap)
                 b = cfSnapMid(b, snaplen);
-            map = wallAppend(map, wallNew(c, mmrd, b));
+            Wall *newWall = wallNew(c, mmrd, b);
+            map = wallAppend(map, newWall);
+            selectedWall = newWall;
+            selectedPos = &(newWall->a);
         }
 
         if(rdrag){
@@ -342,10 +360,6 @@ Wall* mapEdit(Wall *map, char *fileName)
             fillCircleCoord(mrd, 8);
         }
 
-        setColor(GREY);
-        drawHLine(0, off.y, wlen.x);
-        drawVLine(off.x, 0, wlen.y);
-
         if(snap){
             Coordf mpos = cfSnap(screenToMap(off, scale, iC(0,0)), snaplen);
             Coord spos = mapToScreen(off, scale, mpos);
@@ -356,6 +370,10 @@ Wall* mapEdit(Wall *map, char *fileName)
                 spos = mapToScreen(off, scale, mpos);
             }
         }
+
+        setColor(WHITE);
+        drawHLine(0, off.y, wlen.x);
+        drawVLine(off.x, 0, wlen.y);
 
         Wall *cur = map;
         while(cur){

@@ -97,9 +97,19 @@ u8* colorIndex(Color *c, const int i)
     return &(c->b);
 }
 
+bool keyCtrlState(void)
+{
+    return keyState(SDL_SCANCODE_LCTRL) || keyState(SDL_SCANCODE_RCTRL);
+}
+
+bool keyShiftState(void)
+{
+    return keyState(SDL_SCANCODE_LSHIFT) || keyState(SDL_SCANCODE_RSHIFT);
+}
+
 bool checkCtrlKey(const Scancode key)
 {
-    return keyPressed(key) && (keyState(SDL_SCANCODE_LCTRL) || keyState(SDL_SCANCODE_RCTRL));
+    return keyPressed(key) && keyCtrlState();
 }
 
 Coord toView(const View view, const Coordf pos, const float scale)
