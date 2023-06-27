@@ -1,5 +1,5 @@
-#ifndef COLORS_H
-#define COLORS_H
+#ifndef DOGELIB_COLORS_H
+#define DOGELIB_COLORS_H
 
 const Color WHITE   = {0xFF, 0xFF, 0xFF, 0xFF};
 const Color PINK    = {0xFF, 0xC0, 0xCB, 0xFF};
@@ -16,4 +16,4 @@ const Color GREY1   = {0xAA, 0xAA, 0xAA, 0xFF};
 const Color GREY2   = {0x7E, 0x7E, 0x7E, 0xFF};
 const Color GREY3   = {0x52, 0x52, 0x52, 0xFF};
 
-#endif /* end of include guard: COLORS_H */
+#endif /* end of include guard: DOGELIB_COLORS_H */

@@ -1,4 +1,6 @@
-#pragma once
+#ifndef DOGELIB_INCLUDES_H
+#define DOGELIB_INCLUDES_H
+
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -35,3 +37,5 @@
 #include "Poly.h"
 #include "Display.h"
 #include "Window.h"
+
+#endif /* end of include guard: DOGELIB_INCLUDES_H */

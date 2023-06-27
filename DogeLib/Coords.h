@@ -1,5 +1,5 @@
-#ifndef COORDS_H
-#define COORDS_H
+#ifndef DOGELIB_COORDS_H
+#define DOGELIB_COORDS_H
 
 Direction dirROR(const Direction dir)
 {
@@ -66,6 +66,11 @@ bool coordSame(const Coord pos1, const Coord pos2)
     return pos1.x == pos2.x && pos1.y == pos2.y;
 }
 
+Coord coordAbs(const Coord pos)
+{
+    return (const Coord){.x=pos.x<0?-pos.x:pos.x, .y=pos.y<0?-pos.y:pos.y};
+}
+
 int clamp(const int n, const int min, const int max)
 {
     if(n < min)
@@ -101,9 +106,16 @@ bool coordInRange(const Coord coord, const Range range)
     return inRange(coord.x, range) && inRange(coord.y, range);
 }
 
+// Clamps both x and y component of coord to >= 0 and < their respective component in len
 Coord coordClampLen(const Coord coord, const Length len)
 {
     return (const Coord){.x = clamp(coord.x, 0, len.x), .y = clamp(coord.y, 0, len.y)};
+}
+
+// Returns true if the x and y component of coord are >= 0 and < their respective component in len
+bool coordInLen(const Coord coord, const Length len)
+{
+    return coord.x >= 0 && coord.x < len.x && coord.y >= 0 && coord.y < len.y;
 }
 
 // Returns true if each part of pos1 is less than their counterpart in pos2
@@ -301,4 +313,4 @@ Rect rectOffset(const Rect rect, const Offset off)
     return (Rect){.x = pos.x, .y = pos.y, .w = rect.w, .h = rect.h};
 }
 
-#endif /* end of include guard: COORDS_H */
+#endif /* end of include guard: DOGELIB_COORDS_H */

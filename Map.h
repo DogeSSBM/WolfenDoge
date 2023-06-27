@@ -204,6 +204,7 @@ Wall* mapEdit(Wall *map, char *fileName)
     float scale = 1.0f;
     bool snap = true;
     uint snaplen = 24;
+    Coordf mmpos = {0};
     Coord off = {0};
     SDL_SetRelativeMouseMode(false);
     Length wlen = getWindowLen();
@@ -236,6 +237,8 @@ Wall* mapEdit(Wall *map, char *fileName)
         change *= (1+(keyState(SDL_SCANCODE_LCTRL) || keyState(SDL_SCANCODE_RCTRL)))*10;
         *b = clamp((int)(*b) + change, 0, 255);
 
+        mmpos = screenToMap(off, scale, mouse.pos);
+
         if(keyPressed(SDL_SCANCODE_ESCAPE)){
             selectedWall = NULL;
             selectedPos = NULL;
@@ -262,14 +265,9 @@ Wall* mapEdit(Wall *map, char *fileName)
                 const float oldScale = scale;
                 scale = fclamp(scale * (mouseScrolledY() > 0 ? 1.2f : .8f) , .01f, 100.0f);
                 if(oldScale != scale){
-                    const Coordf mopos = screenToMap(off, oldScale, coordDivi(wlen,2));
-                    const Coordf mpos = screenToMap(off, scale, coordDivi(wlen,2));
-                    const Coord dif = CfC(cfSub(mpos, mopos));
-                    off = coordAdd(off, coordDivi(dif, 2));
-                    // const Coordf offMag = cfAddf(cfDiv(CCf(mouse.pos), CCf(wlen)), -.05f);
-                    // off = mapToScreen(off, scale, cfMul(cfSub(mpos, mopos), offMag));
-
-
+                    const Coord ompos = mapToScreen(off, scale, mmpos);
+                    const Coord diff = coordSub(mouse.pos, ompos);
+                    off = coordAdd(off, diff);
                 }
             }
         }
@@ -281,7 +279,7 @@ Wall* mapEdit(Wall *map, char *fileName)
         }
 
         if(!selectedWall && mouseBtnReleased(MOUSE_L)){
-            selectedWall = posNearest(map, screenToMap(off, scale, mouse.pos), &selectedPos);
+            selectedWall = posNearest(map, mmpos, &selectedPos);
         }
 
         if(mouseBtnPressed(MOUSE_L) && selectedPos){

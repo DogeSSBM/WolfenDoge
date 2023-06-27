@@ -83,11 +83,6 @@ Coordf cfSnap(const Coordf pos, const float scale)
     return cfSub(pos, cfMod(pos, scale));
 }
 
-Coord coordAbs(const Coord pos)
-{
-    return (const Coord){.x=pos.x<0?-pos.x:pos.x, .y=pos.y<0?-pos.y:pos.y};
-}
-
 u8* colorIndex(Color *c, const int i)
 {
     if(iabs(i)%3 == 0)
