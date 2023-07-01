@@ -313,4 +313,9 @@ Rect rectOffset(const Rect rect, const Offset off)
     return (Rect){.x = pos.x, .y = pos.y, .w = rect.w, .h = rect.h};
 }
 
+Length rectLen(const Rect rect)
+{
+    return (const Length){.x=rect.w, .y=rect.h};
+}
+
 #endif /* end of include guard: DOGELIB_COORDS_H */

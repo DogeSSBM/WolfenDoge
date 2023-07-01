@@ -43,10 +43,11 @@ typedef struct{
     bool drag;
 }Minfo;
 
-typedef struct{
+typedef struct Selection{
     Wall *wall;
     Coordf posOrig;
     Coordf *pos;
+    struct Selection *next;
 }Selection;
 
 #include "Decls.h"
@@ -55,6 +56,11 @@ typedef struct{
 Coordf fC(const float x, const float y)
 {
     return (const Coordf){.x=x, .y=y};
+}
+
+Coord iiC(const int i)
+{
+    return (const Coord){.x=i, .y=i};
 }
 
 float fmost(const float a, const float b)
@@ -135,6 +141,11 @@ Coord toView(const View view, const Coordf pos, const float scale)
     return coordAdd(view.pos, iC(pos.x*scale, pos.y*scale));
 }
 
+bool inView(const View view, const Coord pos)
+{
+    return inBound(pos.x, view.pos.x, view.pos.x+view.len.x) && inBound(pos.y, view.pos.y, view.pos.y+view.len.y);
+}
+
 bool lineIntersection(const Coordf p0, const Coordf p1, const Coordf p2, const Coordf p3, Coordf *at)
 {
     const Coordf s1 = {.x = p1.x - p0.x, .y = p1.y - p0.y};
@@ -155,6 +166,122 @@ bool lineIntersection(const Coordf p0, const Coordf p1, const Coordf p2, const C
     }
     return false;
 }
+
+Direction viewBoundIntersect(Wall bounds[4], const Coordf a, const Coordf b, Coordf *at)
+{
+    for(Direction d = 0; d < 4; d++){
+        if(lineIntersection(bounds[d].a, bounds[d].b, a, b, at))
+            return d;
+    }
+    return 4;
+}
+
+bool limitViewBounds(const View view, Coord *a, Coord *b)
+{
+    const Coordf fa = CCf(*a);
+    const Coordf fb = CCf(*b);
+    const Coordf vpos = CCf(view.pos);
+    const Coordf vlen = CCf(view.len);
+    Wall bounds[4] = {
+        (Wall){.a = vpos,                       .b = fC(vpos.x+vlen.x, vpos.y)},
+        (Wall){.a = fC(vpos.x+vlen.x, vpos.y),  .b = cfAdd(vpos, vlen)},
+        (Wall){.a = fC(vpos.x, vpos.y+vlen.y),  .b = cfAdd(vpos, vlen)},
+        (Wall){.a = vpos,                       .b = fC(vpos.x, vpos.y+vlen.y)}
+    };
+
+    if(!inView(view, *a)){
+        Coordf na = fa;
+        Direction da = viewBoundIntersect(bounds, fa, fb, &na);
+        if(inView(view, *b)){
+            *a = CfC(na);
+            return true;
+        }
+        Coordf nb = fb;
+        Direction db = viewBoundIntersect(bounds, fb, fa, &nb);
+        if(da == 4 || db == 4)
+            return false;
+        *a = CfC(na);
+        *b = CfC(nb);
+        return true;
+    }
+    if(!inView(view, *b)){
+        Coordf nb = fb;
+        Direction db = viewBoundIntersect(bounds, fb, fa, &nb);
+        if(inView(view, *a)){
+            *b = CfC(nb);
+            return true;
+        }
+        Coordf na = fa;
+        Direction da = viewBoundIntersect(bounds, fa, fb, &na);
+        if(da == 4 || db == 4)
+            return false;
+        *a = CfC(na);
+        *b = CfC(nb);
+        return true;
+    }
+    return true;
+}
+
+// bool limitViewBounds(const View view, Coord *a, Coord *b)
+// {
+//     const Coordf fa = CCf(*a);
+//     const Coordf fb = CCf(*b);
+//     const Coordf vpos = CCf(view.pos);
+//     const Coordf vlen = CCf(view.len);
+//     Wall bounds[4] = {
+//         (Wall){.a = vpos,                       .b = fC(vpos.x+vlen.x, vpos.y)},
+//         (Wall){.a = fC(vpos.x+vlen.x, vpos.y),  .b = cfAdd(vpos, vlen)},
+//         (Wall){.a = fC(vpos.x, vpos.y+vlen.y),  .b = cfAdd(vpos, vlen)},
+//         (Wall){.a = vpos,                       .b = fC(vpos.x, vpos.y+vlen.y)}
+//     };
+//
+//     Bool va = inView(view, *a);
+//     Bool vb = inView(view, *b);
+//     if(va || vb){
+//         Coordf na = fa;
+//         Coordf nb = fb;
+//         Direction da = 4;
+//         Direction db = 4;
+//         if(!inView(view, *a)){
+//             da = viewBoundIntersect(bounds, fa, fb, &na);
+//         }
+//         if()
+//
+//         Direction db = viewBoundIntersect(bounds, fa, fb, &na);
+//     }
+//
+//     if(!inView(view, *a)){
+//         Coordf na = fa;
+//         Direction da = viewBoundIntersect(bounds, fa, fb, &na);
+//         if(inView(view, *b)){
+//             *a = CfC(na);
+//             return true;
+//         }
+//         Coordf nb = fb;
+//         Direction db = viewBoundIntersect(bounds, fb, fa, &nb);
+//         if(da == 4 || db == 4)
+//             return false;
+//         *a = CfC(na);
+//         *b = CfC(nb);
+//         return true;
+//     }
+//     if(!inView(view, *b)){
+//         Coordf nb = fb;
+//         Direction db = viewBoundIntersect(bounds, fb, fa, &nb);
+//         if(inView(view, *a)){
+//             *b = CfC(nb);
+//             return true;
+//         }
+//         Coordf na = fa;
+//         Direction da = viewBoundIntersect(bounds, fa, fb, &na);
+//         if(da == 4 || db == 4)
+//             return false;
+//         *a = CfC(na);
+//         *b = CfC(nb);
+//         return true;
+//     }
+//     return true;
+// }
 
 Offset wasdKeyStateOffset(void)
 {
@@ -203,7 +330,7 @@ Ray castRay(const Coordf origin, const Coordf distantPoint, Wall *map)
     Ray ray = {
         .wall = map,
         .dst = 60000.0f,
-        .pos = {.x = 60000.0f, .y = 60000.0f}
+        .pos = distantPoint
     };
     while(map){
         float curDst = 0;
@@ -221,7 +348,7 @@ Ray castRay(const Coordf origin, const Coordf distantPoint, Wall *map)
     return ray;
 }
 
-void drawFp(const View view, Wall *map, const Player player)
+void drawFp(const View view, Wall *map, const Player player, const Length wlen)
 {
     setColor(GREY2);
     fillRectCoordLength(view.pos, iC(view.len.x,view.len.y/2));
@@ -250,6 +377,17 @@ void drawFp(const View view, Wall *map, const Player player)
             iC(hsec+1, imin(view.len.y, (view.len.y*120) / (correctedDst ? correctedDst : .01f)))
         );
     }
+    char buf[32] = {0};
+    sprintf(buf, "%+14.6f, %+14.6f", player.pos.x, player.pos.y);
+    const uint tscale = (wlen.x/3)/10;
+    setTextSize(tscale);
+    Texture *texture = textTexture(buf);
+    setColor(BLACK);
+    setTextColor(WHITE);
+    const Coord pos = coordSub(wlen, textureLen(texture));
+    fillRectCoordLength(pos, textureLen(texture));
+    drawTextureCoord(texture, pos);
+    freeTexture(texture);
 }
 
 void drawBv(const View view, Wall *map, const Player player, const float scale, const Coordf off)
@@ -257,31 +395,43 @@ void drawBv(const View view, Wall *map, const Player player, const float scale, 
     setColor(BLACK);
     fillRectCoordLength(view.pos, view.len);
     (void)off;
-
     Wall *cur = map;
+    const Length hlen = coordDivi(view.len, 2);
     while(cur){
-        const Coord a = toView(view, cur->a, scale);
-        const Coord b = toView(view, cur->b, scale);
+        Coord a = coordAdd(toView(view, cfSub(cur->a, player.pos), scale), hlen);
+        Coord b = coordAdd(toView(view, cfSub(cur->b, player.pos), scale), hlen);
         setColor(cur->c);
-        drawLineCoords(a, b);
+        if(limitViewBounds(view, &a, &b))
+            drawLineCoords(a, b);
         cur = cur->next;
     }
 
-    Ray rayl = castRay(player.pos, cfAdd(player.pos, degMagToCf(degReduce(player.ang - 45.0f), 1000.0f)), map);
-    Ray rayr = castRay(player.pos, cfAdd(player.pos, degMagToCf(degReduce(player.ang + 45.0f), 1000.0f)), map);
-
-    const Coord ppos = toView(view, player.pos, scale);
+    Coord ppos = coordAdd(view.pos, hlen);
+    Coord rpos = coordAdd(toView(view, cfSub(castRay(
+        player.pos, cfAdd(player.pos, degMagToCf(degReduce(player.ang + 45.0f), 6000.0f)),
+        map
+    ).pos, player.pos), scale), hlen);
+    Coord lpos = coordAdd(toView(view, cfSub(castRay(
+        player.pos, cfAdd(player.pos, degMagToCf(degReduce(player.ang - 45.0f), 6000.0f)), map
+    ).pos, player.pos), scale), hlen);
+    limitViewBounds(view, &ppos, &rpos);
+    limitViewBounds(view, &ppos, &lpos);
     setColor(YELLOW);
-    drawLineCoords(ppos, toView(view, rayr.pos, scale));
-    drawLineCoords(ppos, toView(view, rayl.pos, scale));
+    drawLineCoords(ppos, rpos);
+    drawLineCoords(ppos, lpos);
     fillCircleCoord(ppos, 2);
 }
 
-Player playerMoveMouse(Player player)
+Player playerMoveMouse(Player player, Wall *map)
 {
     player.ang = degReduce(player.ang + (mouse.vec.x*2)/3);
-    Coord strafe = coordMuli(wasdKeyStateOffset(), 2);
-    player.pos = cfAdd(player.pos, cfRotateDeg(CCf(strafe), player.ang+90.0f));
+    if(castRay(
+        player.pos,
+        cfAdd(player.pos, cfRotateDeg(cfMulf(CCf(wasdKeyStateOffset()), 10.0f), player.ang+90.0f)),
+        map
+    ).dst < 10.0f)
+        return player;
+    player.pos = cfAdd(player.pos, cfRotateDeg(CCf(coordMuli(wasdKeyStateOffset(), 2)), player.ang+90.0f));
     return player;
 }
 

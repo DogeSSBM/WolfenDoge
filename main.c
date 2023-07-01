@@ -38,12 +38,13 @@ int main(int argc, char **argv)
 
         const Length wlen = getWindowLen();
         const View firstView = {.len = wlen};
-        const View birdsView = {.len = iC(coordMin(wlen)/4,coordMin(wlen)/4), .pos = {.x=wlen.x-coordMin(wlen)/4}};
+        const Length bvlen = iiC(coordMin(coordDivi(wlen, 4)));
+        View birdsView = {.len = bvlen, .pos = iC(wlen.x-bvlen.x, 0)};
 
-        player = playerMoveMouse(player);
+        player = playerMoveMouse(player, map);
 
-        drawFp(firstView, map, player);
-        drawBv(birdsView, map, player, coordMin(birdsView.len)/ cfMax(mapBounds(map)), fC(0,0));
+        drawFp(firstView, map, player, wlen);
+        drawBv(birdsView, map, player, coordMin(birdsView.len) / cfMax(mapBounds(map)), fC(0,0));
 
         frameEnd(t);
     }
