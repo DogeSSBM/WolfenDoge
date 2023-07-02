@@ -128,9 +128,20 @@ void mapSave(Wall *map, char *fileName)
 Wall* wallNew(const Color c, const Coordf a, const Coordf b)
 {
     Wall *w = calloc(1, sizeof(Wall));
+    w->type = W_WALL;
     w->c = c;
     w->a = a;
     w->b = b;
+    return w;
+}
+
+Wall* windNew(const Color c, const Color ct, const Coordf a, const Coordf b, const float h, const float t)
+{
+    Wall *w = wallNew(c, a, b);
+    w->type = W_WIND;
+    w->wind.ctop = ct;
+    w->wind.height = h;
+    w->wind.top = t;
     return w;
 }
 
@@ -188,14 +199,46 @@ void wallFreeList(Wall *list)
 
 Wall* mapDefault(void)
 {
-    Wall *map =           wallNew(GREEN,    (const Coordf){.x=  0.0f, .y=  0.0f},   (const Coordf){.x=750.0f, .y=  0.0f});
-    map = wallAppend(map, wallNew(MAGENTA,  (const Coordf){.x=750.0f, .y=  0.0f},   (const Coordf){.x=750.0f, .y=750.0f}));
-    map = wallAppend(map, wallNew(MAGENTA,  (const Coordf){.x=  0.0f, .y=  0.0f},   (const Coordf){.x=  0.0f, .y=750.0f}));
-    map = wallAppend(map, wallNew(GREEN,    (const Coordf){.x=  0.0f, .y=750.0f},   (const Coordf){.x=750.0f, .y=750.0f}));
-    map = wallAppend(map, wallNew(BLUE,     (const Coordf){.x=250.0f, .y=250.0f},   (const Coordf){.x=500.0f, .y=250.0f}));
-    map = wallAppend(map, wallNew(BLUE,     (const Coordf){.x=500.0f, .y=250.0f},   (const Coordf){.x=500.0f, .y=500.0f}));
-    map = wallAppend(map, wallNew(BLUE,     (const Coordf){.x=250.0f, .y=250.0f},   (const Coordf){.x=250.0f, .y=500.0f}));
-    map = wallAppend(map, wallNew(BLUE,     (const Coordf){.x=250.0f, .y=500.0f},   (const Coordf){.x=500.0f, .y=500.0f}));
+    Wall *map =           wallNew(
+        GREEN,
+        (const Coordf){.x=  0.0f, .y=  0.0f},
+        (const Coordf){.x=750.0f, .y=  0.0f}
+    );
+    map = wallAppend(map, wallNew(
+        MAGENTA,
+        (const Coordf){.x=750.0f, .y=  0.0f},
+        (const Coordf){.x=750.0f, .y=750.0f}
+    ));
+    map = wallAppend(map, wallNew(
+        MAGENTA,
+        (const Coordf){.x=  0.0f, .y=  0.0f},
+        (const Coordf){.x=  0.0f, .y=750.0f}
+    ));
+    map = wallAppend(map, wallNew(
+        GREEN,
+        (const Coordf){.x=  0.0f, .y=750.0f},
+        (const Coordf){.x=750.0f, .y=750.0f}
+    ));
+    map = wallAppend(map, windNew(BLUE, RED,
+        (const Coordf){.x=250.0f, .y=250.0f},
+        (const Coordf){.x=500.0f, .y=250.0f},
+        .25f, .25f
+    ));
+    map = wallAppend(map, windNew(RED, BLUE,
+        (const Coordf){.x=500.0f, .y=250.0f},
+        (const Coordf){.x=500.0f, .y=500.0f},
+        .25f, .25f
+    ));
+    map = wallAppend(map, windNew(RED, BLUE,
+        (const Coordf){.x=250.0f, .y=250.0f},
+        (const Coordf){.x=250.0f, .y=500.0f},
+        .25f, .25f
+    ));
+    map = wallAppend(map, windNew(BLUE, RED,
+        (const Coordf){.x=250.0f, .y=500.0f},
+        (const Coordf){.x=500.0f, .y=500.0f},
+        .25f, .25f
+    ));
     return map;
 }
 
