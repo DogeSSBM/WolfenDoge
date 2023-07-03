@@ -1,5 +1,4 @@
-#include "DogeLib/Includes.h"
-#include "WolfenDoge.h"
+#include "Includes.h"
 
 int main(int argc, char **argv)
 {
