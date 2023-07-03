@@ -26,11 +26,11 @@ int main(int argc, char **argv)
     while(1){
         const uint t = frameStart();
 
-        if(keyPressed(SDL_SCANCODE_ESCAPE) || checkCtrlKey(SDL_SCANCODE_Q) || checkCtrlKey(SDL_SCANCODE_W)){
+        if(keyPressed(SC_ESCAPE) || checkCtrlKey(SC_Q) || checkCtrlKey(SC_W)){
             return 0;
         }
 
-        if(checkCtrlKey(SDL_SCANCODE_E)){
+        if(checkCtrlKey(SC_E)){
             map = mapEdit(map, fileName);
             SDL_SetRelativeMouseMode(true);
         }

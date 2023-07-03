@@ -244,10 +244,10 @@ Player playerMoveMouse(Player player, Wall *map)
 
 Player playerMoveKeys(Player player)
 {
-    player.ang = degReduce(player.ang + keyState(SDL_SCANCODE_D) - keyState(SDL_SCANCODE_A));
+    player.ang = degReduce(player.ang + keyState(SC_D) - keyState(SC_A));
     player.pos = cfAdd(
         player.pos,
-        degMagToCf(player.ang, 2*(float)(keyState(SDL_SCANCODE_W) - keyState(SDL_SCANCODE_S)))
+        degMagToCf(player.ang, 2*(float)(keyState(SC_W) - keyState(SC_S)))
     );
     return player;
 }

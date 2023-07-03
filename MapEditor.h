@@ -250,16 +250,16 @@ Wall* mapDefault(void)
 int numKeyPressed(void)
 {
     const Scancode key[10] = {
-        SDL_SCANCODE_0,
-        SDL_SCANCODE_1,
-        SDL_SCANCODE_2,
-        SDL_SCANCODE_3,
-        SDL_SCANCODE_4,
-        SDL_SCANCODE_5,
-        SDL_SCANCODE_6,
-        SDL_SCANCODE_7,
-        SDL_SCANCODE_8,
-        SDL_SCANCODE_9
+        SC_0,
+        SC_1,
+        SC_2,
+        SC_3,
+        SC_4,
+        SC_5,
+        SC_6,
+        SC_7,
+        SC_8,
+        SC_9
     };
     for(int i = 0; i < 10; i++){
         if(keyPressed(key[i]))
@@ -271,9 +271,9 @@ int numKeyPressed(void)
 int editColor(Color *c, int ci, Wall *selectedWall)
 {
     static int nums[3] = {0};
-    ci = wrap(ci + keyPressed(SDL_SCANCODE_RIGHT) - keyPressed(SDL_SCANCODE_LEFT), 0, 3);
+    ci = wrap(ci + keyPressed(SC_RIGHT) - keyPressed(SC_LEFT), 0, 3);
     u8* b = colorIndex(c, ci);
-    const int change = (keyPressed(SDL_SCANCODE_UP) - keyPressed(SDL_SCANCODE_DOWN))*(keyCtrlState()?10:1);
+    const int change = (keyPressed(SC_UP) - keyPressed(SC_DOWN))*(keyCtrlState()?10:1);
     *b = clamp((int)(*b) + change, 0, 255);
     if(change){
         nums[2] = (*(colorIndex(c, ci))) / 100;
@@ -288,7 +288,7 @@ int editColor(Color *c, int ci, Wall *selectedWall)
         *b = clamp(nums[2]*100+nums[1]*10+nums[0], 0, 255);
     }
 
-    if(keyPressed(SDL_SCANCODE_C) && selectedWall)
+    if(keyPressed(SC_C) && selectedWall)
         selectedWall->color = *c;
 
     return ci;
@@ -296,15 +296,15 @@ int editColor(Color *c, int ci, Wall *selectedWall)
 
 bool checkEditorExit(void)
 {
-    return checkCtrlKey(SDL_SCANCODE_Q) || checkCtrlKey(SDL_SCANCODE_W);
+    return checkCtrlKey(SC_Q) || checkCtrlKey(SC_W);
 }
 
 bool checkKeyS(Wall *map, char *fileName, bool snap, const float snaplen)
 {
-    if(checkCtrlKey(SDL_SCANCODE_S)){
+    if(checkCtrlKey(SC_S)){
         mapSave(map, fileName);
         printf("Saved \"%s\"\n", fileName);
-    }else if(keyPressed(SDL_SCANCODE_S)){
+    }else if(keyPressed(SC_S)){
         snap = !snap;
         printf("Snap (%4.0f) %s\n", snaplen, snap?"On":"Off");
     }
@@ -315,7 +315,7 @@ void checkScroll(Offset *off, const Coordf mmpos, const bool snap, float *snaple
 {
     float oldSnaplen = *snaplen;
     if(mouseScrolledY()){
-        if(keyState(SDL_SCANCODE_LCTRL) || keyState(SDL_SCANCODE_RCTRL)){
+        if(keyState(SC_LCTRL) || keyState(SC_RCTRL)){
             *snaplen = (float)imax(1, (int)*snaplen + mouseScrolledY());
         }else{
             const float oldScale = *scale;
@@ -327,7 +327,7 @@ void checkScroll(Offset *off, const Coordf mmpos, const bool snap, float *snaple
             }
         }
     }
-    *snaplen = (float)imax(1, (int)*snaplen + checkCtrlKey(SDL_SCANCODE_EQUALS)-checkCtrlKey(SDL_SCANCODE_MINUS));
+    *snaplen = (float)imax(1, (int)*snaplen + checkCtrlKey(SC_EQUALS)-checkCtrlKey(SC_MINUS));
     if(*snaplen != oldSnaplen)
         printf("Snap %4.0f (%s)\n", *snaplen, snap?"On":"Off");
 }
@@ -404,7 +404,7 @@ void mlrUpdate(Minfo *ml, Minfo *mr, Selection *sel, const Offset off, const flo
     mr->msnap = ml->msnap;
     ml->ssnap = mapToScreen(off, scale, ml->msnap);
     mr->ssnap = ml->ssnap;
-    if(keyPressed(SDL_SCANCODE_ESCAPE)){
+    if(keyPressed(SC_ESCAPE)){
         sel->wall = NULL;
         sel->pos = NULL;
         mr->drag = false;
@@ -475,14 +475,14 @@ Minfo mrUpdate(Minfo mr, Selection *sel, Wall **map, const Color c, const bool s
 
 Selection selCheckRev(Selection sel)
 {
-    if(sel.wall && sel.pos && keyPressed(SDL_SCANCODE_R))
+    if(sel.wall && sel.pos && keyPressed(SC_R))
         sel.pos = sel.pos == &(sel.wall->a) ? &(sel.wall->b) : &(sel.wall->a);
     return sel;
 }
 
 Wall* updateDel(Wall *map, Selection *sel)
 {
-    if((keyPressed(SDL_SCANCODE_DELETE) || keyPressed(SDL_SCANCODE_BACKSPACE)) && sel->wall){
+    if((keyPressed(SC_DELETE) || keyPressed(SC_BACKSPACE)) && sel->wall){
         map = wallDelete(map, sel->wall);
         sel->wall = NULL;
         sel->pos = NULL;
@@ -502,7 +502,7 @@ Length updateResize(Length wlen, Offset *off)
 
 Offset updatePan(Offset off, Minfo *ml, Minfo *mr)
 {
-    if(mouseBtnState(MOUSE_M) || keyState(SDL_SCANCODE_LSHIFT)){
+    if(mouseBtnState(MOUSE_M) || keyState(SC_LSHIFT)){
         off = coordAdd(off, mouseMovement());
         mr->sposd = mr->spos;
         ml->sposd = ml->spos;
