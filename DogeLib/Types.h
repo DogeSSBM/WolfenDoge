@@ -1,7 +1,10 @@
-#pragma once
+#ifndef DOGELIB_TYPES_H
+#define DOGELIB_TYPES_H
 
 typedef FILE                File;
 typedef time_t              Time;
+typedef size_t              st;
+typedef ptrdiff_t           dt;
 
 typedef long int            lint;
 typedef unsigned char       uchar;
@@ -98,6 +101,12 @@ Coord iC(const int x, const int y)
 }
 
 static inline
+Coord iiC(const int i)
+{
+    return (const Coord){.x = i, .y = i};
+}
+
+static inline
 Coord irC(const Rect rect)
 {
     return iC(rect.x, rect.y);
@@ -141,6 +150,11 @@ typedef union{
     };
 }Coordf, Vectorf, Rangef, Lengthf, Offsetf;
 
+Coordf fC(const float x, const float y)
+{
+    return (const Coordf){.x=x, .y=y};
+}
+
 typedef enum{DIR_U = 0, DIR_R, DIR_D, DIR_L}Direction;
 
 const char DirectionChar[4] = {'U', 'R', 'D', 'L'};
@@ -158,6 +172,26 @@ int imin(const int a, const int b)
 int iabs(const int i)
 {
     return i > 0 ? i : -i;
+}
+
+int ipow(int num, int pow)
+{
+    assertExpr(pow >= 0);
+    if(pow == 0)
+        return 1;
+    while(--pow)
+        num *= num;
+    return num;
+}
+
+float fmost(const float a, const float b)
+{
+    return a > b ? a : b;
+}
+
+float fleast(const float a, const float b)
+{
+    return a < b ? a : b;
 }
 
 int posSign(const int n)
@@ -219,3 +253,5 @@ float uboundf(const float n, const float u)
 {
     return n>u?u:n;
 }
+
+#endif /* end of include guard: DOGELIB_TYPES_H */

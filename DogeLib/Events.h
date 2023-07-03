@@ -1,5 +1,5 @@
-#ifndef EVENTS_H
-#define EVENTS_H
+#ifndef DOGELIB_EVENTS_H
+#define DOGELIB_EVENTS_H
 
 void events(const uint endOfFrame)
 {
@@ -26,9 +26,6 @@ void events(const uint endOfFrame)
                 mouse.wheel.x += event.wheel.x;
                 mouse.wheel.y += event.wheel.y;
                 break;
-            // case SDL_WINDOWEVENT_SIZE_CHANGED:
-            // case SDL_WINDOWEVENT:
-                // break;
             default:
                 break;
             }
@@ -45,4 +42,4 @@ void events(const uint endOfFrame)
     SDL_GetRelativeMouseState(&mouse.vec.x, &mouse.vec.y);
 }
 
-#endif /* end of include guard: EVENTS_H */
+#endif /* end of include guard: DOGELIB_EVENTS_H */

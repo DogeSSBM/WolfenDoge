@@ -61,6 +61,16 @@ Coord coordMost(const Coord pos1, const Coord pos2)
     return (const Coord){.x = imax(pos1.x, pos2.x), .y = imax(pos1.y, pos2.y)};
 }
 
+Coord coordMaxi(const Coord pos, const int i)
+{
+    return (const Coord){.x=imax(pos.x, i), .y=imax(pos.y, i)};
+}
+
+Coord coordMini(const Coord pos, const int i)
+{
+    return (const Coord){.x=imin(pos.x, i), .y=imin(pos.y, i)};
+}
+
 bool coordSame(const Coord pos1, const Coord pos2)
 {
     return pos1.x == pos2.x && pos1.y == pos2.y;
@@ -171,16 +181,6 @@ Coord coordSub(const Coord coord1, const Coord coord2)
     return (const Offset){.x = coord1.x-coord2.x, .y = coord1.y-coord2.y};
 }
 
-float coordfDist(const Coordf coord1, const Coordf coord2)
-{
-    return sqrtf(powf(coord2.x-coord1.x,2.0f)+powf(coord2.y-coord1.y,2.0f));
-}
-
-Coordf coordfDiv(const Coordf coord, const float num)
-{
-    return (const Coordf){.x = coord.x/num, .y = coord.y/num};
-}
-
 Coord coordMod(const Coord coord1, const Coord coord2)
 {
     return (const Coord){.x = coord1.x%coord2.x, .y = coord1.y%coord2.y};
@@ -189,11 +189,6 @@ Coord coordMod(const Coord coord1, const Coord coord2)
 Coord coordModi(const Coord coord, const int num)
 {
     return (const Coord){.x = coord.x%num, .y = coord.y%num};
-}
-
-Coordf coordfNormalize(const Coordf coord)
-{
-    return coordfDiv(coord, coordfDist((const Coordf){.x = 0.0f, .y = 0.0f}, coord));
 }
 
 Coord coordMid(const Coord coord1, const Coord coord2)
@@ -249,11 +244,6 @@ Coord coordAdd(const Coord coord, const Offset off)
     return (const Coord){.x = coord.x+off.x, .y = coord.y+off.y};
 }
 
-Coordf cfAdd(const Coordf coord, const Offsetf off)
-{
-    return (Coordf){.x = coord.x+off.x, .y = coord.y+off.y};
-}
-
 // offsets the coord by 1/2 the length
 Coord coordCenter(const Coord coord, const Length len)
 {
@@ -264,6 +254,12 @@ Coord coordCenter(const Coord coord, const Length len)
 Coord coordUncenter(const Coord coord, const Length len)
 {
     return coordAdd(coord, coordDivi(len, -2));
+}
+
+// scales and offsets pos
+Coord coordOffScale(const Coord pos, const Offset off, const int scale)
+{
+    return coordAdd(coordMuli(pos, scale), off);
 }
 
 // returns rect at pos with length len
@@ -311,11 +307,6 @@ Rect rectOffset(const Rect rect, const Offset off)
 {
     const Coord pos = coordAdd((const Coord){.x = rect.x, .y = rect.y}, off);
     return (Rect){.x = pos.x, .y = pos.y, .w = rect.w, .h = rect.h};
-}
-
-Length rectLen(const Rect rect)
-{
-    return (const Length){.x=rect.w, .y=rect.h};
 }
 
 #endif /* end of include guard: DOGELIB_COORDS_H */

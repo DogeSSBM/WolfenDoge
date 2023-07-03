@@ -1,5 +1,5 @@
-#ifndef GETINT_H
-#define GETINT_H
+#ifndef DOGELIB_GETINT_H
+#define DOGELIB_GETINT_H
 
 int strToInt(const char *str)
 {
@@ -24,21 +24,6 @@ uint digits(int n)
     }
     return d;
 }
-
-//  123
-// ""
-// 
-// char* intToStr(int n, char *str)
-// {
-//     if(!str)
-//         panic("Cannot store int into a NULL str!");
-//     const uint l = strlen(str);
-//     const uint d = digits(n);
-//     for(int i = 0; n; i++){
-//
-//     }
-//     return n;
-// }
 
 int shiftR(const int num)
 {
@@ -87,4 +72,4 @@ int getInt(void)
     return strToInt(buffer);
 }
 
-#endif /* end of include guard: GETINT_H */
+#endif /* end of include guard: DOGELIB_GETINT_H */

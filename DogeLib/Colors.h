@@ -1,6 +1,15 @@
 #ifndef DOGELIB_COLORS_H
 #define DOGELIB_COLORS_H
 
+u8* colorIndex(Color *c, const int i)
+{
+    if(iabs(i)%3 == 0)
+        return &(c->r);
+    if(iabs(i)%3 == 1)
+        return &(c->g);
+    return &(c->b);
+}
+
 const Color WHITE   = {0xFF, 0xFF, 0xFF, 0xFF};
 const Color PINK    = {0xFF, 0xC0, 0xCB, 0xFF};
 const Color CYAN    = {0x00, 0xFF, 0xFF, 0xFF};

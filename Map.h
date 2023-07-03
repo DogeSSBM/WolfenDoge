@@ -8,7 +8,7 @@ WallPacked* mapPack(Wall *map)
         return NULL;
     WallPacked *mapPacked = calloc(len, sizeof(WallPacked));
     for(uint i = 0; i < len; i++){
-        mapPacked[i].c = map->c;
+        mapPacked[i].c = map->color;
         mapPacked[i].a = map->a;
         mapPacked[i].b = map->b;
         map = map->next;
@@ -92,6 +92,16 @@ Wall* posNearest(Wall *map, const Coordf pos, Coordf **nearest)
     return wall;
 }
 
+Wall* mapQueryObjId(Wall *map, const uint id)
+{
+    while(map){
+        if(map->type == W_DOOR && map->door.id == id)
+            break;
+        map = map->next;
+    }
+    return map;
+}
+
 void defaultMapFileName(char *fileName)
 {
     uint i = 0;
@@ -129,19 +139,41 @@ Wall* wallNew(const Color c, const Coordf a, const Coordf b)
 {
     Wall *w = calloc(1, sizeof(Wall));
     w->type = W_WALL;
-    w->c = c;
+    w->color = c;
     w->a = a;
     w->b = b;
     return w;
 }
 
-Wall* windNew(const Color c, const Color ct, const Coordf a, const Coordf b, const float h, const float t)
+Wall* windNew(const Color c, const Color topColor, const Coordf a, const Coordf b, const float height, const float top)
 {
     Wall *w = wallNew(c, a, b);
     w->type = W_WIND;
-    w->wind.ctop = ct;
-    w->wind.height = h;
-    w->wind.top = t;
+    w->wind.topColor = topColor;
+    w->wind.height = height;
+    w->wind.top = top;
+    return w;
+}
+
+Wall* doorNew(const Color c, const Coordf a, const Coordf b, const uint id, const float pos, const bool state, const float speed, const Direction closeDir)
+{
+    Wall *w = wallNew(c, a, b);
+    w->type = W_DOOR;
+    w->door.id = id;
+    w->door.pos = pos;
+    w->door.state = state;
+    w->door.speed = speed;
+    w->door.closeDir = closeDir;
+    return w;
+}
+
+Wall* trigNew(const Color color, const Coordf a, const Coordf b, const uint id, const Coordf c, const Coordf d)
+{
+    Wall *w = wallNew(color, a, b);
+    w->type = W_TRIG;
+    w->trig.id = id;
+    w->trig.c = c;
+    w->trig.d = d;
     return w;
 }
 
@@ -219,16 +251,6 @@ Wall* mapDefault(void)
         (const Coordf){.x=  0.0f, .y=750.0f},
         (const Coordf){.x=750.0f, .y=750.0f}
     ));
-    map = wallAppend(map, windNew(BLUE, RED,
-        (const Coordf){.x=250.0f, .y=250.0f},
-        (const Coordf){.x=500.0f, .y=250.0f},
-        .25f, .25f
-    ));
-    map = wallAppend(map, windNew(RED, BLUE,
-        (const Coordf){.x=500.0f, .y=250.0f},
-        (const Coordf){.x=500.0f, .y=500.0f},
-        .25f, .25f
-    ));
     map = wallAppend(map, windNew(RED, BLUE,
         (const Coordf){.x=250.0f, .y=250.0f},
         (const Coordf){.x=250.0f, .y=500.0f},
@@ -238,6 +260,28 @@ Wall* mapDefault(void)
         (const Coordf){.x=250.0f, .y=500.0f},
         (const Coordf){.x=500.0f, .y=500.0f},
         .25f, .25f
+    ));
+    map = wallAppend(map, windNew(RED, BLUE,
+        (const Coordf){.x=500.0f, .y=250.0f},
+        (const Coordf){.x=500.0f, .y=500.0f},
+        .25f, .25f
+    ));
+    map = wallAppend(map, windNew(BLUE, RED,
+        (const Coordf){.x=250.0f, .y=500.0f},
+        (const Coordf){.x=500.0f, .y=500.0f},
+        .25f, .25f
+    ));
+    map = wallAppend(map, doorNew(YELLOW,
+        (const Coordf){.x=250.0f, .y=250.0f},
+        (const Coordf){.x=500.0f, .y=250.0f},
+        0, 0.0f, false, 0.01f, DIR_L
+    ));
+    map = wallAppend(map, trigNew(YELLOW,
+        (const Coordf){.x=250.0f, .y=0.0f},
+        (const Coordf){.x=500.0f, .y=0.0f},
+        0,
+        (const Coordf){.x=250.0f, .y=250.0f},
+        (const Coordf){.x=500.0f, .y=250.0f}
     ));
     return map;
 }
@@ -284,7 +328,7 @@ int editColor(Color *c, int ci, Wall *selectedWall)
     }
 
     if(keyPressed(SDL_SCANCODE_C) && selectedWall)
-        selectedWall->c = *c;
+        selectedWall->color = *c;
 
     return ci;
 }
@@ -375,7 +419,7 @@ void drawEditorMap(Wall *map, const Offset off, const float scale)
     while(cur){
         const Coord a = mapToScreen(off, scale, cur->a);
         const Coord b = mapToScreen(off, scale, cur->b);
-        setColor(cur->c);
+        setColor(cur->color);
         drawLineCoords(a, b);
         cur = cur->next;
     }

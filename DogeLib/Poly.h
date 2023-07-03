@@ -1,5 +1,5 @@
-#ifndef POLY_H
-#define POLY_H
+#ifndef DOGELIB_POLY_H
+#define DOGELIB_POLY_H
 
 Poly polyCreate(const uint numVertex, ...)
 {
@@ -45,4 +45,4 @@ CoordPair polyBbMinMax(const Poly p)
     return ret;
 }
 
-#endif /* end of include guard: POLY_H */
+#endif /* end of include guard: DOGELIB_POLY_H */

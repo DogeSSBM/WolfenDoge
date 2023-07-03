@@ -12,18 +12,30 @@ typedef struct Player{
     float speed;
 }Player;
 
-typedef enum{W_WALL, W_WIND}WallType;
+typedef enum{W_WALL, W_WIND, W_TRIG, W_DOOR}WallType;
 typedef struct Wall{
-    Color c;
+    Color color;
     Coordf a;
     Coordf b;
     WallType type;
     union{
         struct{
-            Color ctop;
+            Color topColor;
             float height;
             float top;
         }wind;
+        struct{
+            uint id;
+            float pos;
+            bool state;
+            float speed;
+            Direction closeDir;
+        }door;
+        struct{
+            uint id;
+            Coordf c;
+            Coordf d;
+        }trig;
     };
     struct Wall *next;
 }Wall;
@@ -62,89 +74,6 @@ typedef struct Selection{
 #include "Decls.h"
 #include "Map.h"
 
-Coordf fC(const float x, const float y)
-{
-    return (const Coordf){.x=x, .y=y};
-}
-
-Coord iiC(const int i)
-{
-    return (const Coord){.x=i, .y=i};
-}
-
-float fmost(const float a, const float b)
-{
-    return a > b ? a : b;
-}
-
-float cfMax(const Coordf pos)
-{
-    return fmost(pos.x, pos.y);
-}
-
-bool cfSame(const Coordf a, const Coordf b)
-{
-    return a.x == b.x && a.y == b.y;
-}
-
-Coordf cfModf(const Coordf pos, const float mod)
-{
-    return (const Coordf){
-        .x = fmod(pos.x, mod),
-        .y = fmod(pos.y, mod)
-    };
-}
-
-Coordf cfSub(const Coordf a, const Coordf b)
-{
-    return (const Coordf){
-        .x = a.x-b.x,
-        .y = a.y-b.y
-    };
-}
-
-Coordf cfAddf(const Coordf pos, const float f)
-{
-    return (const Coordf){
-        .x=pos.x+f,
-        .y=pos.y+f
-    };
-}
-
-Coordf cfSnap(const Coordf pos, const float scale)
-{
-    return cfSub(pos, cfModf(pos, scale));
-}
-
-Coordf cfSnapMid(const Coordf pos, const float scale)
-{
-    return cfSnap(cfAddf(pos, scale/2), scale);
-}
-
-u8* colorIndex(Color *c, const int i)
-{
-    if(iabs(i)%3 == 0)
-        return &(c->r);
-    if(iabs(i)%3 == 1)
-        return &(c->g);
-    return &(c->b);
-}
-
-bool keyCtrlState(void)
-{
-    return keyState(SDL_SCANCODE_LCTRL) || keyState(SDL_SCANCODE_RCTRL);
-}
-
-bool keyShiftState(void)
-{
-    return keyState(SDL_SCANCODE_LSHIFT) || keyState(SDL_SCANCODE_RSHIFT);
-}
-
-bool checkCtrlKey(const Scancode key)
-{
-    return keyPressed(key) && keyCtrlState();
-}
-
 Coord toView(const View view, const Coordf pos, const float scale)
 {
     return coordAdd(view.pos, iC(pos.x*scale, pos.y*scale));
@@ -153,27 +82,6 @@ Coord toView(const View view, const Coordf pos, const float scale)
 bool inView(const View view, const Coord pos)
 {
     return inBound(pos.x, view.pos.x, view.pos.x+view.len.x) && inBound(pos.y, view.pos.y, view.pos.y+view.len.y);
-}
-
-bool lineIntersection(const Coordf p0, const Coordf p1, const Coordf p2, const Coordf p3, Coordf *at)
-{
-    const Coordf s1 = {.x = p1.x - p0.x, .y = p1.y - p0.y};
-    const Coordf s2 = {.x = p3.x - p2.x, .y = p3.y - p2.y};
-
-
-    const float d = -s2.x * s1.y + s1.x * s2.y;
-
-    const float s = d!=0 ? (-s1.y * (p0.x - p2.x) + s1.x * (p0.y - p2.y)) / d : 1000000.0f;
-    const float t = d!=0 ? ( s2.x * (p0.y - p2.y) - s2.y * (p0.x - p2.x)) / d : 1000000.0f;
-
-    if (s >= 0 && s <= 1 && t >= 0 && t <= 1){
-        if(at){
-            at->x = p0.x + (t * s1.x);
-            at->y = p0.y + (t * s1.y);
-        }
-        return true;
-    }
-    return false;
 }
 
 Direction viewBoundIntersect(Wall bounds[4], const Coordf a, const Coordf b, Coordf *at)
@@ -231,49 +139,7 @@ bool limitViewBounds(const View view, Coord *a, Coord *b)
     return true;
 }
 
-Offset wasdKeyStateOffset(void)
-{
-    return (const Offset){
-        .x = keyState(SDL_SCANCODE_D) - keyState(SDL_SCANCODE_A),
-        .y = keyState(SDL_SCANCODE_S) - keyState(SDL_SCANCODE_W)
-    };
-}
-
-Offset arrowKeyStateOffset(void)
-{
-    return (const Offset){
-        .x = keyState(SDL_SCANCODE_RIGHT) - keyState(SDL_SCANCODE_LEFT),
-        .y = keyState(SDL_SCANCODE_DOWN) - keyState(SDL_SCANCODE_UP)
-    };
-}
-
-Offset dirKeyStateOffset(void)
-{
-    return coordLeast(coordAdd(wasdKeyStateOffset(), arrowKeyStateOffset()), iC(1,1));
-}
-
-Offset wasdKeyPressedOffset(void)
-{
-    return (const Offset){
-        .x = keyPressed(SDL_SCANCODE_D) - keyPressed(SDL_SCANCODE_A),
-        .y = keyPressed(SDL_SCANCODE_S) - keyPressed(SDL_SCANCODE_W)
-    };
-}
-
-Offset arrowKeyPressedOffset(void)
-{
-    return (const Offset){
-        .x = keyPressed(SDL_SCANCODE_RIGHT) - keyPressed(SDL_SCANCODE_LEFT),
-        .y = keyPressed(SDL_SCANCODE_DOWN) - keyPressed(SDL_SCANCODE_UP)
-    };
-}
-
-Offset dirKeyPressedOffset(void)
-{
-    return coordLeast(coordAdd(wasdKeyPressedOffset(), arrowKeyPressedOffset()), iC(1,1));
-}
-
-Ray castRayMin(const Coordf origin, const Coordf distantPoint, Wall *map, const bool ignoreWind, const float min)
+Ray castRayMin(const Coordf origin, const Coordf distantPoint, Wall *map, const bool solidOnly, const float min)
 {
     Ray ray = {
         .wall = map,
@@ -281,7 +147,7 @@ Ray castRayMin(const Coordf origin, const Coordf distantPoint, Wall *map, const 
         .pos = distantPoint
     };
     while(map){
-        if(ignoreWind && map->type == W_WIND){
+        if(solidOnly && (map->type == W_WIND || map->type == W_TRIG || (map->type == W_DOOR && map->door.pos < 1.0f))){
             map = map->next;
             continue;
         }
@@ -297,55 +163,68 @@ Ray castRayMin(const Coordf origin, const Coordf distantPoint, Wall *map, const 
         }
         map = map->next;
     }
+    if(ray.dst == 60000.0f)
+        ray.wall = NULL;
     return ray;
 }
 
-Ray castRay(const Coordf origin, const Coordf distantPoint, Wall *map, const bool ignoreWind)
+Ray castRay(const Coordf origin, const Coordf distantPoint, Wall *map, const bool solidOnly)
 {
-    return castRayMin(origin, distantPoint, map, ignoreWind, -1.0f);
+    return castRayMin(origin, distantPoint, map, solidOnly, -1.0f);
 }
 
 void drawWall(const View view, const Ray ray, const int xpos, const int ymid, const int dst, const float hsec)
 {
     const int height = (view.len.y*120) / fmax(dst, .01f);
-    if(ray.wall){
-        setColor((const Color){
-            .r = clamp(ray.wall->c.r-(((dst*1.2f)/2000.0f)*255), 0, 256),
-            .g = clamp(ray.wall->c.g-(((dst*1.2f)/2000.0f)*255), 0, 256),
-            .b = clamp(ray.wall->c.b-(((dst*1.2f)/2000.0f)*255), 0, 256)
-        });
-        if(ray.wall->type == W_WIND){
-            const int xc = xpos-hsec/2;
-            const int xr = xc+hsec+1.0f;
-            int oldbot = ymid+height/2;
-            const int bot = oldbot - (int)(ray.wall->wind.height * (float)height);
-            fillRectCoords(iC(xc, oldbot), iC(xr, bot));
-
-            setColor((const Color){
-                .r = clamp(ray.wall->wind.ctop.r-(((dst*1.2f)/2000.0f)*255), 0, 256),
-                .g = clamp(ray.wall->wind.ctop.g-(((dst*1.2f)/2000.0f)*255), 0, 256),
-                .b = clamp(ray.wall->wind.ctop.b-(((dst*1.2f)/2000.0f)*255), 0, 256)
-            });
-            int oldtop = ymid-height/2;
-            const int top = oldtop + (int)(ray.wall->wind.height * (float)height);
-            fillRectCoords(iC(xc, oldtop), iC(xr, top));
-            return;
-        }
-        const int ypos = ymid;
-        const int ylen = imin(view.len.y, height);
-        fillRectCenteredCoordLength(
-            iC(xpos, ypos),
-            iC(hsec+1, ylen)
-        );
-        return;
-    }else{
+    if(!ray.wall){
         setColor(BLACK);
         fillRectCenteredCoordLength(
             iC(xpos, ymid),
             iC(hsec+1, imax(view.len.y/64, 1))
         );
+        return;
     }
-    return;
+    setColor((const Color){
+        .r = clamp(ray.wall->color.r-(((dst*1.2f)/2000.0f)*255), 0, 256),
+        .g = clamp(ray.wall->color.g-(((dst*1.2f)/2000.0f)*255), 0, 256),
+        .b = clamp(ray.wall->color.b-(((dst*1.2f)/2000.0f)*255), 0, 256)
+    });
+    if(ray.wall->type == W_WIND){
+        const int boundL = xpos-hsec/2;
+        const int boundR = boundL+hsec+1.0f;
+        const int boundBotLower = ymid+height/2;
+        const int boundBotUpper = boundBotLower - (int)(ray.wall->wind.height * (float)height);
+        fillRectCoords(iC(boundL, boundBotLower), iC(boundR, boundBotUpper));
+
+        setColor((const Color){
+            .r = clamp(ray.wall->wind.topColor.r-(((dst*1.2f)/2000.0f)*255), 0, 256),
+            .g = clamp(ray.wall->wind.topColor.g-(((dst*1.2f)/2000.0f)*255), 0, 256),
+            .b = clamp(ray.wall->wind.topColor.b-(((dst*1.2f)/2000.0f)*255), 0, 256)
+        });
+        const int boundTopUpper = ymid-height/2;
+        const int boundTopLower = boundTopUpper + (int)(ray.wall->wind.height * (float)height);
+        fillRectCoords(iC(boundL, boundTopUpper), iC(boundR, boundTopLower));
+        return;
+    }
+    if(ray.wall->type == W_DOOR){
+        if(ray.wall->door.pos == 0.0f)
+            return;
+        if(dirUD(ray.wall->door.closeDir)){
+            const int boundL = xpos-hsec/2;
+            const int boundR = boundL+hsec+1.0f;
+            const int doorHeight = height * ray.wall->door.pos;
+            const int boundTop = ymid-height/2 + (ray.wall->door.closeDir == DIR_U * (height - doorHeight));
+            const int boundBot = boundTop + doorHeight;
+            fillRectCoords(iC(boundL, boundTop), iC(boundR, boundBot));
+        }
+        return;
+    }
+    const int ypos = ymid;
+    const int ylen = imin(view.len.y, height);
+    fillRectCenteredCoordLength(
+        iC(xpos, ypos),
+        iC(hsec+1, ylen)
+    );
 }
 
 void drawFp(const View view, Wall *map, const Player player, const Length wlen)
@@ -367,9 +246,9 @@ void drawFp(const View view, Wall *map, const Player player, const Length wlen)
         const int xpos = view.pos.x+hsec/2+i*hsec;
         drawWall(view, ray, xpos, ymid, correctedDst, hsec);
         const Ray wray1 = castRay(player.pos, farpos, map, false);
-        if(wray1.wall && wray1.wall->type == W_WIND){
+        if(wray1.wall && wray1.wall->type != W_WALL){
             const Ray wray2 = castRayMin(player.pos, farpos, map, false, wray1.dst+1.0f);
-            if(wray2.wall && wray2.wall->type == W_WIND)
+            if(wray2.wall && wray2.wall->type != W_WALL)
                 drawWall(view, wray2, xpos, ymid, (int)(wray2.dst/sqrtf(viewTan*viewTan+1.0f)), hsec);
             drawWall(view, wray1, xpos, ymid, (int)(wray1.dst/sqrtf(viewTan*viewTan+1.0f)), hsec);
         }
@@ -397,7 +276,7 @@ void drawBv(const View view, Wall *map, const Player player, const float scale, 
     while(cur){
         Coord a = coordAdd(toView(view, cfSub(cur->a, player.pos), scale), hlen);
         Coord b = coordAdd(toView(view, cfSub(cur->b, player.pos), scale), hlen);
-        setColor(cur->c);
+        setColor(cur->color);
         if(limitViewBounds(view, &a, &b))
             drawLineCoords(a, b);
         cur = cur->next;
@@ -420,16 +299,68 @@ void drawBv(const View view, Wall *map, const Player player, const float scale, 
     fillCircleCoord(ppos, 2);
 }
 
+float triSign(const Coordf a, const Coordf b, const Coordf c)
+{
+    return (a.x - c.x) * (b.y - c.y) - (b.x - c.x) * (a.y - c.y);
+}
+
+bool cfInTri(Coordf pos, Coordf a, Coordf b, Coordf c)
+{
+    const float s1 = triSign(pos, a, b);
+    const float s2 = triSign(pos, b, c);
+    const float s3 = triSign(pos, c, a);
+    return !(((s1 < 0) || (s2 < 0) || (s3 < 0)) && ((s1 > 0) || (s2 > 0) || (s3 > 0)));
+}
+
+void mapUpdateIdState(Wall *map, const uint id, const bool state)
+{
+    while(map){
+        if(map->type == W_DOOR && map->door.id == id)
+            map->door.state = state;
+        map = map->next;
+    }
+}
+
+void mapUpdateTriggers(const Coordf oldPos, const Coordf newPos, Wall *map)
+{
+    while(map){
+        if(map->type == W_TRIG){
+            const bool oldState = cfInTri(oldPos, map->a, map->b, map->trig.d) || cfInTri(oldPos, map->b, map->trig.d, map->trig.c);
+            const bool newState = cfInTri(newPos, map->a, map->b, map->trig.d) || cfInTri(newPos, map->b, map->trig.d, map->trig.c);
+            if(oldState != newState)
+                mapUpdateIdState(map, map->trig.id, newState);
+        }
+        map = map->next;
+    }
+}
+
+void mapUpdateDynamics(Wall *map)
+{
+    while(map){
+        if(map->type == W_DOOR){
+            map->door.pos += map->door.state ? -map->door.speed : map->door.speed;
+            if(map->door.pos < 0.0f)
+                map->door.pos = 0.0f;
+            if(map->door.pos > 1.0f)
+                map->door.pos = 1.0f;
+        }
+        map = map->next;
+    }
+}
+
 Player playerMoveMouse(Player player, Wall *map)
 {
+    const Coordf oldPos = player.pos;
     player.ang = degReduce(player.ang + (mouse.vec.x*2)/3);
     if(castRay(
         player.pos,
         cfAdd(player.pos, cfRotateDeg(cfMulf(CCf(wasdKeyStateOffset()), 10.0f), player.ang+90.0f)),
-        map, false
-    ).dst < 10.0f)
-        return player;
-    player.pos = cfAdd(player.pos, cfRotateDeg(CCf(coordMuli(wasdKeyStateOffset(), 2)), player.ang+90.0f));
+        map, true
+    ).dst > 10.0f)
+        player.pos = cfAdd(player.pos, cfRotateDeg(CCf(coordMuli(wasdKeyStateOffset(), 2)), player.ang+90.0f));
+    if(!cfSame(oldPos, player.pos))
+        mapUpdateTriggers(oldPos, player.pos, map);
+    mapUpdateDynamics(map);
     return player;
 }
 

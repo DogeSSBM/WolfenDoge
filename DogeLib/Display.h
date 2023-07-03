@@ -1,5 +1,5 @@
-#ifndef DISPLAY_H
-#define DISPLAY_H
+#ifndef DOGELIB_DISPLAY_H
+#define DOGELIB_DISPLAY_H
 
 int getWinDisplayIndex(void)
 {
@@ -65,4 +65,4 @@ Length getDisplayTotalLen(void)
     return ret;
 }
 
-#endif /* end of include guard: DISPLAY_H */
+#endif /* end of include guard: DOGELIB_DISPLAY_H */

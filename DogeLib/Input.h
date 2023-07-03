@@ -1,5 +1,5 @@
-#ifndef INPUT_H
-#define INPUT_H
+#ifndef DOGELIB_INPUT_H
+#define DOGELIB_INPUT_H
 
 struct{
     u8 key[SDL_NUM_SCANCODES];
@@ -99,10 +99,72 @@ Length mouseMovement(void)
     return coordSub(mouse.pos, mouse.prev.pos);
 }
 
+bool keyCtrlState(void)
+{
+    return keyState(SC_LCTRL) || keyState(SC_RCTRL);
+}
+
+bool keyShiftState(void)
+{
+    return keyState(SC_LSHIFT) || keyState(SC_RSHIFT);
+}
+
+bool keyComboPressed(const Scancode modkey, const Scancode key)
+{
+    return keyPressed(key) && keyState(modkey);
+}
+
+bool checkCtrlKey(const Scancode key)
+{
+    return keyPressed(key) && keyCtrlState();
+}
+
 void input_init(void)
 {
     mouse.pos = coordDivi(getWindowLen(), 2);
     mouse.prev.pos = coordDivi(getWindowLen(), 2);
 }
 
-#endif /* end of include guard: INPUT_H */
+Offset wasdKeyStateOffset(void)
+{
+    return (const Offset){
+        .x = keyState(SC_D) - keyState(SC_A),
+        .y = keyState(SC_S) - keyState(SC_W)
+    };
+}
+
+Offset arrowKeyStateOffset(void)
+{
+    return (const Offset){
+        .x = keyState(SC_RIGHT) - keyState(SC_LEFT),
+        .y = keyState(SC_DOWN) - keyState(SC_UP)
+    };
+}
+
+Offset dirKeyStateOffset(void)
+{
+    return coordLeast(coordAdd(wasdKeyStateOffset(), arrowKeyStateOffset()), iC(1,1));
+}
+
+Offset wasdKeyPressedOffset(void)
+{
+    return (const Offset){
+        .x = keyPressed(SC_D) - keyPressed(SC_A),
+        .y = keyPressed(SC_S) - keyPressed(SC_W)
+    };
+}
+
+Offset arrowKeyPressedOffset(void)
+{
+    return (const Offset){
+        .x = keyPressed(SC_RIGHT) - keyPressed(SC_LEFT),
+        .y = keyPressed(SC_DOWN) - keyPressed(SC_UP)
+    };
+}
+
+Offset dirKeyPressedOffset(void)
+{
+    return coordLeast(coordAdd(wasdKeyPressedOffset(), arrowKeyPressedOffset()), iC(1,1));
+}
+
+#endif /* end of include guard: DOGELIB_INPUT_H */

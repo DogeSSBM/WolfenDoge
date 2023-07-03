@@ -57,7 +57,7 @@ void assertLogExprHelper(const char *func, const char *file, const int line, con
 }
 #define assertLogExpr(expr) assertLogExprHelper(__func__, __FILE__, __LINE__, expr, #expr)
 
-void logExprHelper(const char *func, const char *file, const int line, const char * format, const char *exprs,...)
+void logMsgHelper(const char *func, const char *file, const int line, const char * format, const char *exprs,...)
 {
     fprintf(stderr, "Log -\n");
     fprintf(stderr, "\tFile: %s\n", file);
@@ -71,7 +71,18 @@ void logExprHelper(const char *func, const char *file, const int line, const cha
     fprintf(stderr, "\"\n");
     fprintf(stderr, "\tExprs: \"%s\"\n", exprs);
 }
-#define logExpr(format, ...)  logExprHelper(__func__, __FILE__, __LINE__, format, #__VA_ARGS__, __VA_ARGS__)
+#define logMsg(format, ...)  logMsgHelper(__func__, __FILE__, __LINE__, format, #__VA_ARGS__, __VA_ARGS__)
+
+void logExprHelper(const char * format, const char *exprs,...)
+{
+    fprintf(stderr, "{%s} -> {", exprs);
+    va_list args;
+    va_start(args, exprs);
+    vfprintf(stderr, format, args);
+    va_end(args);
+    fprintf(stderr, "}\n");
+}
+#define logExpr(format, ...)  logExprHelper(format, #__VA_ARGS__, __VA_ARGS__)
 
 void assertExprMsgHelper(const char *func, const char *file, const int line, const bool val, const char *expr, const char *format, ...)
 {

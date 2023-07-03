@@ -1,5 +1,5 @@
-#ifndef TEXT_H
-#define TEXT_H
+#ifndef DOGELIB_TEXT_H
+#define DOGELIB_TEXT_H
 
 bool strEndsWith(const char *str, const char *end)
 {
@@ -218,4 +218,4 @@ void text_init(void)
     atexit(text_quit);
 }
 
-#endif /* end of include guard: TEXT_H */
+#endif /* end of include guard: DOGELIB_TEXT_H */

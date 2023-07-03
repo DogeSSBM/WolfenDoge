@@ -1,5 +1,5 @@
-#ifndef DOGEUTIL_H
-#define DOGEUTIL_H
+#ifndef DOGELIB_DOGEUTIL_H
+#define DOGELIB_DOGEUTIL_H
 
 void clearTerminal(void)
 {
@@ -20,4 +20,4 @@ void init(void)
     input_init();
 }
 
-#endif /* end of include guard: DOGEUTIL_H */
+#endif /* end of include guard: DOGELIB_DOGEUTIL_H */

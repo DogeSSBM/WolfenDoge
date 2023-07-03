@@ -19,8 +19,9 @@
 #include <SDL2/SDL2_gfxPrimitives.h>
 #include <SDL2/SDL_image.h>
 
-#include "Types.h"
 #include "Panic.h"
+#include "Types.h"
+#include "Scancodes.h"
 #include "Decls.h"
 #include "Coords.h"
 #include "Vec.h"
