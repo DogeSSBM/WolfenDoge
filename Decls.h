@@ -1,14 +1,22 @@
 #ifndef WDDECLS_H
 #define WDDECLS_H
 
-WallPacked* mapPack(Wall *);
-Wall* mapUnpack(WallPacked *, const uint);
+// Map.h
+Wall* mapLoad(char *);
 Coordf mapBounds(Wall *);
-Coord resizeTransform(const Length, const Length, const Coord);
-Coordf resizeTransformf(const Lengthf, const Lengthf, const Coordf);
 Coordf screenToMap(const Coord, const float, const Coord);
 Coord mapToScreen(const Coord, const float, const Coordf);
-Coordf absOff(const Coord, const Coord);
+float triSign(const Coordf, const Coordf, const Coordf);
+bool cfInTri(Coordf, Coordf, Coordf, Coordf);
+void mapUpdateIdState(Wall *, const uint, const bool);
+void mapUpdateTriggers(const Coordf, const Coordf, Wall *);
+void mapUpdateDynamics(Wall *);
+
+// MapEditor.h
+WallPacked* mapPack(Wall *);
+Wall* mapUnpack(WallPacked *, const uint);
+Coord resizeTransform(const Length, const Length, const Coord);
+Coordf resizeTransformf(const Lengthf, const Lengthf, const Coordf);
 Wall* posNearest(Wall *, const Coordf, Coordf **);
 void defaultMapFileName(char *);
 void mapSave(Wall *, char *);
@@ -37,15 +45,7 @@ Length updateResize(Length, Offset *);
 Offset updatePan(Offset, Minfo *, Minfo *);
 Wall* mapEdit(Wall *, char *);
 
-Coordf fC(const float, const float);
-float fmost(const float, const float);
-float cfMax(const Coordf);
-bool cfSame(const Coordf, const Coordf);
-Coord coordAbs(const Coord);
-u8* colorIndex(Color *, const int);
-bool keyCtrlState(void);
-bool keyShiftState(void);
-bool checkCtrlKey(const Scancode);
+// WolfenDoge.h
 Coord toView(const View, const Coordf, const float);
 bool lineIntersection(const Coordf, const Coordf, const Coordf, const Coordf, Coordf *);
 Offset wasdKeyStateOffset(void);
@@ -60,6 +60,5 @@ void drawFp(const View, Wall *, const Player, const Length);
 void drawBv(const View, Wall *, const Player, const float, const Coordf);
 Player playerMoveMouse(Player, Wall *);
 Player playerMoveKeys(Player);
-Wall* mapLoad(char *);
 
 #endif /* end of include guard: WDDECLS_H */

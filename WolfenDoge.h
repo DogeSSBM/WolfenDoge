@@ -226,55 +226,6 @@ void drawBv(const View view, Wall *map, const Player player, const float scale, 
     fillCircleCoord(ppos, 2);
 }
 
-float triSign(const Coordf a, const Coordf b, const Coordf c)
-{
-    return (a.x - c.x) * (b.y - c.y) - (b.x - c.x) * (a.y - c.y);
-}
-
-bool cfInTri(Coordf pos, Coordf a, Coordf b, Coordf c)
-{
-    const float s1 = triSign(pos, a, b);
-    const float s2 = triSign(pos, b, c);
-    const float s3 = triSign(pos, c, a);
-    return !(((s1 < 0) || (s2 < 0) || (s3 < 0)) && ((s1 > 0) || (s2 > 0) || (s3 > 0)));
-}
-
-void mapUpdateIdState(Wall *map, const uint id, const bool state)
-{
-    while(map){
-        if(map->type == W_DOOR && map->door.id == id)
-            map->door.state = state;
-        map = map->next;
-    }
-}
-
-void mapUpdateTriggers(const Coordf oldPos, const Coordf newPos, Wall *map)
-{
-    while(map){
-        if(map->type == W_TRIG){
-            const bool oldState = cfInTri(oldPos, map->a, map->b, map->trig.d) || cfInTri(oldPos, map->b, map->trig.d, map->trig.c);
-            const bool newState = cfInTri(newPos, map->a, map->b, map->trig.d) || cfInTri(newPos, map->b, map->trig.d, map->trig.c);
-            if(oldState != newState)
-                mapUpdateIdState(map, map->trig.id, newState);
-        }
-        map = map->next;
-    }
-}
-
-void mapUpdateDynamics(Wall *map)
-{
-    while(map){
-        if(map->type == W_DOOR){
-            map->door.pos += map->door.state ? -map->door.speed : map->door.speed;
-            if(map->door.pos < 0.0f)
-                map->door.pos = 0.0f;
-            if(map->door.pos > 1.0f)
-                map->door.pos = 1.0f;
-        }
-        map = map->next;
-    }
-}
-
 Player playerMoveMouse(Player player, Wall *map)
 {
     const Coordf oldPos = player.pos;
@@ -299,30 +250,6 @@ Player playerMoveKeys(Player player)
         degMagToCf(player.ang, 2*(float)(keyState(SDL_SCANCODE_W) - keyState(SDL_SCANCODE_S)))
     );
     return player;
-}
-
-Wall* mapLoad(char *fileName)
-{
-    File *file = NULL;
-    assertExpr(fileName);
-    if((file = fopen(fileName, "rb")) == NULL){
-        printf("Couldn't open file \"%s\"\n", fileName);
-        return NULL;
-    }
-    uint len = 0;
-    fread(&len, sizeof(uint), 1, file);
-    if(feof(file) || len == 0){
-        printf("Error reading len of map in file \"%s\"\n", fileName);
-        fclose(file);
-        return NULL;
-    }
-    WallPacked *mapPacked = calloc(len, sizeof(WallPacked));
-    fread(mapPacked, sizeof(WallPacked), len, file);
-    if(fgetc(file) != EOF || !feof(file))
-        printf("Not at end of file after reading expected len (%u)\n", len);
-    Wall* map = mapUnpack(mapPacked, len);
-    free(mapPacked);
-    return map;
 }
 
 #endif /* end of include guard: WOLFENDOGE_H */
