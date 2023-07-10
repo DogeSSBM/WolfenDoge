@@ -235,7 +235,7 @@ Wall* mapDefault(void)
     map = wallAppend(map, doorNew(YELLOW,
         (const Coordf){.x=250.0f, .y=250.0f},
         (const Coordf){.x=500.0f, .y=250.0f},
-        0, 0.0f, false, 0.01f, DIR_L
+        0, 0.0f, false, 0.01f, DIR_U
     ));
     map = wallAppend(map, trigNew(YELLOW,
         (const Coordf){.x=250.0f, .y=0.0f},

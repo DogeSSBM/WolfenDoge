@@ -40,7 +40,11 @@ int main(int argc, char **argv)
         const Length bvlen = iiC(coordMin(coordDivi(wlen, 4)));
         View birdsView = {.len = bvlen, .pos = iC(wlen.x-bvlen.x, 0)};
 
-        player = playerMoveMouse(player, map);
+        const Coordf oldPos = player.pos;
+        player = playerMove(player, map);
+        if(!cfSame(oldPos, player.pos))
+            mapUpdateTriggers(oldPos, player.pos, map);
+        mapUpdateDynamics(map);
 
         drawFp(firstView, map, player, wlen);
         drawBv(birdsView, map, player, coordMin(birdsView.len) / cfMax(mapBounds(map)), fC(0,0));

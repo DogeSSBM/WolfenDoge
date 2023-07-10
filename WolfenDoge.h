@@ -226,9 +226,8 @@ void drawBv(const View view, Wall *map, const Player player, const float scale, 
     fillCircleCoord(ppos, 2);
 }
 
-Player playerMoveMouse(Player player, Wall *map)
+Player playerMove(Player player, Wall *map)
 {
-    const Coordf oldPos = player.pos;
     player.ang = degReduce(player.ang + (mouse.vec.x*2)/3);
     if(castRay(
         player.pos,
@@ -236,19 +235,6 @@ Player playerMoveMouse(Player player, Wall *map)
         map, true
     ).dst > 10.0f)
         player.pos = cfAdd(player.pos, cfRotateDeg(CCf(coordMuli(wasdKeyStateOffset(), 2)), player.ang+90.0f));
-    if(!cfSame(oldPos, player.pos))
-        mapUpdateTriggers(oldPos, player.pos, map);
-    mapUpdateDynamics(map);
-    return player;
-}
-
-Player playerMoveKeys(Player player)
-{
-    player.ang = degReduce(player.ang + keyState(SC_D) - keyState(SC_A));
-    player.pos = cfAdd(
-        player.pos,
-        degMagToCf(player.ang, 2*(float)(keyState(SC_W) - keyState(SC_S)))
-    );
     return player;
 }
 
