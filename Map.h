@@ -83,14 +83,22 @@ void mapUpdateIdState(Wall *map, const uint id, const bool state)
 
 void mapUpdateTriggers(const Coordf oldPos, const Coordf newPos, Wall *map)
 {
-    while(map){
-        if(map->type == W_TRIG){
-            const bool oldState = cfInTri(oldPos, map->a, map->b, map->trig.d) || cfInTri(oldPos, map->b, map->trig.d, map->trig.c);
-            const bool newState = cfInTri(newPos, map->a, map->b, map->trig.d) || cfInTri(newPos, map->b, map->trig.d, map->trig.c);
-            if(oldState != newState)
-                mapUpdateIdState(map, map->trig.id, newState);
+    Wall *cur = map;
+    while(cur){
+        if(cur->type == W_TRIG){
+            const bool oldState = (
+                cfInTri(oldPos, cur->a, cur->b, cur->trig.d) || cfInTri(oldPos, cur->b, cur->trig.d, cur->trig.c) ||
+                cfInTri(oldPos, cur->a, cur->b, cur->trig.c) || cfInTri(oldPos, cur->a, cur->trig.d, cur->trig.c)
+            );
+            const bool newState = (
+                cfInTri(newPos, cur->a, cur->b, cur->trig.d) || cfInTri(newPos, cur->b, cur->trig.d, cur->trig.c) ||
+                cfInTri(newPos, cur->a, cur->b, cur->trig.c) || cfInTri(newPos, cur->a, cur->trig.d, cur->trig.c)
+            );
+            if(oldState != newState){
+                mapUpdateIdState(map, cur->trig.id, newState);
+            }
         }
-        map = map->next;
+        cur = cur->next;
     }
 }
 

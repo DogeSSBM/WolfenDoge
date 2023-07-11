@@ -23,7 +23,7 @@ void setBlend(const BlendMode mode)
     SDL_SetRenderDrawBlendMode(gfx.renderer, mode);
 }
 
-void drawPixel(const uint x, const uint y)
+void drawPixel(const int x, const int y)
 {
     SDL_RenderDrawPoint(gfx.renderer, x, y);
 }
@@ -33,7 +33,7 @@ void drawPixelCoord(const Coord pos)
     SDL_RenderDrawPoint(gfx.renderer, pos.x, pos.y);
 }
 
-void drawLine(const uint x1, const uint y1, const uint x2, const uint y2)
+void drawLine(const int x1, const int y1, const int x2, const int y2)
 {
     SDL_RenderDrawLine(gfx.renderer, x1, y1, x2, y2);
 }
@@ -48,17 +48,17 @@ void drawLineCoordPair(const CoordPair pair)
     SDL_RenderDrawLine(gfx.renderer, pair.pos1.x, pair.pos1.y, pair.pos2.x, pair.pos2.y);
 }
 
-void drawHLine(const uint x, const uint y, int len)
+void drawHLine(const int x, const int y, const int len)
 {
     SDL_RenderDrawLine(gfx.renderer, x, y, x+len, y);
 }
 
-void drawVLine(const uint x, const uint y, int len)
+void drawVLine(const int x, const int y, const int len)
 {
     SDL_RenderDrawLine(gfx.renderer, x, y, x, y+len);
 }
 
-void drawRect(const uint x, const uint y, const uint xlen, const uint ylen)
+void drawRect(const int x, const int y, const int xlen, const int ylen)
 {
     SDL_RenderDrawRect(
         gfx.renderer,
@@ -66,7 +66,7 @@ void drawRect(const uint x, const uint y, const uint xlen, const uint ylen)
     );
 }
 
-void drawRectCentered(const uint x, const uint y, const uint xlen, const uint ylen)
+void drawRectCentered(const int x, const int y, const int xlen, const int ylen)
 {
     SDL_RenderDrawRect(
         gfx.renderer,
@@ -74,7 +74,7 @@ void drawRectCentered(const uint x, const uint y, const uint xlen, const uint yl
     );
 }
 
-void fillRect(const uint x, const uint y, const uint xlen, const uint ylen)
+void fillRect(const int x, const int y, const int xlen, const int ylen)
 {
     SDL_RenderFillRect(
         gfx.renderer,
@@ -82,7 +82,7 @@ void fillRect(const uint x, const uint y, const uint xlen, const uint ylen)
     );
 }
 
-void fillRectCentered(const uint x, const uint y, const uint xlen, const uint ylen)
+void fillRectCentered(const int x, const int y, const int xlen, const int ylen)
 {
     SDL_RenderFillRect(
         gfx.renderer,
@@ -188,7 +188,7 @@ void fillRectRect(const Rect rect)
     SDL_RenderFillRect(gfx.renderer, &rect);
 }
 
-void drawSquareCoord(const Coord pos, const uint len)
+void drawSquareCoord(const Coord pos, const int len)
 {
     SDL_RenderDrawLine(gfx.renderer, pos.x, pos.y, pos.x+len-1, pos.y);
     SDL_RenderDrawLine(gfx.renderer, pos.x, pos.y, pos.x, pos.y+len-1);
@@ -200,7 +200,7 @@ void drawSquareCoord(const Coord pos, const uint len)
     // );
 }
 
-void drawSquare(const uint x, const uint y, const uint len)
+void drawSquare(const int x, const int y, const int len)
 {
     SDL_RenderDrawLine(gfx.renderer, x, y, x+len-1, y);
     SDL_RenderDrawLine(gfx.renderer, x, y, x, y+len-1);
@@ -208,7 +208,7 @@ void drawSquare(const uint x, const uint y, const uint len)
     SDL_RenderDrawLine(gfx.renderer, x, y+len-1, x+len-1, y+len-1);
 }
 
-void fillSquare(const uint x, const uint y, const uint len)
+void fillSquare(const int x, const int y, const int len)
 {
     SDL_RenderFillRect(
         gfx.renderer,
@@ -216,7 +216,7 @@ void fillSquare(const uint x, const uint y, const uint len)
     );
 }
 
-void fillSquareResize(const uint x, const uint y, const uint len, const int resize)
+void fillSquareResize(const int x, const int y, const int len, const int resize)
 {
     SDL_RenderFillRect(
         gfx.renderer,
@@ -226,7 +226,7 @@ void fillSquareResize(const uint x, const uint y, const uint len, const int resi
     );
 }
 
-void fillSquareCoord(const Coord pos, const uint len)
+void fillSquareCoord(const Coord pos, const int len)
 {
     SDL_RenderFillRect(
         gfx.renderer,
@@ -234,7 +234,7 @@ void fillSquareCoord(const Coord pos, const uint len)
     );
 }
 
-void fillSquareCoordResize(const Coord pos, const uint len, const int resize)
+void fillSquareCoordResize(const Coord pos, const int len, const int resize)
 {
     SDL_RenderFillRect(
         gfx.renderer,
@@ -244,7 +244,7 @@ void fillSquareCoordResize(const Coord pos, const uint len, const int resize)
     );
 }
 
-void fillBorder(uint x, uint y, uint xlen, uint ylen, int b)
+void fillBorder(const int x, const int y, const int xlen, const int ylen, int b)
 {
     fillRect(x-b, y-b, xlen+2*b, b);
     fillRect(x-b, y+ylen, xlen+2*b, b);
@@ -260,7 +260,7 @@ void fillBorderCoords(const Coord pos, const Length len, const int b)
     fillRect(pos.x+len.x,   pos.y,          b,          len.y);
 }
 
-void fillBorderCoordSquare(const Coord pos, const uint len, const int b)
+void fillBorderCoordSquare(const Coord pos, const int len, const int b)
 {
     fillRect(pos.x-b,       pos.y-b,        len+2*b,    b);
     fillRect(pos.x-b,       pos.y+len,      len+2*b,    b);
@@ -268,11 +268,11 @@ void fillBorderCoordSquare(const Coord pos, const uint len, const int b)
     fillRect(pos.x+len,     pos.y,          b,          len);
 }
 
-void drawCircle(const uint x, const uint y, const uint radius)
+void drawCircle(const int x, const int y, const int radius)
 {
     const double rsq = (double)(radius*radius);
-    uint yoff = radius;
-    for(uint xoff = 0; xoff <= yoff; xoff++){
+    int yoff = radius;
+    for(int xoff = 0; xoff <= yoff; xoff++){
         const double yc = sqrt(rsq - (xoff+1)*(xoff+1));
         const double ym = (double)yoff - 0.5;
         // 8 sections of circle
@@ -289,11 +289,11 @@ void drawCircle(const uint x, const uint y, const uint radius)
     }
 }
 
-void fillCircle(const uint x, const uint y, const uint radius)
+void fillCircle(const int x, const int y, const int radius)
 {
     const double rsq = (double)(radius*radius);
-    uint yoff = radius;
-    for(uint xoff = 0; xoff <= yoff; xoff++){
+    int yoff = radius;
+    for(int xoff = 0; xoff <= yoff; xoff++){
         const double yc = sqrt(rsq - (xoff+1)*(xoff+1));
         const double ym = (double)yoff - 0.5;
         // connecting 8 sections of circle
@@ -305,7 +305,7 @@ void fillCircle(const uint x, const uint y, const uint radius)
     }
 }
 
-void drawCircleCoord(const Coord pos, const uint radius)
+void drawCircleCoord(const Coord pos, const int radius)
 {
     const double rsq = (double)(radius*radius);
     uint yoff = radius;
@@ -326,7 +326,7 @@ void drawCircleCoord(const Coord pos, const uint radius)
     }
 }
 
-void fillCircleCoord(const Coord pos, const uint radius)
+void fillCircleCoord(const Coord pos, const int radius)
 {
     const double rsq = (double)(radius*radius);
     uint yoff = radius;

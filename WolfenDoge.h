@@ -1,6 +1,12 @@
 #ifndef WOLFENDOGE_H
 #define WOLFENDOGE_H
 
+// void drawLineThick(const int x1, const int y1, const int x2, const int y2, const int r)
+// {
+    // drawLine(x1, y1)
+    // for(int i = 1; i <)
+// }
+
 Coord toView(const View view, const Coordf pos, const float scale)
 {
     return coordAdd(view.pos, iC(pos.x*scale, pos.y*scale));
@@ -74,7 +80,7 @@ Ray castRayMin(const Coordf origin, const Coordf distantPoint, Wall *map, const 
         .pos = distantPoint
     };
     while(map){
-        if(solidOnly && (map->type == W_WIND || map->type == W_TRIG || (map->type == W_DOOR && map->door.pos < 1.0f))){
+        if(map->type == W_TRIG || (solidOnly && (map->type == W_WIND || (map->type == W_DOOR && map->door.pos < 1.0f)))){
             map = map->next;
             continue;
         }
@@ -201,6 +207,10 @@ void drawBv(const View view, Wall *map, const Player player, const float scale, 
     Wall *cur = map;
     const Length hlen = coordDivi(view.len, 2);
     while(cur){
+        if(cur->type == W_TRIG){
+            cur = cur->next;
+            continue;
+        }
         Coord a = coordAdd(toView(view, cfSub(cur->a, player.pos), scale), hlen);
         Coord b = coordAdd(toView(view, cfSub(cur->b, player.pos), scale), hlen);
         setColor(cur->color);

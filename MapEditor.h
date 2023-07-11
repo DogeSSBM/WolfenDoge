@@ -217,10 +217,15 @@ Wall* mapDefault(void)
         (const Coordf){.x=250.0f, .y=500.0f},
         .25f, .25f
     ));
-    map = wallAppend(map, windNew(BLUE, RED,
+    // map = wallAppend(map, windNew(BLUE, RED,
+    //     (const Coordf){.x=250.0f, .y=500.0f},
+    //     (const Coordf){.x=500.0f, .y=500.0f},
+    //     .15f, .15f
+    // ));
+    map = wallAppend(map, doorNew(YELLOW,
         (const Coordf){.x=250.0f, .y=500.0f},
         (const Coordf){.x=500.0f, .y=500.0f},
-        .25f, .25f
+        0, 0.0f, true, 0.01f, DIR_D
     ));
     map = wallAppend(map, windNew(RED, BLUE,
         (const Coordf){.x=500.0f, .y=250.0f},
@@ -230,12 +235,12 @@ Wall* mapDefault(void)
     map = wallAppend(map, windNew(BLUE, RED,
         (const Coordf){.x=250.0f, .y=500.0f},
         (const Coordf){.x=500.0f, .y=500.0f},
-        .25f, .25f
+        .10, .25f
     ));
     map = wallAppend(map, doorNew(YELLOW,
         (const Coordf){.x=250.0f, .y=250.0f},
         (const Coordf){.x=500.0f, .y=250.0f},
-        0, 0.0f, false, 0.01f, DIR_U
+        0, 0.0f, false, 0.01f, DIR_D
     ));
     map = wallAppend(map, trigNew(YELLOW,
         (const Coordf){.x=250.0f, .y=0.0f},
@@ -373,6 +378,15 @@ void drawColor(const Length wlen, Color c, const int ci)
         pos.x += 4*tscale;
     }
 }
+
+// void drawWallType(const Length wlen, const WallType type)
+// {
+//     const uint tscale = (wlen.x/3)/10;
+//     setTextSize(tscale);
+//     for(int i = 0; i < W_N; i++){
+//         setTextColor(type == i ? WHITE: GREY);
+//     }
+// }
 
 void drawEditorMap(Wall *map, const Offset off, const float scale)
 {

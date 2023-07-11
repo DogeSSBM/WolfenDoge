@@ -12,7 +12,8 @@ typedef struct Player{
     float speed;
 }Player;
 
-typedef enum{W_WALL, W_WIND, W_TRIG, W_DOOR}WallType;
+typedef enum{W_WALL, W_WIND, W_TRIG, W_DOOR, W_N}WallType;
+char *WallTypeStr[W_N] = {"W_WALL", "W_WIND", "W_TRIG", "W_DOOR"};
 typedef struct Wall{
     Color color;
     Coordf a;
