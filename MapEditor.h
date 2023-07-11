@@ -281,9 +281,6 @@ Coord editColor(Coord cursor, Color *color)
         *b = clamp(nums[2]*100+nums[1]*10+nums[0], 0, 255);
     }
 
-    // if(keyPressed(SC_C) && selectedWall)
-        // selectedWall->color = *c;
-
     return cursor;
 }
 
