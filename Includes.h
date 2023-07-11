@@ -6,6 +6,7 @@
 #include "Decls.h"
 #include "WolfenDoge.h"
 #include "Map.h"
+#include "MapEditorDraw.h"
 #include "MapEditor.h"
 
 #endif /* end of include guard: INCLUDES_H */

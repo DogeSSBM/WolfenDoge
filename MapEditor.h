@@ -217,14 +217,9 @@ Wall* mapDefault(void)
         (const Coordf){.x=250.0f, .y=500.0f},
         .25f, .25f
     ));
-    // map = wallAppend(map, windNew(BLUE, RED,
-    //     (const Coordf){.x=250.0f, .y=500.0f},
-    //     (const Coordf){.x=500.0f, .y=500.0f},
-    //     .15f, .15f
-    // ));
     map = wallAppend(map, doorNew(YELLOW,
-        (const Coordf){.x=250.0f, .y=500.0f},
-        (const Coordf){.x=500.0f, .y=500.0f},
+        (const Coordf){.x=500.0f, .y=0.0f},
+        (const Coordf){.x=500.0f, .y=250.0f},
         0, 0.0f, true, 0.01f, DIR_D
     ));
     map = wallAppend(map, windNew(RED, BLUE,
@@ -273,18 +268,11 @@ int numKeyPressed(void)
     return -1;
 }
 
-int editColor(Color *c, int ci, Wall *selectedWall)
+Coord editColor(Coord cursor, Color *color)
 {
     static int nums[3] = {0};
-    ci = wrap(ci + keyPressed(SC_RIGHT) - keyPressed(SC_LEFT), 0, 3);
-    u8* b = colorIndex(c, ci);
-    const int change = (keyPressed(SC_UP) - keyPressed(SC_DOWN))*(keyCtrlState()?10:1);
-    *b = clamp((int)(*b) + change, 0, 255);
-    if(change){
-        nums[2] = (*(colorIndex(c, ci))) / 100;
-        nums[2] = ((*(colorIndex(c, ci)) / 10)%10);
-        nums[0] = (*(colorIndex(c, ci)) %10);
-    }
+    cursor.x = wrap(cursor.x + keyPressed(SC_RIGHT) - keyPressed(SC_LEFT), 0, 3);
+    u8* b = colorIndex(color, cursor.x);
     const int num = numKeyPressed();
     if(num != -1){
         nums[2] = nums[1];
@@ -293,10 +281,10 @@ int editColor(Color *c, int ci, Wall *selectedWall)
         *b = clamp(nums[2]*100+nums[1]*10+nums[0], 0, 255);
     }
 
-    if(keyPressed(SC_C) && selectedWall)
-        selectedWall->color = *c;
+    // if(keyPressed(SC_C) && selectedWall)
+        // selectedWall->color = *c;
 
-    return ci;
+    return cursor;
 }
 
 bool checkEditorExit(void)
@@ -335,77 +323,6 @@ void checkScroll(Offset *off, const Coordf mmpos, const bool snap, float *snaple
     *snaplen = (float)imax(1, (int)*snaplen + checkCtrlKey(SC_EQUALS)-checkCtrlKey(SC_MINUS));
     if(*snaplen != oldSnaplen)
         printf("Snap %4.0f (%s)\n", *snaplen, snap?"On":"Off");
-}
-
-void drawOriginLines(const Offset off, const Length wlen)
-{
-    setColor(WHITE);
-    if(inBound(off.y, 0, wlen.y))
-        drawHLine(0, off.y, wlen.x);
-    if(inBound(off.x, 0, wlen.x))
-        drawVLine(off.x, 0, wlen.y);
-}
-
-void drawGrid(const Offset off, const Length wlen, const float scale, const bool snap, const float snaplen)
-{
-    if(!snap)
-        return;
-    setColor(GREY);
-    Coordf mpos = cfSnap(screenToMap(off, scale, iC(0,0)), snaplen);
-    Coord spos = mapToScreen(off, scale, mpos);
-    while(spos.x < wlen.x || spos.y < wlen.y){
-        drawVLine(spos.x, 0, wlen.y);
-        drawHLine(0, spos.y, wlen.x);
-        mpos = cfAddf(mpos, snaplen);
-        spos = mapToScreen(off, scale, mpos);
-    }
-}
-
-void drawColor(const Length wlen, Color c, const int ci)
-{
-    const uint tscale = (wlen.x/3)/10;
-    setTextSize(tscale);
-    Coord pos = {.x = wlen.x-(wlen.x/3+tscale*2), .y = wlen.y-(tscale + tscale/4)};
-    setColor(c);
-    fillSquareCoord(iC(pos.x - tscale*2, pos.y), tscale);
-    char letter[3] = {'R', 'G', 'B'};
-    const Color indexcolor[3] = {RED, GREEN, BLUE};
-    for(int i = 0; i < 3; i++){
-        char buf[16] = {0};
-        sprintf(buf, "%c: %3u", letter[i], *(colorIndex(&c, i)));
-        setTextColor(i == ci ? indexcolor[i] : WHITE);
-        drawTextCoord(buf, pos);
-        pos.x += 4*tscale;
-    }
-}
-
-// void drawWallType(const Length wlen, const WallType type)
-// {
-//     const uint tscale = (wlen.x/3)/10;
-//     setTextSize(tscale);
-//     for(int i = 0; i < W_N; i++){
-//         setTextColor(type == i ? WHITE: GREY);
-//     }
-// }
-
-void drawEditorMap(Wall *map, const Offset off, const float scale)
-{
-    Wall *cur = map;
-    while(cur){
-        const Coord a = mapToScreen(off, scale, cur->a);
-        const Coord b = mapToScreen(off, scale, cur->b);
-        setColor(cur->color);
-        drawLineThickCoords(a, b, 1);
-        cur = cur->next;
-    }
-}
-
-void drawSel(const Selection sel, const Offset off, const float scale)
-{
-    if(sel.pos)
-        fillCircleCoord(mapToScreen(off, scale, *sel.pos), 8);
-    if(sel.wall)
-        drawCircleCoord(mapToScreen(off, scale, &(sel.wall->a) == sel.pos ? sel.wall->b : sel.wall->a), 8);
 }
 
 void mlrUpdate(Minfo *ml, Minfo *mr, Selection *sel, const Offset off, const float scale, const float snaplen)
@@ -494,6 +411,14 @@ Selection selCheckRev(Selection sel)
     return sel;
 }
 
+Selection selUpdateCursor(Selection sel)
+{
+    if(!sel.wall)
+        return sel;
+    sel.cursor.y = wrap(sel.cursor.y + keyPressed(SC_DOWN) - keyPressed(SC_UP), 0, sel.wall->type == W_DOOR ? 9 : 7);
+    return sel;
+}
+
 Wall* updateDel(Wall *map, Selection *sel)
 {
     if((keyPressed(SC_DELETE) || keyPressed(SC_BACKSPACE)) && sel->wall){
@@ -534,9 +459,8 @@ Wall* mapEdit(Wall *map, char *fileName)
     Length wlen = getWindowLen();
     Minfo ml = {0};
     Minfo mr = {0};
-    Selection sel = {0};
+    Selection sel = {.showInfo = true, .cursor = iC(0,3)};
     Color c = MAGENTA;
-    int ci = 0;
 
     while(1){
         const uint t = frameStart();
@@ -544,7 +468,9 @@ Wall* mapEdit(Wall *map, char *fileName)
             return map;
 
         snap = checkKeyS(map, fileName, snap, snaplen);
-        ci = editColor(&c, ci, sel.wall);
+        sel = selUpdateCursor(sel);
+        if(sel.wall && (sel.cursor.y == 3 || (sel.wall->type == W_WIND && sel.cursor.y == 4)))
+            sel.cursor = editColor(sel.cursor, sel.cursor.y == 3 ? &sel.wall->color : &sel.wall->wind.topColor);
         mlrUpdate(&ml, &mr, &sel, off, scale, snaplen);
         wlen = updateResize(wlen, &off);
         map = updateDel(map, &sel);
@@ -553,12 +479,14 @@ Wall* mapEdit(Wall *map, char *fileName)
         ml = mlUpdate(ml, &sel, map, scale, snap, snaplen);
         mr = mrUpdate(mr, &sel, &map, c, snap);
         sel = selCheckRev(sel);
+        sel.showInfo = keyPressed(SC_I) ? !sel.showInfo : sel.showInfo;
+        sel.tscale = (wlen.y/3)/12;
+        setTextSize(sel.tscale);
 
         drawGrid(off, wlen, scale, snap, snaplen);
         drawOriginLines(off, wlen);
         drawEditorMap(map, off, scale);
         drawSel(sel, off, scale);
-        drawColor(wlen, c, ci);
 
         frameEnd(t);
     }

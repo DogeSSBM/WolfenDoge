@@ -15,10 +15,10 @@ typedef struct Player{
 typedef enum{W_WALL, W_WIND, W_TRIG, W_DOOR, W_N}WallType;
 char *WallTypeStr[W_N] = {"W_WALL", "W_WIND", "W_TRIG", "W_DOOR"};
 typedef struct Wall{
-    Color color;
+    WallType type;
     Coordf a;
     Coordf b;
-    WallType type;
+    Color color;
     union{
         struct{
             Color topColor;
@@ -66,10 +66,13 @@ typedef struct{
 }Minfo;
 
 typedef struct Selection{
+    bool showInfo;
     Wall *wall;
     Coordf posOrig;
     Coordf *pos;
     struct Selection *next;
+    Coord cursor;
+    uint tscale;
 }Selection;
 
 #endif /* end of include guard: TYPES_H */
