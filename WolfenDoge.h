@@ -1,12 +1,6 @@
 #ifndef WOLFENDOGE_H
 #define WOLFENDOGE_H
 
-// void drawLineThick(const int x1, const int y1, const int x2, const int y2, const int r)
-// {
-    // drawLine(x1, y1)
-    // for(int i = 1; i <)
-// }
-
 Coord toView(const View view, const Coordf pos, const float scale)
 {
     return coordAdd(view.pos, iC(pos.x*scale, pos.y*scale));

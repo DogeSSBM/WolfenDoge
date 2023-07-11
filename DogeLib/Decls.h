@@ -152,6 +152,8 @@ void drawCircle(const int, const int, const int);
 void fillCircle(const int, const int, const int);
 void drawCircleCoord(const Coord, const int);
 void fillCircleCoord(const Coord, const int);
+void drawLineThick(const int, const int, const int, const int, const int);
+void drawLineThickCoords(const Coord, const Coord, const int);
 Color getColor(void);
 void setColor(const Color);
 u32 colorToU32(const Color);

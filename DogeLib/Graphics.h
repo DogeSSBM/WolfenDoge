@@ -342,6 +342,36 @@ void fillCircleCoord(const Coord pos, const int radius)
     }
 }
 
+void drawLineThick(const int x1, const int y1, const int x2, const int y2, const int r)
+{
+    drawLine(x1, y1, x2, y2);
+    if(r > 1){
+        fillCircle(x1, y1, r-1);
+        fillCircle(x2, y2, r-1);
+    }
+    for(int i = 0; i <= r; i++)
+        for(Direction d = 0; d < 4; d++)
+            drawLineCoords(
+                coordShift((const Coord){.x = x1, .y = y1}, d, i),
+                coordShift((const Coord){.x = x2, .y = y2}, d, i)
+            );
+}
+
+void drawLineThickCoords(const Coord a, const Coord b, const int r)
+{
+    drawLineCoords(a, b);
+    if(r > 1){
+        fillCircleCoord(a, r-1);
+        fillCircleCoord(b, r-1);
+    }
+    for(int i = 0; i <= r; i++)
+        for(Direction d = 0; d < 4; d++)
+            drawLineCoords(
+                coordShift(a, d, i),
+                coordShift(b, d, i)
+            );
+}
+
 Color getColor(void)
 {
     Color c = {0};

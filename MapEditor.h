@@ -395,7 +395,7 @@ void drawEditorMap(Wall *map, const Offset off, const float scale)
         const Coord a = mapToScreen(off, scale, cur->a);
         const Coord b = mapToScreen(off, scale, cur->b);
         setColor(cur->color);
-        drawLineCoords(a, b);
+        drawLineThickCoords(a, b, 1);
         cur = cur->next;
     }
 }
