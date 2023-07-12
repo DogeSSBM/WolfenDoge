@@ -342,14 +342,8 @@ void mlrUpdate(Minfo *ml, Minfo *mr, Selection *sel, const Offset off, const flo
 
 Minfo mlUpdate(Minfo ml, Selection *sel, Wall *map, const float scale, const bool snap, const float snaplen)
 {
-    if(!sel->wall && mouseBtnReleased(MOUSE_L)){
-        // if(sel->wall->type == W_TRIG && sel->cursor.y == 5)
-        //     sel->pos = &sel->wall->trig.c;
-        // else if(sel->wall->type == W_TRIG && sel->cursor.y == 6)
-        //     sel->pos = &sel->wall->trig.d;
-        // else
-            sel->wall = posNearest(map, ml.mpos, &(sel->pos));
-    }
+    if(!sel->wall && mouseBtnReleased(MOUSE_L))
+        sel->wall = posNearest(map, ml.mpos, &(sel->pos));
 
     if(mouseBtnPressed(MOUSE_L) && sel->pos){
         ml.drag = true;
