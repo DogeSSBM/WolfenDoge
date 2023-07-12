@@ -19,7 +19,7 @@ int main(int argc, char **argv)
     }
 
     assertExpr(map);
-    SDL_SetRelativeMouseMode(true);
+    setRelativeMouse(true);
 
     Player player = {.pos = {.x=125.0f, .y=125.0f}};
 

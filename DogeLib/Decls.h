@@ -238,6 +238,7 @@ bool mouseMoving(void);
 bool mouseMoveStart(void);
 bool mouseMoveStop(void);
 Length mouseMovement(void);
+void setRelativeMouse(const bool);
 bool keyCtrlState(void);
 bool keyShiftState(void);
 bool keyComboPressed(const Scancode, const Scancode);

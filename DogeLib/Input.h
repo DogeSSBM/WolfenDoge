@@ -99,6 +99,11 @@ Length mouseMovement(void)
     return coordSub(mouse.pos, mouse.prev.pos);
 }
 
+void setRelativeMouse(const bool state)
+{
+    SDL_SetRelativeMouseMode(state);
+}
+
 bool keyCtrlState(void)
 {
     return keyState(SC_LCTRL) || keyState(SC_RCTRL);

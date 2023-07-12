@@ -447,7 +447,7 @@ Offset updatePan(Offset off, Minfo *ml, Minfo *mr)
 
 Wall* mapEdit(Wall *map, char *fileName)
 {
-    SDL_SetRelativeMouseMode(false);
+    setRelativeMouse(false);
     float scale = 1.0f;
     bool snap = true;
     float snaplen = 50.0f;
