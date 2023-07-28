@@ -32,7 +32,7 @@ int main(int argc, char **argv)
 
         if(checkCtrlKey(SC_E)){
             map = mapEdit(map, fileName);
-            SDL_SetRelativeMouseMode(true);
+            setRelativeMouse(true);
         }
 
         const Length wlen = getWindowLen();
