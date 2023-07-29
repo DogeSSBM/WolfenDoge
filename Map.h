@@ -1,7 +1,7 @@
 #ifndef MAP_H
 #define MAP_H
 
-Wall* mapLoad(char *fileName)
+Seg* mapLoad(char *fileName)
 {
     File *file = NULL;
     assertExpr(fileName);
@@ -20,12 +20,12 @@ Wall* mapLoad(char *fileName)
     fread(mapPacked, sizeof(WallPacked), len, file);
     if(fgetc(file) != EOF || !feof(file))
         printf("Not at end of file after reading expected len (%u)\n", len);
-    Wall* map = mapUnpack(mapPacked, len);
+    Seg* map = mapUnpack(mapPacked, len);
     free(mapPacked);
     return map;
 }
 
-Coordf mapBounds(Wall *map)
+Coordf mapBounds(Seg *map)
 {
     Coordf bound = {0};
     while(map)
@@ -49,7 +49,7 @@ Coord mapToScreen(const Coord off, const float scale, const Coordf pos)
     return coordAdd(CfC(cfDivf(pos, scale)), off);
 }
 
-Wall* mapQueryObjId(Wall *map, const uint id)
+Seg* mapQueryObjId(Seg *map, const uint id)
 {
     while(map){
         if(map->type == W_DOOR && map->door.id == id)
@@ -72,7 +72,7 @@ bool cfInTri(Coordf pos, Coordf a, Coordf b, Coordf c)
     return !(((s1 < 0) || (s2 < 0) || (s3 < 0)) && ((s1 > 0) || (s2 > 0) || (s3 > 0)));
 }
 
-void mapUpdateIdState(Wall *map, const uint id, const bool state)
+void mapUpdateIdState(Seg *map, const uint id, const bool state)
 {
     while(map){
         if(map->type == W_DOOR && map->door.id == id)
@@ -81,9 +81,9 @@ void mapUpdateIdState(Wall *map, const uint id, const bool state)
     }
 }
 
-void mapUpdateTriggers(const Coordf oldPos, const Coordf newPos, Wall *map)
+void mapUpdateTriggers(const Coordf oldPos, const Coordf newPos, Seg *map)
 {
-    Wall *cur = map;
+    Seg *cur = map;
     while(cur){
         if(cur->type == W_TRIG){
             const bool oldState = (
@@ -102,7 +102,7 @@ void mapUpdateTriggers(const Coordf oldPos, const Coordf newPos, Wall *map)
     }
 }
 
-void mapUpdateDynamics(Wall *map)
+void mapUpdateDynamics(Seg *map)
 {
     while(map){
         if(map->type == W_DOOR){

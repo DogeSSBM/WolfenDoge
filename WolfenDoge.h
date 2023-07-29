@@ -11,7 +11,7 @@ bool inView(const View view, const Coord pos)
     return inBound(pos.x, view.pos.x, view.pos.x+view.len.x) && inBound(pos.y, view.pos.y, view.pos.y+view.len.y);
 }
 
-Direction viewBoundIntersect(Wall bounds[4], const Coordf a, const Coordf b, Coordf *at)
+Direction viewBoundIntersect(Seg bounds[4], const Coordf a, const Coordf b, Coordf *at)
 {
     for(Direction d = 0; d < 4; d++){
         if(lineIntersection(bounds[d].a, bounds[d].b, a, b, at))
@@ -26,11 +26,11 @@ bool limitViewBounds(const View view, Coord *a, Coord *b)
     const Coordf fb = CCf(*b);
     const Coordf vpos = CCf(view.pos);
     const Coordf vlen = CCf(view.len);
-    Wall bounds[4] = {
-        (Wall){.a = vpos,                       .b = fC(vpos.x+vlen.x, vpos.y)},
-        (Wall){.a = fC(vpos.x+vlen.x, vpos.y),  .b = cfAdd(vpos, vlen)},
-        (Wall){.a = fC(vpos.x, vpos.y+vlen.y),  .b = cfAdd(vpos, vlen)},
-        (Wall){.a = vpos,                       .b = fC(vpos.x, vpos.y+vlen.y)}
+    Seg bounds[4] = {
+        (Seg){.a = vpos,                       .b = fC(vpos.x+vlen.x, vpos.y)},
+        (Seg){.a = fC(vpos.x+vlen.x, vpos.y),  .b = cfAdd(vpos, vlen)},
+        (Seg){.a = fC(vpos.x, vpos.y+vlen.y),  .b = cfAdd(vpos, vlen)},
+        (Seg){.a = vpos,                       .b = fC(vpos.x, vpos.y+vlen.y)}
     };
 
     if(!inView(view, *a)){
@@ -66,7 +66,7 @@ bool limitViewBounds(const View view, Coord *a, Coord *b)
     return true;
 }
 
-Ray castRayMin(const Coordf origin, const Coordf distantPoint, Wall *map, const bool solidOnly, const float min)
+Ray castRayMin(const Coordf origin, const Coordf distantPoint, Seg *map, const bool solidOnly, const float min)
 {
     Ray ray = {
         .wall = map,
@@ -95,7 +95,7 @@ Ray castRayMin(const Coordf origin, const Coordf distantPoint, Wall *map, const 
     return ray;
 }
 
-Ray castRay(const Coordf origin, const Coordf distantPoint, Wall *map, const bool solidOnly)
+Ray castRay(const Coordf origin, const Coordf distantPoint, Seg *map, const bool solidOnly)
 {
     return castRayMin(origin, distantPoint, map, solidOnly, -1.0f);
 }
@@ -154,7 +154,7 @@ void drawWall(const View view, const Ray ray, const int xpos, const int ymid, co
     );
 }
 
-void drawFp(const View view, Wall *map, const Player player, const Length wlen)
+void drawFp(const View view, Seg *map, const Player player, const Length wlen)
 {
     setColor(GREY2);
     fillRectCoordLength(view.pos, iC(view.len.x,view.len.y/2));
@@ -193,12 +193,12 @@ void drawFp(const View view, Wall *map, const Player player, const Length wlen)
     freeTexture(texture);
 }
 
-void drawBv(const View view, Wall *map, const Player player, const float scale, const Coordf off)
+void drawBv(const View view, Seg *map, const Player player, const float scale, const Coordf off)
 {
     setColor(BLACK);
     fillRectCoordLength(view.pos, view.len);
     (void)off;
-    Wall *cur = map;
+    Seg *cur = map;
     const Length hlen = coordDivi(view.len, 2);
     while(cur){
         if(cur->type == W_TRIG){
@@ -230,7 +230,7 @@ void drawBv(const View view, Wall *map, const Player player, const float scale, 
     fillCircleCoord(ppos, 2);
 }
 
-Player playerMove(Player player, Wall *map)
+Player playerMove(Player player, Seg *map)
 {
     player.ang = degReduce(player.ang + (mouse.vec.x*2)/3);
     if(castRay(

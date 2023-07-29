@@ -25,9 +25,9 @@ void drawGrid(const Offset off, const Length wlen, const float scale, const bool
     }
 }
 
-void drawEditorMap(Wall *map, const Selection sel, const Offset off, const float scale)
+void drawEditorMap(Seg *map, const Selection sel, const Offset off, const float scale)
 {
-    Wall *cur = map;
+    Seg *cur = map;
     while(cur){
         const Coord a = mapToScreen(off, scale, cur->a);
         const Coord b = mapToScreen(off, scale, cur->b);
@@ -37,10 +37,10 @@ void drawEditorMap(Wall *map, const Selection sel, const Offset off, const float
     }
 }
 
-Coord drawWallType(const Coord pos, const WallType type, const bool selected)
+Coord drawSegType(const Coord pos, const SegType type, const bool selected)
 {
     char buf[32] = {0};
-    sprintf(buf, "%s", WallTypeStr[type]);
+    sprintf(buf, "%s", SegTypeStr[type]);
     Length len = getTextLength(buf);
     setColor(BLACK);
     fillRectCoordLength(pos, len);
@@ -108,7 +108,7 @@ Coord drawSelCommon(const Selection sel)
 {
     if(!sel.wall)
         return iiC(0);
-    Coord pos = drawWallType(iiC(0), sel.wall->type, coordSame(sel.cursor, iC(0,0)));
+    Coord pos = drawSegType(iiC(0), sel.wall->type, coordSame(sel.cursor, iC(0,0)));
     pos = drawCoordf(pos, "a", sel.wall->a, coordSame(sel.cursor, iC(0,1)));
     pos = drawCoordf(pos, "b", sel.wall->b, coordSame(sel.cursor, iC(0,2)));
     return drawColor(pos, sel.tscale, sel.wall->color, sel.cursor.y == 3, sel.cursor.x);

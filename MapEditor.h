@@ -1,9 +1,9 @@
 #ifndef MAPEDITOR_H
 #define MAPEDITOR_H
 
-WallPacked* mapPack(Wall *map)
+WallPacked* mapPack(Seg *map)
 {
-    const uint len = wallListLen(map);
+    const uint len = segListLen(map);
     if(len == 0)
         return NULL;
     WallPacked *mapPacked = calloc(len, sizeof(WallPacked));
@@ -16,13 +16,13 @@ WallPacked* mapPack(Wall *map)
     return mapPacked;
 }
 
-Wall* mapUnpack(WallPacked *mapPacked, const uint len)
+Seg* mapUnpack(WallPacked *mapPacked, const uint len)
 {
     if(len == 0)
         return NULL;
-    Wall *map = NULL;
+    Seg *map = NULL;
     for(uint i = 0; i < len; i++)
-        map = wallAppend(map, wallNew(mapPacked[i].c, mapPacked[i].a, mapPacked[i].b));
+        map = segAppend(map, wallNew(mapPacked[i].c, mapPacked[i].a, mapPacked[i].b));
     return map;
 }
 
@@ -36,13 +36,13 @@ Coordf resizeTransformf(const Lengthf oldLen, const Lengthf newLen, const Coordf
     return cfMul(newLen, cfDiv(pos, oldLen));
 }
 
-Wall* posNearest(Wall *map, const Coordf pos, Coordf **nearest)
+Seg* posNearest(Seg *map, const Coordf pos, Coordf **nearest)
 {
     if(!map){
         nearest = NULL;
         return NULL;
     }
-    Wall *wall = map;
+    Seg *wall = map;
     *nearest = &(map->a);
     float dst = cfDist(pos, map->a);
     while(map){
@@ -75,20 +75,22 @@ void defaultMapFileName(char *fileName)
     }
 }
 
-void mapSave(Wall *map, char *fileName)
+void mapSave(Seg *map, char *fileName)
 {
     if(!map){
         printf("Map is empty, skipping save\n");
         return;
     }
     File *file = NULL;
-    char defaultName[64] = {0};
     if(!fileName){
+        char defaultName[64] = {0};
         defaultMapFileName(defaultName);
         fileName = defaultName;
     }
-    file = fopen(fileName, "wb");
-    const uint len = wallListLen(map);
+    char path[256] = {0};
+    sprintf(path, "./Maps/%s", fileName);
+    file = fopen(path, "wb");
+    const uint len = segListLen(map);
     WallPacked *mapPacked = mapPack(map);
     fwrite(&len, sizeof(uint), 1, file);
     fwrite(mapPacked, sizeof(WallPacked), len, file);
@@ -96,9 +98,9 @@ void mapSave(Wall *map, char *fileName)
     free(mapPacked);
 }
 
-Wall* wallNew(const Color c, const Coordf a, const Coordf b)
+Seg* wallNew(const Color c, const Coordf a, const Coordf b)
 {
-    Wall *w = calloc(1, sizeof(Wall));
+    Seg *w = calloc(1, sizeof(Seg));
     w->type = W_WALL;
     w->color = c;
     w->a = a;
@@ -106,9 +108,9 @@ Wall* wallNew(const Color c, const Coordf a, const Coordf b)
     return w;
 }
 
-Wall* windNew(const Color c, const Color topColor, const Coordf a, const Coordf b, const float height, const float top)
+Seg* windNew(const Color c, const Color topColor, const Coordf a, const Coordf b, const float height, const float top)
 {
-    Wall *w = wallNew(c, a, b);
+    Seg *w = wallNew(c, a, b);
     w->type = W_WIND;
     w->wind.topColor = topColor;
     w->wind.height = height;
@@ -116,9 +118,9 @@ Wall* windNew(const Color c, const Color topColor, const Coordf a, const Coordf 
     return w;
 }
 
-Wall* doorNew(const Color c, const Coordf a, const Coordf b, const uint id, const float pos, const bool state, const float speed, const Direction closeDir)
+Seg* doorNew(const Color c, const Coordf a, const Coordf b, const uint id, const float pos, const bool state, const float speed, const Direction closeDir)
 {
-    Wall *w = wallNew(c, a, b);
+    Seg *w = wallNew(c, a, b);
     w->type = W_DOOR;
     w->door.id = id;
     w->door.pos = pos;
@@ -128,9 +130,9 @@ Wall* doorNew(const Color c, const Coordf a, const Coordf b, const uint id, cons
     return w;
 }
 
-Wall* trigNew(const Color color, const Coordf a, const Coordf b, const uint id, const Coordf c, const Coordf d)
+Seg* trigNew(const Color color, const Coordf a, const Coordf b, const uint id, const Coordf c, const Coordf d)
 {
-    Wall *w = wallNew(color, a, b);
+    Seg *w = wallNew(color, a, b);
     w->type = W_TRIG;
     w->trig.id = id;
     w->trig.c = c;
@@ -138,40 +140,40 @@ Wall* trigNew(const Color color, const Coordf a, const Coordf b, const uint id, 
     return w;
 }
 
-Wall* wallAppend(Wall *head, Wall *tail)
+Seg* segAppend(Seg *head, Seg *tail)
 {
     if(!head)
         return tail;
-    Wall *cur = head;
+    Seg *cur = head;
     while(cur->next)
         cur = cur->next;
     cur->next = tail;
     return head;
 }
 
-Wall* wallDelete(Wall *map, Wall *del)
+Seg* segDelete(Seg *map, Seg *del)
 {
     if(!del)
         return map;
     if(!map)
         return NULL;
     if(del == map){
-        Wall *next = map->next;
+        Seg *next = map->next;
         free(map);
         return next;
     }
-    Wall *cur = map;
+    Seg *cur = map;
     while(cur && cur->next != del)
         cur = cur->next;
     if(!cur)
         return map;
-    Wall *next = cur->next->next;
+    Seg *next = cur->next->next;
     free(cur->next);
     cur->next = next;
     return map;
 }
 
-uint wallListLen(Wall *map)
+uint segListLen(Seg *map)
 {
     uint len = 0;
     while(map){
@@ -181,63 +183,63 @@ uint wallListLen(Wall *map)
     return len;
 }
 
-void wallFreeList(Wall *list)
+void segFreeList(Seg *list)
 {
     while(list){
-        Wall *next = list->next;
+        Seg *next = list->next;
         free(list);
         list = next;
     }
 }
 
-Wall* mapDefault(void)
+Seg* mapDefault(void)
 {
-    Wall *map =           wallNew(
+    Seg *map =           wallNew(
         GREEN,
         (const Coordf){.x=  0.0f, .y=  0.0f},
         (const Coordf){.x=750.0f, .y=  0.0f}
     );
-    map = wallAppend(map, wallNew(
+    map = segAppend(map, wallNew(
         MAGENTA,
         (const Coordf){.x=750.0f, .y=  0.0f},
         (const Coordf){.x=750.0f, .y=750.0f}
     ));
-    map = wallAppend(map, wallNew(
+    map = segAppend(map, wallNew(
         MAGENTA,
         (const Coordf){.x=  0.0f, .y=  0.0f},
         (const Coordf){.x=  0.0f, .y=750.0f}
     ));
-    map = wallAppend(map, wallNew(
+    map = segAppend(map, wallNew(
         GREEN,
         (const Coordf){.x=  0.0f, .y=750.0f},
         (const Coordf){.x=750.0f, .y=750.0f}
     ));
-    map = wallAppend(map, windNew(RED, BLUE,
+    map = segAppend(map, windNew(RED, BLUE,
         (const Coordf){.x=250.0f, .y=250.0f},
         (const Coordf){.x=250.0f, .y=500.0f},
         .25f, .25f
     ));
-    map = wallAppend(map, doorNew(YELLOW,
+    map = segAppend(map, doorNew(YELLOW,
         (const Coordf){.x=500.0f, .y=0.0f},
         (const Coordf){.x=500.0f, .y=250.0f},
         0, 0.0f, true, 0.01f, DIR_D
     ));
-    map = wallAppend(map, windNew(RED, BLUE,
+    map = segAppend(map, windNew(RED, BLUE,
         (const Coordf){.x=500.0f, .y=250.0f},
         (const Coordf){.x=500.0f, .y=500.0f},
         .25f, .25f
     ));
-    map = wallAppend(map, windNew(BLUE, RED,
+    map = segAppend(map, windNew(BLUE, RED,
         (const Coordf){.x=250.0f, .y=500.0f},
         (const Coordf){.x=500.0f, .y=500.0f},
         .10, .25f
     ));
-    map = wallAppend(map, doorNew(YELLOW,
+    map = segAppend(map, doorNew(YELLOW,
         (const Coordf){.x=250.0f, .y=250.0f},
         (const Coordf){.x=500.0f, .y=250.0f},
         0, 0.0f, false, 0.01f, DIR_D
     ));
-    map = wallAppend(map, trigNew(YELLOW,
+    map = segAppend(map, trigNew(YELLOW,
         (const Coordf){.x=250.0f, .y=0.0f},
         (const Coordf){.x=500.0f, .y=0.0f},
         0,
@@ -289,7 +291,7 @@ bool checkEditorExit(void)
     return checkCtrlKey(SC_Q) || checkCtrlKey(SC_W);
 }
 
-bool checkKeyS(Wall *map, char *fileName, bool snap, const float snaplen)
+bool checkKeyS(Seg *map, char *fileName, bool snap, const float snaplen)
 {
     if(checkCtrlKey(SC_S)){
         mapSave(map, fileName);
@@ -340,7 +342,7 @@ void mlrUpdate(Minfo *ml, Minfo *mr, Selection *sel, const Offset off, const flo
     }
 }
 
-Minfo mlUpdate(Minfo ml, Selection *sel, Wall *map, const float scale, const bool snap, const float snaplen)
+Minfo mlUpdate(Minfo ml, Selection *sel, Seg *map, const float scale, const bool snap, const float snaplen)
 {
     if(!sel->wall && mouseBtnReleased(MOUSE_L))
         sel->wall = posNearest(map, ml.mpos, &(sel->pos));
@@ -370,7 +372,7 @@ Minfo mlUpdate(Minfo ml, Selection *sel, Wall *map, const float scale, const boo
     return ml;
 }
 
-Minfo mrUpdate(Minfo mr, Selection *sel, Wall **map, const Color c, const bool snap)
+Minfo mrUpdate(Minfo mr, Selection *sel, Seg **map, const Color c, const bool snap)
 {
     if(mouseBtnPressed(MOUSE_R)){
         mr.sposd = mr.spos;
@@ -382,10 +384,10 @@ Minfo mrUpdate(Minfo mr, Selection *sel, Wall **map, const Color c, const bool s
 
     if(mr.drag && mouseBtnReleased(MOUSE_R)){
         mr.drag = false;
-        Wall *newWall = wallNew(c, snap ? mr.msnapd : mr.mposd, snap ? mr.msnap : mr.mpos);
-        *map = wallAppend(*map, newWall);
-        sel->wall = newWall;
-        sel->pos = &(newWall->a);
+        Seg *newSeg = wallNew(c, snap ? mr.msnapd : mr.mposd, snap ? mr.msnap : mr.mpos);
+        *map = segAppend(*map, newSeg);
+        sel->wall = newSeg;
+        sel->pos = &(newSeg->a);
     }
 
     if(mr.drag){
@@ -415,10 +417,10 @@ Selection selUpdateCursor(Selection sel)
     return sel;
 }
 
-Wall* updateDel(Wall *map, Selection *sel)
+Seg* updateDel(Seg *map, Selection *sel)
 {
     if((keyPressed(SC_DELETE) || keyPressed(SC_BACKSPACE)) && sel->wall){
-        map = wallDelete(map, sel->wall);
+        map = segDelete(map, sel->wall);
         sel->wall = NULL;
         sel->pos = NULL;
     }
@@ -445,7 +447,7 @@ Offset updatePan(Offset off, Minfo *ml, Minfo *mr)
     return off;
 }
 
-Wall* mapEdit(Wall *map, char *fileName)
+Seg* mapEdit(Seg *map, char *fileName)
 {
     setRelativeMouse(false);
     float scale = 1.0f;

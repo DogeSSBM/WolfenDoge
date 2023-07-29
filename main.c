@@ -6,7 +6,7 @@ int main(int argc, char **argv)
     init();
     gfx.outlined = false;
     winSetPosCoord(coordAddi(coordDivi(getWinDisplayLen(), 2), -400));
-    Wall *map = NULL;
+    Seg *map = NULL;
     char *fileName;
     char defaultName[64] = {0};
     if(argc < 2){

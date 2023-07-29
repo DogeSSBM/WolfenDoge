@@ -12,10 +12,10 @@ typedef struct Player{
     float speed;
 }Player;
 
-typedef enum{W_WALL, W_WIND, W_TRIG, W_DOOR, W_N}WallType;
-char *WallTypeStr[W_N] = {"W_WALL", "W_WIND", "W_TRIG", "W_DOOR"};
-typedef struct Wall{
-    WallType type;
+typedef enum{W_WALL, W_WIND, W_TRIG, W_DOOR, W_N}SegType;
+char *SegTypeStr[W_N] = {"W_WALL", "W_WIND", "W_TRIG", "W_DOOR"};
+typedef struct Seg{
+    SegType type;
     Coordf a;
     Coordf b;
     Color color;
@@ -38,11 +38,11 @@ typedef struct Wall{
             Coordf d;
         }trig;
     };
-    struct Wall *next;
-}Wall;
+    struct Seg *next;
+}Seg;
 
 typedef struct{
-    Wall *wall;
+    Seg *wall;
     float dst;
     Coordf pos;
 }Ray;
@@ -67,7 +67,7 @@ typedef struct{
 
 typedef struct Selection{
     bool showInfo;
-    Wall *wall;
+    Seg *wall;
     Coordf posOrig;
     Coordf *pos;
     struct Selection *next;
