@@ -2,13 +2,13 @@
 A Wolfenstein inspired, psudo 3D ray caster and map editor.
 
 <!-- ![Demo](./Demos/Main.gif) -->
-<img src="./Demos/Main.gif" height="50%" width="50%">
+<img src="./Demos/Main.gif" height="75%" width="75%">
 
 ## Editor
 WolfenDoge features a builtin editor that allows you to make changes on the fly.
 
 <!-- ![Demo](./Demos/Editor.gif) -->
-<img src="./Demos/Editor.gif" height="50%" width="50%">
+<img src="./Demos/Editor.gif" height="75%" width="75%">
 
 ## How to Use the Editor
 While in game, the WolfenDoge map editor can accessed by pressing Ctrl+E.
@@ -29,7 +29,7 @@ The currently selected coordinate can be moved around by left clicking and dragg
 ## Files
 
 <!-- ![Demo](./Demos/Files.gif) -->
-<img src="./Demos/Files.gif" height="50%" width="50%">
+<img src="./Demos/Files.gif" height="75%" width="75%">
 
 WolfenDoge maps may be saved while in game or the map editor.
 To save the map in it's current state (including all changes made in the editor.) press Ctrl+S.
