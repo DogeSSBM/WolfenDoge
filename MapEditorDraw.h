@@ -25,14 +25,14 @@ void drawGrid(const Offset off, const Length wlen, const float scale, const bool
     }
 }
 
-void drawEditorMap(Wall *map, const Offset off, const float scale)
+void drawEditorMap(Wall *map, const Selection sel, const Offset off, const float scale)
 {
     Wall *cur = map;
     while(cur){
         const Coord a = mapToScreen(off, scale, cur->a);
         const Coord b = mapToScreen(off, scale, cur->b);
         setColor(cur->color);
-        drawLineThickCoords(a, b, 1);
+        drawLineThickCoords(a, b, (sel.pos == &cur->a || sel.pos == &cur->b) ? 3 : 1);
         cur = cur->next;
     }
 }

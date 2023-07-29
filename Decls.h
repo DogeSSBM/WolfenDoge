@@ -33,7 +33,7 @@ bool checkKeyS(Wall *, char *, bool, const float);
 void checkScroll(Offset *, const Coordf, const bool, float *, float *);
 void drawOriginLines(const Offset, const Length);
 void drawGrid(const Offset, const Length, const float, const bool, const float);
-void drawEditorMap(Wall *, const Offset, const float);
+void drawEditorMap(Wall *, const Selection, const Offset, const float);
 void drawSel(const Selection, const Offset, const float);
 void mlrUpdate(Minfo *, Minfo *, Selection *, const Offset, const float, const float);
 Minfo mlUpdate(Minfo, Selection *, Wall *, const float, const bool, const float);

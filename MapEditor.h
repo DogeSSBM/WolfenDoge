@@ -481,7 +481,7 @@ Wall* mapEdit(Wall *map, char *fileName)
 
         drawGrid(off, wlen, scale, snap, snaplen);
         drawOriginLines(off, wlen);
-        drawEditorMap(map, off, scale);
+        drawEditorMap(map, sel, off, scale);
         drawSel(sel, off, scale);
 
         frameEnd(t);
