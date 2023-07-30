@@ -60,7 +60,7 @@ typedef SDL_Scancode        Scancode;
 #define MW_U                (1u<<2)
 #define MW_L                (1u<<3)
 
-#define PI                  M_PI
+#define PI                  3.1415926535f
 
 typedef enum{
     FULLSCREEN = SDL_WINDOW_FULLSCREEN,

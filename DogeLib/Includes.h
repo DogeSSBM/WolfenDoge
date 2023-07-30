@@ -16,8 +16,8 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
-#include <SDL2/SDL2_gfxPrimitives.h>
-#include <SDL2/SDL_image.h>
+// #include <SDL2/SDL2_gfxPrimitives.h>
+// #include <SDL2/SDL_image.h>
 
 #include "Panic.h"
 #include "Types.h"
@@ -35,7 +35,7 @@
 #include "Events.h"
 #include "File.h"
 #include "DogeUtil.h"
-#include "Poly.h"
+// #include "Poly.h"
 #include "Display.h"
 #include "Window.h"
 

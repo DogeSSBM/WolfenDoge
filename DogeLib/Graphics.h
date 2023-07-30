@@ -394,61 +394,6 @@ Color u32ToColor(const u32 u)
     return (const Color){.r = u&0xff, .g = (u>>8)&0xff, .b = (u>>16)&0xff, 0xff};
 }
 
-void drawTri(const Coord pos1, const Coord pos2, const Coord pos3)
-{
-    trigonColor(
-        gfx.renderer,
-        pos1.x, pos1.y,
-        pos2.x, pos2.y,
-        pos3.x, pos3.y,
-        colorToU32(getColor())
-    );
-}
-
-void fillTri(const Coord pos1, const Coord pos2, const Coord pos3)
-{
-    filledTrigonColor(
-        gfx.renderer,
-        pos1.x, pos1.y,
-        pos2.x, pos2.y,
-        pos3.x, pos3.y,
-        colorToU32(getColor())
-    );
-}
-
-void drawPoly(Coord *pos, const uint num)
-{
-    i16 posx[num];
-    i16 posy[num];
-    for(uint i = 0; i < num; i++){
-    posx[i] = pos[i].x;
-    posy[i] = pos[i].y;
-    }
-    polygonColor(gfx.renderer, posx, posy, num, colorToU32(getColor()));
-}
-
-void fillPoly(Coord *pos, const uint num)
-{
-    i16 posx[num];
-    i16 posy[num];
-    for(uint i = 0; i < num; i++){
-        posx[i] = pos[i].x;
-        posy[i] = pos[i].y;
-    }
-    filledPolygonColor(gfx.renderer, posx, posy, num, colorToU32(getColor()));
-}
-
-void bezier(const Coord *pos, const uint numc, const uint nums)
-{
-    i16 posx[numc];
-    i16 posy[numc];
-    for(uint i = 0; i < numc; i++){
-        posx[i] = pos[i].x;
-        posy[i] = pos[i].y;
-    }
-    bezierColor(gfx.renderer, posx, posy, numc, nums, colorToU32(getColor()));
-}
-
 void setRGB(const u8 r, const u8 g, const u8 b)
 {
     SDL_SetRenderDrawColor(gfx.renderer, r, g, b, 255);
