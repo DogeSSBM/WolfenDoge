@@ -52,7 +52,7 @@ Coord mapToScreen(const Coord off, const float scale, const Coordf pos)
 Seg* mapQueryObjId(Seg *map, const uint id)
 {
     while(map){
-        if(map->type == W_DOOR && map->door.id == id)
+        if(map->type == S_DOOR && map->door.id == id)
             break;
         map = map->next;
     }
@@ -75,7 +75,7 @@ bool cfInTri(Coordf pos, Coordf a, Coordf b, Coordf c)
 void mapUpdateIdState(Seg *map, const uint id, const bool state)
 {
     while(map){
-        if(map->type == W_DOOR && map->door.id == id)
+        if(map->type == S_DOOR && map->door.id == id)
             map->door.state = state;
         map = map->next;
     }
@@ -85,7 +85,7 @@ void mapUpdateTriggers(const Coordf oldPos, const Coordf newPos, Seg *map)
 {
     Seg *cur = map;
     while(cur){
-        if(cur->type == W_TRIG){
+        if(cur->type == S_TRIG){
             const bool oldState = (
                 cfInTri(oldPos, cur->a, cur->b, cur->trig.d) || cfInTri(oldPos, cur->b, cur->trig.d, cur->trig.c) ||
                 cfInTri(oldPos, cur->a, cur->b, cur->trig.c) || cfInTri(oldPos, cur->a, cur->trig.d, cur->trig.c)
@@ -105,7 +105,7 @@ void mapUpdateTriggers(const Coordf oldPos, const Coordf newPos, Seg *map)
 void mapUpdateDynamics(Seg *map)
 {
     while(map){
-        if(map->type == W_DOOR){
+        if(map->type == S_DOOR){
             map->door.pos += map->door.state ? -map->door.speed : map->door.speed;
             if(map->door.pos < 0.0f)
                 map->door.pos = 0.0f;

@@ -1,5 +1,5 @@
-#ifndef MAPEDITORDRAW_H
-#define MAPEDITORDRAW_H
+#ifndef MAPEDITORDRAS_H
+#define MAPEDITORDRAS_H
 
 void drawOriginLines(const Offset off, const Length wlen)
 {
@@ -52,7 +52,7 @@ Coord drawSegType(const Coord pos, const SegType type, const bool selected)
 Coord drawColor(Coord pos, const uint tscale, Color c, const bool selected, const int ci)
 {
     setColor(BLACK);
-    fillRectCoordLength(pos, iC(tscale*16+tscale/2, tscale));
+    fillRectCoordLength(pos, iC(tscale*24+tscale/2, tscale));
     setColor(c);
     fillSquareCoord(pos, tscale);
     pos = coordShift(pos, DIR_R, tscale+tscale/2);
@@ -72,7 +72,7 @@ Coord drawCoordf(const Coord pos, const char *label, const Coordf cf, const bool
 {
     char buf[64] = {0};
     sprintf(buf, "%s: %+14.6f, %+14.6f", label, cf.x, cf.y);
-    Length len = getTextLength(buf);
+    const Length len = getTextLength(buf);
     setColor(BLACK);
     fillRectCoordLength(pos, len);
     setTextColor(selected ? WHITE : GREY);
@@ -84,11 +84,21 @@ Coord drawf(const Coord pos, const char *label, const float f, const bool select
 {
     char buf[32] = {0};
     sprintf(buf, "%s: %+14.6f", label, f);
-    Length len = getTextLength(buf);
+    const Length len = getTextLength(buf);
     setColor(BLACK);
     fillRectCoordLength(pos, len);
     setTextColor(selected ? WHITE : GREY);
     drawTextCoord(buf, pos);
+    return iC(0, pos.y+len.y);
+}
+
+Coord drawstr(const Coord pos, const char *str, const bool selected)
+{
+    setColor(BLACK);
+    const Length len = getTextLength(str);
+    fillRectCoordLength(pos, len);
+    setTextColor(selected ? WHITE : GREY);
+    drawTextCoord(str, pos);
     return iC(0, pos.y+len.y);
 }
 
@@ -116,7 +126,7 @@ Coord drawSelCommon(const Selection sel)
 
 void drawSelWind(const Selection sel, Coord pos)
 {
-    if(!sel.wall || sel.wall->type != W_WIND)
+    if(!sel.wall || sel.wall->type != S_WIND)
         return;
     pos = drawColor(pos, sel.tscale, sel.wall->wind.topColor, sel.cursor.y == 4, sel.cursor.x);
     pos = drawf(pos, "height", sel.wall->wind.height, sel.cursor.y == 5);
@@ -125,14 +135,21 @@ void drawSelWind(const Selection sel, Coord pos)
 
 void drawSelDoor(const Selection sel, Coord pos)
 {
-    if(!sel.wall || sel.wall->type != W_DOOR)
+    if(!sel.wall || sel.wall->type != S_DOOR)
         return;
     pos = drawu(pos, "id", sel.wall->door.id, sel.cursor.y == 4);
+    pos = drawf(pos, "pos: ", sel.wall->door.pos, sel.cursor.y == 5);
+    char buf[32] = {0};
+    sprintf(buf, "state: %s", sel.wall->door.state ? "true" : "false");
+    pos = drawstr(pos, buf, sel.cursor.y == 6);
+    pos = drawf(pos, "speed: ", sel.wall->door.speed, sel.cursor.y == 7);
+    sprintf(buf, "closeDir: %c", DirectionChar[sel.wall->door.closeDir]);
+    pos = drawstr(pos, buf, sel.cursor.y == 8);
 }
 
 void drawSelTrig(const Selection sel, Coord pos)
 {
-    if(!sel.wall || sel.wall->type != W_TRIG)
+    if(!sel.wall || sel.wall->type != S_TRIG)
         return;
     pos = drawu(pos, "id", sel.wall->trig.id, sel.cursor.y == 4);
 }
@@ -141,18 +158,27 @@ void drawSel(const Selection sel, const Offset off, const float scale)
 {
     if(sel.pos)
         fillCircleCoord(mapToScreen(off, scale, *sel.pos), 8);
-    if(!sel.wall)
+    if(!sel.wall){
+        drawstr(iiC(0), SegTypeStr[sel.newSegType], sel.cursor.y == 0);
         return;
+    }
     drawCircleCoord(mapToScreen(off, scale, &(sel.wall->a) == sel.pos ? sel.wall->b : sel.wall->a), 8);
     if(!sel.showInfo)
         return;
+    if(sel.wall->type == S_TRIG){
+        fillCircleCoord(mapToScreen(off, scale, sel.wall->trig.c), 4);
+        fillCircleCoord(mapToScreen(off, scale, sel.wall->trig.d), 4);
+        setColor(WHITE);
+        drawCircleCoord(mapToScreen(off, scale, sel.wall->trig.c), 4);
+        drawCircleCoord(mapToScreen(off, scale, sel.wall->trig.d), 4);
+    }
     Coord pos = drawSelCommon(sel);
-    if(sel.wall->type == W_WIND)
+    if(sel.wall->type == S_WIND)
         drawSelWind(sel, pos);
-    if(sel.wall->type == W_DOOR)
+    if(sel.wall->type == S_DOOR)
         drawSelDoor(sel, pos);
-    if(sel.wall->type == W_TRIG)
+    if(sel.wall->type == S_TRIG)
         drawSelTrig(sel, pos);
 }
 
-#endif /* end of include guard: MAPEDITORDRAW_H */
+#endif /* end of include guard: MAPEDITORDRAS_H */

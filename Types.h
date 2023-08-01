@@ -12,8 +12,10 @@ typedef struct Player{
     float speed;
 }Player;
 
-typedef enum{W_WALL, W_WIND, W_TRIG, W_DOOR, W_N}SegType;
-char *SegTypeStr[W_N] = {"W_WALL", "W_WIND", "W_TRIG", "W_DOOR"};
+typedef enum{S_WALL, S_WIND, S_TRIG, S_DOOR, S_N}SegType;
+char *SegTypeStr[S_N] = {"S_WALL", "S_WIND", "S_TRIG", "S_DOOR"};
+
+const uint SegTypeNumFields[S_N] = {4, 7, 6, 9};
 typedef struct Seg{
     SegType type;
     Coordf a;
@@ -66,6 +68,7 @@ typedef struct{
 }Minfo;
 
 typedef struct Selection{
+    SegType newSegType;
     bool showInfo;
     Seg *wall;
     Coordf posOrig;

@@ -74,7 +74,7 @@ Ray castRayMin(const Coordf origin, const Coordf distantPoint, Seg *map, const b
         .pos = distantPoint
     };
     while(map){
-        if(map->type == W_TRIG || (solidOnly && (map->type == W_WIND || (map->type == W_DOOR && map->door.pos < 1.0f)))){
+        if(map->type == S_TRIG || (solidOnly && (map->type == S_WIND || (map->type == S_DOOR && map->door.pos < 1.0f)))){
             map = map->next;
             continue;
         }
@@ -116,7 +116,7 @@ void drawWall(const View view, const Ray ray, const int xpos, const int ymid, co
         .g = clamp(ray.wall->color.g-(((dst*1.2f)/2000.0f)*255), 0, 256),
         .b = clamp(ray.wall->color.b-(((dst*1.2f)/2000.0f)*255), 0, 256)
     });
-    if(ray.wall->type == W_WIND){
+    if(ray.wall->type == S_WIND){
         const int boundL = xpos-hsec/2;
         const int boundR = boundL+hsec+1.0f;
         const int boundBotLower = ymid+height/2;
@@ -133,7 +133,7 @@ void drawWall(const View view, const Ray ray, const int xpos, const int ymid, co
         fillRectCoords(iC(boundL, boundTopUpper), iC(boundR, boundTopLower));
         return;
     }
-    if(ray.wall->type == W_DOOR){
+    if(ray.wall->type == S_DOOR){
         if(ray.wall->door.pos == 0.0f)
             return;
         if(dirUD(ray.wall->door.closeDir)){
@@ -173,9 +173,9 @@ void drawFp(const View view, Seg *map, const Player player, const Length wlen)
         const int xpos = view.pos.x+hsec/2+i*hsec;
         drawWall(view, ray, xpos, ymid, correctedDst, hsec);
         const Ray wray1 = castRay(player.pos, farpos, map, false);
-        if(wray1.wall && wray1.wall->type != W_WALL){
+        if(wray1.wall && wray1.wall->type != S_WALL){
             const Ray wray2 = castRayMin(player.pos, farpos, map, false, wray1.dst+1.0f);
-            if(wray2.wall && wray2.wall->type != W_WALL)
+            if(wray2.wall && wray2.wall->type != S_WALL)
                 drawWall(view, wray2, xpos, ymid, (int)(wray2.dst/sqrtf(viewTan*viewTan+1.0f)), hsec);
             drawWall(view, wray1, xpos, ymid, (int)(wray1.dst/sqrtf(viewTan*viewTan+1.0f)), hsec);
         }
@@ -201,7 +201,7 @@ void drawBv(const View view, Seg *map, const Player player, const float scale, c
     Seg *cur = map;
     const Length hlen = coordDivi(view.len, 2);
     while(cur){
-        if(cur->type == W_TRIG){
+        if(cur->type == S_TRIG){
             cur = cur->next;
             continue;
         }

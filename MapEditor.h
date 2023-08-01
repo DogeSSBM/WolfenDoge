@@ -58,6 +58,20 @@ Seg* posNearest(Seg *map, const Coordf pos, Coordf **nearest)
             wall = map;
             *nearest = &(map->b);
         }
+        if(map->type == S_TRIG){
+            curDst = cfDist(pos, map->trig.c);
+            if(curDst < dst){
+                dst = curDst;
+                wall = map;
+                *nearest = &(map->trig.c);
+            }
+            curDst = cfDist(pos, map->trig.d);
+            if(curDst < dst){
+                dst = curDst;
+                wall = map;
+                *nearest = &(map->trig.d);
+            }
+        }
         map = map->next;
     }
     return wall;
@@ -101,7 +115,7 @@ void mapSave(Seg *map, char *fileName)
 Seg* wallNew(const Color c, const Coordf a, const Coordf b)
 {
     Seg *w = calloc(1, sizeof(Seg));
-    w->type = W_WALL;
+    w->type = S_WALL;
     w->color = c;
     w->a = a;
     w->b = b;
@@ -111,7 +125,7 @@ Seg* wallNew(const Color c, const Coordf a, const Coordf b)
 Seg* windNew(const Color c, const Color topColor, const Coordf a, const Coordf b, const float height, const float top)
 {
     Seg *w = wallNew(c, a, b);
-    w->type = W_WIND;
+    w->type = S_WIND;
     w->wind.topColor = topColor;
     w->wind.height = height;
     w->wind.top = top;
@@ -121,7 +135,7 @@ Seg* windNew(const Color c, const Color topColor, const Coordf a, const Coordf b
 Seg* doorNew(const Color c, const Coordf a, const Coordf b, const uint id, const float pos, const bool state, const float speed, const Direction closeDir)
 {
     Seg *w = wallNew(c, a, b);
-    w->type = W_DOOR;
+    w->type = S_DOOR;
     w->door.id = id;
     w->door.pos = pos;
     w->door.state = state;
@@ -133,7 +147,7 @@ Seg* doorNew(const Color c, const Coordf a, const Coordf b, const uint id, const
 Seg* trigNew(const Color color, const Coordf a, const Coordf b, const uint id, const Coordf c, const Coordf d)
 {
     Seg *w = wallNew(color, a, b);
-    w->type = W_TRIG;
+    w->type = S_TRIG;
     w->trig.id = id;
     w->trig.c = c;
     w->trig.d = d;
@@ -384,7 +398,27 @@ Minfo mrUpdate(Minfo mr, Selection *sel, Seg **map, const Color c, const bool sn
 
     if(mr.drag && mouseBtnReleased(MOUSE_R)){
         mr.drag = false;
-        Seg *newSeg = wallNew(c, snap ? mr.msnapd : mr.mposd, snap ? mr.msnap : mr.mpos);
+        Seg *newSeg = NULL;
+        const Coordf a = snap ? mr.msnapd : mr.mposd;
+        const Coordf b = snap ? mr.msnap : mr.mpos;
+        switch(sel->newSegType){
+            case S_WALL:
+                newSeg = wallNew(c, a, b);
+                break;
+            case S_WIND:
+                newSeg = windNew(c, c, a, b, .25f, .25f);
+                break;
+            case S_DOOR:
+                newSeg = doorNew(c, a, b, 0, 0.0f, false, 0.01f, DIR_D);
+                break;
+            case S_TRIG:
+                newSeg = trigNew(c, a, b, 0, cfAddf(a, 100.0f), cfAddf(b, 100.0f));
+                break;
+            default:
+                panic("uh oh");
+                break;
+        }
+        assertExpr(newSeg);
         *map = segAppend(*map, newSeg);
         sel->wall = newSeg;
         sel->pos = &(newSeg->a);
@@ -413,7 +447,9 @@ Selection selUpdateCursor(Selection sel)
 {
     if(!sel.wall)
         return sel;
-    sel.cursor.y = wrap(sel.cursor.y + keyPressed(SC_DOWN) - keyPressed(SC_UP), 0, sel.wall->type == W_DOOR ? 9 : 7);
+    sel.cursor.y = wrap(sel.cursor.y + keyPressed(SC_DOWN) - keyPressed(SC_UP), 0, SegTypeNumFields[sel.wall->type]);
+    if(!(sel.cursor.y == 3 || (sel.wall->type == S_WIND && sel.cursor.y == 4)))
+        sel.cursor.x = 0;
     return sel;
 }
 
@@ -467,7 +503,9 @@ Seg* mapEdit(Seg *map, char *fileName)
 
         snap = checkKeyS(map, fileName, snap, snaplen);
         sel = selUpdateCursor(sel);
-        if(sel.wall && (sel.cursor.y == 3 || (sel.wall->type == W_WIND && sel.cursor.y == 4)))
+        if(!sel.wall)
+            sel.newSegType = wrap(sel.newSegType + keyPressed(SC_RIGHT) - keyPressed(SC_LEFT), 0, S_N);
+        else if(sel.wall && (sel.cursor.y == 3 || (sel.wall->type == S_WIND && sel.cursor.y == 4)))
             sel.cursor = editColor(sel.cursor, sel.cursor.y == 3 ? &sel.wall->color : &sel.wall->wind.topColor);
         mlrUpdate(&ml, &mr, &sel, off, scale, snaplen);
         wlen = updateResize(wlen, &off);

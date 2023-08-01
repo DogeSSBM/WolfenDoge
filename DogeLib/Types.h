@@ -55,10 +55,10 @@ typedef SDL_Scancode        Scancode;
 #define MOUSE_F             (SDL_BUTTON(SDL_BUTTON_X1))
 #define MOUSE_B             (SDL_BUTTON(SDL_BUTTON_X2))
 
-#define MW_D                1u
-#define MW_R                (1u<<1)
-#define MW_U                (1u<<2)
-#define MW_L                (1u<<3)
+#define MS_D                1u
+#define MS_R                (1u<<1)
+#define MS_U                (1u<<2)
+#define MS_L                (1u<<3)
 
 #define PI                  3.1415926535f
 
