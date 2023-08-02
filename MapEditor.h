@@ -300,6 +300,33 @@ Coord editColor(Coord cursor, Color *color)
     return cursor;
 }
 
+uint editUint(uint u)
+{
+    const int num = numKeyPressed();
+    if(num == -1)
+        return u;
+    u = u*10 + num;
+    return u%1000;
+}
+
+float editFloat(float f)
+{
+    static int nums[4] = {0};
+    const int num = numKeyPressed();
+    if(num != -1){
+        nums[3] = nums[2];
+        nums[2] = nums[1];
+        nums[1] = nums[0];
+        nums[0] = num;
+        f = nums[3] + nums[2]/10.0f + nums[1]/100.0f + nums[0]/1000.0f;
+        if(f < 0)
+            f = 0;
+        if(f > 1.0f)
+            f = 1.0f;
+    }
+    return f;
+}
+
 bool checkEditorExit(void)
 {
     return checkCtrlKey(SC_Q) || checkCtrlKey(SC_W);
@@ -505,8 +532,24 @@ Seg* mapEdit(Seg *map, char *fileName)
         sel = selUpdateCursor(sel);
         if(!sel.wall)
             sel.newSegType = wrap(sel.newSegType + keyPressed(SC_RIGHT) - keyPressed(SC_LEFT), 0, S_N);
-        else if(sel.wall && (sel.cursor.y == 3 || (sel.wall->type == S_WIND && sel.cursor.y == 4)))
+        else if((sel.cursor.y == 3 || (sel.wall->type == S_WIND && sel.cursor.y == 4)))
             sel.cursor = editColor(sel.cursor, sel.cursor.y == 3 ? &sel.wall->color : &sel.wall->wind.topColor);
+        else if(sel.wall->type == S_WIND){
+            if(sel.cursor.y == 5)
+                sel.wall->wind.height = editFloat(sel.wall->wind.height);
+            else if(sel.cursor.y == 6)
+                sel.wall->wind.top = editFloat(sel.wall->wind.top);
+        }else if(sel.wall->type == S_DOOR){
+            if(sel.cursor.y == 4)
+                sel.wall->door.id = editUint(sel.wall->door.id);
+            else if(sel.cursor.y == 5)
+                sel.wall->door.pos = editFloat(sel.wall->door.pos);
+            else if(sel.cursor.y == 7)
+                sel.wall->door.speed = editFloat(sel.wall->door.speed);
+        }else if(sel.wall->type == S_TRIG){
+            if(sel.cursor.y == 4)
+                sel.wall->trig.id = editUint(sel.wall->trig.id);
+        }
         mlrUpdate(&ml, &mr, &sel, off, scale, snaplen);
         wlen = updateResize(wlen, &off);
         map = updateDel(map, &sel);
