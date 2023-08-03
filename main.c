@@ -7,15 +7,16 @@ int main(int argc, char **argv)
     gfx.outlined = false;
     winSetPosCoord(coordAddi(coordDivi(getWinDisplayLen(), 2), -400));
     Seg *map = NULL;
-    char *fileName;
-    char defaultName[64] = {0};
+    char mapFilePath[128] = "map.bork";
     if(argc < 2){
-        defaultMapFileName(defaultName);
-        fileName = defaultName;
+        const uint mapNum = newMapFileNum();
+        if(mapNum != 0)
+            sprintf(mapFilePath, "./Maps/map(%u).bork", mapNum);
         map = mapDefault();
     }else{
-        fileName = argv[1];
-        map = mapLoad(fileName);
+        assertExpr(strlen(argv[1]) < 128);
+        memcpy(mapFilePath, argv[1], strlen(argv[1]));
+        map = mapLoad(mapFilePath);
     }
 
     assertExpr(map);
@@ -31,7 +32,8 @@ int main(int argc, char **argv)
         }
 
         if(checkCtrlKey(SC_E)){
-            map = mapEdit(map, fileName);
+            printf("Editing map: '%s'\n", mapFilePath);
+            map = mapEdit(map, mapFilePath);
             setRelativeMouse(true);
         }
 

@@ -31,6 +31,16 @@ void drawEditorMap(Seg *map, const Selection sel, const Offset off, const float 
     while(cur){
         const Coord a = mapToScreen(off, scale, cur->a);
         const Coord b = mapToScreen(off, scale, cur->b);
+        if(cur->type == S_TRIG){
+            const Coord c = mapToScreen(off, scale, cur->trig.c);
+            const Coord d = mapToScreen(off, scale, cur->trig.d);
+            setColor(YELLOW);
+            drawLineCoords(a, c);
+            drawLineCoords(a, d);
+            drawLineCoords(b, c);
+            drawLineCoords(b, d);
+            drawLineCoords(c, d);
+        }
         setColor(cur->color);
         drawLineThickCoords(a, b, (sel.pos == &cur->a || sel.pos == &cur->b) ? 3 : 1);
         cur = cur->next;

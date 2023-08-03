@@ -1,6 +1,7 @@
 #ifndef MAPEDITOR_H
 #define MAPEDITOR_H
 
+// Serializes the list of segments into an array
 WallPacked* mapPack(Seg *map)
 {
     const uint len = segListLen(map);
@@ -16,6 +17,7 @@ WallPacked* mapPack(Seg *map)
     return mapPacked;
 }
 
+// De-serializes the map segment array into a list
 Seg* mapUnpack(WallPacked *mapPacked, const uint len)
 {
     if(len == 0)
@@ -26,16 +28,22 @@ Seg* mapUnpack(WallPacked *mapPacked, const uint len)
     return map;
 }
 
+// takes pos, gets its position in terms of percentage of oldLen side lengths
+// returns a new position offset by the same percentage of newLen's sides
 Coord resizeTransform(const Length oldLen, const Length newLen, const Coord pos)
 {
     return CfC(cfMul(CCf(newLen), cfDiv(CCf(pos), CCf(oldLen))));
 }
 
+// takes pos, gets its position in terms of percentage of oldLen
+// returns a new position offset by the same percentage of newLen's sides
 Coordf resizeTransformf(const Lengthf oldLen, const Lengthf newLen, const Coordf pos)
 {
     return cfMul(newLen, cfDiv(pos, oldLen));
 }
 
+// iterates through all segments and their coords, sets *nearest = & the nearest coord
+// returns the segment containing the nearest coord
 Seg* posNearest(Seg *map, const Coordf pos, Coordf **nearest)
 {
     if(!map){
@@ -77,32 +85,30 @@ Seg* posNearest(Seg *map, const Coordf pos, Coordf **nearest)
     return wall;
 }
 
-void defaultMapFileName(char *fileName)
+// attempts to open map.bork then map(n).bork with n starting at 1 and increasing
+// once a file name that doesnt exist is found returns n
+uint newMapFileNum(void)
 {
-    uint i = 0;
+    uint n = 0;
     File *file = NULL;
-    sprintf(fileName, "map.bork");
-    while((file = fopen(fileName, "rb")) != NULL){
+    char path[256] = "./Maps/map.bork";
+    while((file = fopen(path, "rb")) != NULL){
         fclose(file);
-        i++;
-        sprintf(fileName, "map(%u).bork", i);
+        n++;
+        sprintf(path, "./Maps/map(%u).bork", n);
     }
+    return n;
 }
 
-void mapSave(Seg *map, char *fileName)
+// saves map to path
+void mapSave(Seg *map, char *path)
 {
     if(!map){
         printf("Map is empty, skipping save\n");
         return;
     }
+    assertExpr(path);
     File *file = NULL;
-    if(!fileName){
-        char defaultName[64] = {0};
-        defaultMapFileName(defaultName);
-        fileName = defaultName;
-    }
-    char path[256] = {0};
-    sprintf(path, "./Maps/%s", fileName);
     file = fopen(path, "wb");
     const uint len = segListLen(map);
     WallPacked *mapPacked = mapPack(map);
@@ -112,6 +118,7 @@ void mapSave(Seg *map, char *fileName)
     free(mapPacked);
 }
 
+// creates a new segment with type S_WALL
 Seg* wallNew(const Color c, const Coordf a, const Coordf b)
 {
     Seg *w = calloc(1, sizeof(Seg));
@@ -122,6 +129,7 @@ Seg* wallNew(const Color c, const Coordf a, const Coordf b)
     return w;
 }
 
+// creates a new segment with type S_WIND
 Seg* windNew(const Color c, const Color topColor, const Coordf a, const Coordf b, const float height, const float top)
 {
     Seg *w = wallNew(c, a, b);
@@ -132,6 +140,7 @@ Seg* windNew(const Color c, const Color topColor, const Coordf a, const Coordf b
     return w;
 }
 
+// creates a new segment with type S_DOOR
 Seg* doorNew(const Color c, const Coordf a, const Coordf b, const uint id, const float pos, const bool state, const float speed, const Direction closeDir)
 {
     Seg *w = wallNew(c, a, b);
@@ -144,6 +153,7 @@ Seg* doorNew(const Color c, const Coordf a, const Coordf b, const uint id, const
     return w;
 }
 
+// creates a new segment with type S_TRIG
 Seg* trigNew(const Color color, const Coordf a, const Coordf b, const uint id, const Coordf c, const Coordf d)
 {
     Seg *w = wallNew(color, a, b);
@@ -154,6 +164,7 @@ Seg* trigNew(const Color color, const Coordf a, const Coordf b, const uint id, c
     return w;
 }
 
+// appends tail to the end of the list (head)
 Seg* segAppend(Seg *head, Seg *tail)
 {
     if(!head)
@@ -165,6 +176,7 @@ Seg* segAppend(Seg *head, Seg *tail)
     return head;
 }
 
+// searches for del in map list, removes and frees it
 Seg* segDelete(Seg *map, Seg *del)
 {
     if(!del)
@@ -187,6 +199,7 @@ Seg* segDelete(Seg *map, Seg *del)
     return map;
 }
 
+// returns the number of segments in the map list
 uint segListLen(Seg *map)
 {
     uint len = 0;
@@ -197,6 +210,7 @@ uint segListLen(Seg *map)
     return len;
 }
 
+// frees all segments in the list
 void segFreeList(Seg *list)
 {
     while(list){
@@ -206,6 +220,7 @@ void segFreeList(Seg *list)
     }
 }
 
+// allocates and returns the default map
 Seg* mapDefault(void)
 {
     Seg *map =           wallNew(
@@ -263,6 +278,8 @@ Seg* mapDefault(void)
     return map;
 }
 
+// returns the int corrosponding to the number key pressed
+// -1 if no number keys were pressed
 int numKeyPressed(void)
 {
     const Scancode key[10] = {
@@ -284,6 +301,9 @@ int numKeyPressed(void)
     return -1;
 }
 
+// edits color component (r, g, or b) according to the cursor position.
+// changes cursor.x if left or right arrow key is pressed
+// returns cursor position
 Coord editColor(Coord cursor, Color *color)
 {
     static int nums[3] = {0};
@@ -300,6 +320,8 @@ Coord editColor(Coord cursor, Color *color)
     return cursor;
 }
 
+// if a number key was pressed, shifts the digits of u left inserting the
+// new number in the ones place
 uint editUint(uint u)
 {
     const int num = numKeyPressed();
@@ -309,6 +331,8 @@ uint editUint(uint u)
     return u%1000;
 }
 
+// if a number key was pressed, shifts the digits of u left inserting the
+// new number in the thousands place (clamps f such that 1.0 >= f >= 0)
 float editFloat(float f)
 {
     static int nums[4] = {0};
@@ -327,11 +351,13 @@ float editFloat(float f)
     return f;
 }
 
+// returns true if ctrl + q or ctrl + w is pressed
 bool checkEditorExit(void)
 {
     return checkCtrlKey(SC_Q) || checkCtrlKey(SC_W);
 }
 
+// toggles snap if s is pressed and returns snap
 bool checkKeyS(Seg *map, char *fileName, bool snap, const float snaplen)
 {
     if(checkCtrlKey(SC_S)){
@@ -344,6 +370,11 @@ bool checkKeyS(Seg *map, char *fileName, bool snap, const float snaplen)
     return snap;
 }
 
+// checks if the mouse wheel is scrolled.
+// if scrolled while holding ctrl, updates *snaplen
+// otherwise if scrolled updates *scale and *offset such that mmpos is at the same
+// screen position after scaling
+// also updates *snaplen if ctrl + - or ctrl + + is pressed
 void checkScroll(Offset *off, const Coordf mmpos, const bool snap, float *snaplen, float *scale)
 {
     float oldSnaplen = *snaplen;
@@ -365,6 +396,8 @@ void checkScroll(Offset *off, const Coordf mmpos, const bool snap, float *snaple
         printf("Snap %4.0f (%s)\n", *snaplen, snap?"On":"Off");
 }
 
+// updates left and right mouse button info
+// clears selection wall / pos  and drag info if escape is pressed
 void mlrUpdate(Minfo *ml, Minfo *mr, Selection *sel, const Offset off, const float scale, const float snaplen)
 {
     ml->spos = mouse.pos;
@@ -383,6 +416,8 @@ void mlrUpdate(Minfo *ml, Minfo *mr, Selection *sel, const Offset off, const flo
     }
 }
 
+// updates left mouse button info
+// updates selection if left mouse is pressed, dragged, or released
 Minfo mlUpdate(Minfo ml, Selection *sel, Seg *map, const float scale, const bool snap, const float snaplen)
 {
     if(!sel->wall && mouseBtnReleased(MOUSE_L))
@@ -413,6 +448,8 @@ Minfo mlUpdate(Minfo ml, Selection *sel, Seg *map, const float scale, const bool
     return ml;
 }
 
+// updates right mouse button info
+// updates selection if right mouse is pressed, dragged, or released
 Minfo mrUpdate(Minfo mr, Selection *sel, Seg **map, const Color c, const bool snap)
 {
     if(mouseBtnPressed(MOUSE_R)){
@@ -463,13 +500,38 @@ Minfo mrUpdate(Minfo mr, Selection *sel, Seg **map, const Color c, const bool sn
     return mr;
 }
 
-Selection selCheckRev(Selection sel)
-{
-    if(sel.wall && sel.pos && keyPressed(SC_R))
-        sel.pos = sel.pos == &(sel.wall->a) ? &(sel.wall->b) : &(sel.wall->a);
-    return sel;
-}
+// WIP
+// if coords is not NULL it is filled with pointers to the coords in the segment.
+// returns number of cords in segment.
+// uint segGetCoords(Seg *seg, Coordf **coords)
+// {
+//     if(!seg)
+//
+// }
 
+// cycles sel.pos to the next Coordf of the segment (alphabetical order). wraps after last Coordf
+// Selection selNext(Selection sel)
+// {
+//     if(!sel.wall || !sel.pos || !keyPressed(SC_R))
+//         return sel;
+//     Coordf *segCoords[4] = {0};
+//     sel.pos = sel.pos == &(sel.wall->a) ? &(sel.wall->b) : &(sel.wall->a);
+//     return sel;
+// }
+
+// WIP
+// Selection selCheckNext(const Selection sel, const Minfo ml, Seg *map)
+// {
+//     if(!keyPressed(SC_N) || !sel.wall)
+//         return sel;
+//
+//     if(sel.wall->type == )
+//     next.wall = next.wall->next;
+//     next.wall = posNearest(next.wall, *sel->pos, &(sel->pos));
+// }
+
+// updates selection cursor.y if up or down arrow keys are pressed
+// sets cursor.x to 0 if cursor.y changed to a selection that only has a single option
 Selection selUpdateCursor(Selection sel)
 {
     if(!sel.wall)
@@ -480,6 +542,7 @@ Selection selUpdateCursor(Selection sel)
     return sel;
 }
 
+// if a segment is selected, deletes it from map segment list and updates *sel
 Seg* updateDel(Seg *map, Selection *sel)
 {
     if((keyPressed(SC_DELETE) || keyPressed(SC_BACKSPACE)) && sel->wall){
@@ -490,6 +553,8 @@ Seg* updateDel(Seg *map, Selection *sel)
     return map;
 }
 
+// if window is resized updates it preserving off relative to new window lengths
+// eg off will be in the same place in terms of percentage offset relative to old / new window lengths
 Length updateResize(Length wlen, Offset *off)
 {
     if(windowResized()){
@@ -500,6 +565,7 @@ Length updateResize(Length wlen, Offset *off)
     return wlen;
 }
 
+// pans map while middle mouse or left shift is held
 Offset updatePan(Offset off, Minfo *ml, Minfo *mr)
 {
     if(mouseBtnState(MOUSE_M) || keyState(SC_LSHIFT)){
@@ -510,6 +576,8 @@ Offset updatePan(Offset off, Minfo *ml, Minfo *mr)
     return off;
 }
 
+// main loop while in map editor. segment list map is edited and returned when exiting from map editor
+// on save, map is saved to ./Maps/fileName or a default map name if fileName is NULL
 Seg* mapEdit(Seg *map, char *fileName)
 {
     setRelativeMouse(false);
@@ -557,7 +625,8 @@ Seg* mapEdit(Seg *map, char *fileName)
         off = updatePan(off, &ml, &mr);
         ml = mlUpdate(ml, &sel, map, scale, snap, snaplen);
         mr = mrUpdate(mr, &sel, &map, c, snap);
-        sel = selCheckRev(sel);
+        // sel = selNext(sel);
+        // sel = selCheckNext(sel, ml, map);
         sel.showInfo = keyPressed(SC_I) ? !sel.showInfo : sel.showInfo;
         sel.tscale = (wlen.y/3)/12;
         setTextSize(sel.tscale);
