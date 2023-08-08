@@ -473,7 +473,6 @@ void gfx_init(void)
     atexit(gfx_quit);
 
     gfx.defaultColor = BLACK;
-    gfx.outlined = true;
     SDL_SetRenderDrawBlendMode(gfx.renderer, BLEND_NONE);
     gfx.restoreLen.x = DEFAULT_WINDOW_XLEN;
     gfx.restoreLen.y = DEFAULT_WINDOW_YLEN;
