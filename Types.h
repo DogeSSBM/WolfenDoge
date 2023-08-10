@@ -83,4 +83,10 @@ typedef struct Selection{
     uint tscale;
 }Selection;
 
+typedef struct Update{
+    uint id;
+    bool state;
+    struct Update *next;
+}Update;
+
 #endif /* end of include guard: TYPES_H */

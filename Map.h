@@ -131,30 +131,85 @@ bool cfInQuad(const Coordf pos, const Coordf a, const Coordf b, const Coordf c, 
 }
 
 // sets map segments whos id equals id with state equal to state
-void mapUpdateIdState(Seg *map, const uint id, const bool state)
-{
-    while(map){
-        if(map->type == S_DOOR && map->door.id == id)
-            map->door.state = state;
-        map = map->next;
-    }
-}
-
-// checks to see if the state of any triggers have changed and if so, update the map segments with
-// corrosponding ids to reflect the new state
-void mapUpdateTriggers(const Coordf oldPos, const Coordf newPos, Seg *map)
+Seg* mapUpdateIdState(Seg *map, const uint id, const bool state)
 {
     Seg *cur = map;
+    while(cur){
+        if(cur->type == S_DOOR && cur->door.id == id)
+            cur->door.state = state;
+        cur = cur->next;
+    }
+    return map;
+}
+
+// returns update with corrosponding id or NULL if none found
+Update* upQueryId(Update *up, const uint id)
+{
+    while(up && up->id != id)
+        up = up->next;
+    return up;
+}
+
+// appends update to list
+Update* upAppend(Update *head, Update *tail)
+{
+    if(!head)
+        return tail;
+    Update *cur = head;
+    while(cur->next)
+        cur = cur->next;
+    cur->next = tail;
+    return head;
+}
+
+// allocates and returns a new argument
+Update* upNew(const uint id, const bool state)
+{
+    Update *up = calloc(1, sizeof(Update));
+    up->id = id;
+    up->state = state;
+    return up;
+}
+
+// modifies an existing update if an update with id already exists, otherwise appends a new update
+Update* upUpdate(Update *up, const uint id, const bool state)
+{
+    Update *existing = upQueryId(up, id);
+    if(existing)
+        existing->state |= state;
+    else
+        up = upAppend(up, upNew(id, state));
+    return up;
+}
+
+// constructs and returns a list of updates that occured on the current frame
+Update* mapQueueUpdates(const Coordf oldPos, const Coordf newPos, Seg *map)
+{
+    Seg *cur = map;
+    Update *up = NULL;
     while(cur){
         if(cur->type == S_TRIG){
             const bool oldState = cfInQuad(oldPos, cur->a, cur->b, cur->trig.c, cur->trig.d);
             const bool newState = cfInQuad(newPos, cur->a, cur->b, cur->trig.c, cur->trig.d);
             if(oldState != newState){
-                mapUpdateIdState(map, cur->trig.id, newState);
+                up = upUpdate(up, cur->trig.id, newState);
             }
         }
         cur = cur->next;
     }
+    return up;
+}
+
+// applys and frees all updates in list to map
+Seg* mapApplyUpdates(Seg *map, Update *up)
+{
+    while(up){
+        Update *next = up->next;
+        map = mapUpdateIdState(map, up->id, up->state);
+        free(up);
+        up = next;
+    }
+    return map;
 }
 
 // updates the dynamic segments of the map

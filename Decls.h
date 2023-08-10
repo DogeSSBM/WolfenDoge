@@ -8,7 +8,7 @@ Coordf screenToMap(const Coord, const float, const Coord);
 Coord mapToScreen(const Coord, const float, const Coordf);
 float triSign(const Coordf, const Coordf, const Coordf);
 bool cfInTri(Coordf, Coordf, Coordf, Coordf);
-void mapUpdateIdState(Seg *, const uint, const bool);
+Seg* mapUpdateIdState(Seg *, const uint, const bool);
 void mapUpdateTriggers(const Coordf, const Coordf, Seg *);
 void mapUpdateDynamics(Seg *);
 
