@@ -20,11 +20,16 @@ The coordinate closest to the mouse cursor, and the segment containing it will b
 
 New segments may be created by right clicking and dragging.
 Segments may be deleted by pressing Delete.
+The type of new segment to be created can be changed by pressing the left / right arrow
+keys (while having nothing selected). The type is displayed in the top left of the editor.
 
 While a segment is selected, the following actions are possible -
 Pressing Esc will un-select the segment.
 Pressing R will change your selected coordinate to the other in the segment.
 The currently selected coordinate can be moved around by left clicking and dragging.
+Various properties of the segment can be selected by moving the cursor with the arrow keys.
+The current selection will be shown in white (or red / green / blue in the case of color
+components). Certain values can be edited by typing numbers while the cursor has them selected.
 
 ## Files
 
