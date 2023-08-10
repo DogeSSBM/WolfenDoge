@@ -90,6 +90,37 @@ Rect textureRect(Texture *texture, const Coord pos)
     return rectify(pos, textureLen(texture));
 }
 
+void drawTextureRect(Texture *texture, const Rect rect, const int x, const int y)
+{
+    const Length len = textureLen(texture);
+    SDL_RenderCopy(
+        gfx.renderer,
+        texture,
+        &rect,
+        &(const Rect){.x = x, .y = y, .w = len.x, .h = len.y}
+    );
+}
+
+void drawTextureRectCoord(Texture *texture, const Rect rect, const Coord pos)
+{
+    drawTextureRect(texture, rect, pos.x, pos.y);
+}
+
+void drawTextureRectResize(Texture *texture, const Rect rect, const int x, const int y, const int xlen, const int ylen)
+{
+    SDL_RenderCopy(
+        gfx.renderer,
+        texture,
+        &rect,
+        &(const Rect){.x = x, .y = y, .w = xlen, .h = ylen}
+    );
+}
+
+void drawTextureRectCoordResize(Texture *texture, const Rect rect, const Coord pos, const Length len)
+{
+    drawTextureRectResize(texture, rect, pos.x, pos.y, len.x, len.y);
+}
+
 Length drawTexture(Texture *texture, const int x, const int y)
 {
     const Length len = textureLen(texture);

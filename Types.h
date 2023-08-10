@@ -24,6 +24,10 @@ typedef struct Seg{
     Color color;
     union{
         struct{
+            char *path;
+            Texture *texture;
+        }wall;
+        struct{
             Color topColor;
             float height;
             float top;
@@ -47,11 +51,6 @@ typedef struct Seg{
     };
     struct Seg *next;
 }Seg;
-
-typedef struct Obj{
-    
-    struct Obj *next;
-}Obj;
 
 typedef struct{
     Seg *seg;

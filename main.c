@@ -25,7 +25,6 @@ int main(int argc, char **argv)
     setRelativeMouse(true);
 
     Player player = {.pos = {.x=125.0f, .y=125.0f}};
-
     while(1){
         const uint t = frameStart();
 

@@ -183,6 +183,19 @@ void mapSave(Seg *map, char *path)
     free(mapPacked.seg);
 }
 
+// searches for wall with texture path, if found returns the texture else returns
+// newly allocated texture
+Texture* txtrQryLoad(Seg *map, char *path)
+{
+    while(map){
+        if(map->type == S_WALL && map->wall.path && map->wall.texture && !strcmp(map->wall.path, path))
+            return map->wall.texture;
+        map = map->next;
+    }
+    printf("Loading texture: \"%s\"\n", path);
+    return loadTexture(path);
+}
+
 // creates a new segment with type S_WALL
 Seg* wallNew(const Color c, const Coordf a, const Coordf b)
 {
@@ -191,6 +204,19 @@ Seg* wallNew(const Color c, const Coordf a, const Coordf b)
     w->color = c;
     w->a = a;
     w->b = b;
+    return w;
+}
+
+// creates a new segment with type S_WALL that has a texture
+Seg* txtrNew(Seg *map, const Color c, const Coordf a, const Coordf b, char *path)
+{
+    Seg *w = calloc(1, sizeof(Seg));
+    w->type = S_WALL;
+    w->color = c;
+    w->a = a;
+    w->b = b;
+    w->wall.path = path;
+    w->wall.texture = txtrQryLoad(map, path);
     return w;
 }
 
@@ -301,23 +327,19 @@ void segFreeList(Seg *list)
 // allocates and returns the default map
 Seg* mapDefault(void)
 {
-    Seg *map =           wallNew(
-        GREEN,
+    Seg *map =           wallNew(GREEN,
         (const Coordf){.x=  0.0f, .y=  0.0f},
         (const Coordf){.x=750.0f, .y=  0.0f}
     );
-    map = segAppend(map, wallNew(
-        MAGENTA,
+    map = segAppend(map, wallNew(MAGENTA,
         (const Coordf){.x=750.0f, .y=  0.0f},
         (const Coordf){.x=750.0f, .y=750.0f}
     ));
-    map = segAppend(map, wallNew(
-        MAGENTA,
+    map = segAppend(map, wallNew(MAGENTA,
         (const Coordf){.x=  0.0f, .y=  0.0f},
         (const Coordf){.x=  0.0f, .y=750.0f}
     ));
-    map = segAppend(map, wallNew(
-        GREEN,
+    map = segAppend(map, wallNew(GREEN,
         (const Coordf){.x=  0.0f, .y=750.0f},
         (const Coordf){.x=750.0f, .y=750.0f}
     ));
@@ -331,10 +353,10 @@ Seg* mapDefault(void)
         (const Coordf){.x=500.0f, .y=500.0f},
         .25f, .25f
     ));
-    map = segAppend(map, windNew(BLUE, RED,
+    map = segAppend(map, txtrNew(map, WHITE,
         (const Coordf){.x=250.0f, .y=500.0f},
         (const Coordf){.x=500.0f, .y=500.0f},
-        .10, .25f
+        "./Assets/Bricks64x64.png"
     ));
     map = segAppend(map, doorNew(YELLOW,
         (const Coordf){.x=250.0f, .y=250.0f},

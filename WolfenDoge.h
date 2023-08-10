@@ -125,6 +125,22 @@ void drawWall(const View view, const Ray ray, const int xpos, const int ymid, co
         );
         return;
     }
+    if(ray.wall->type == S_WALL && ray.wall->wall.path){
+        const Length txtrlen = textureLen(ray.wall->wall.texture);
+        const float walllen = cfDist(ray.wall->a, ray.wall->b);
+        const float poslen = cfDist(ray.wall->a, ray.pos);
+        const float xdst = poslen/walllen;
+        const Rect r = {
+            .x = (int)((float)txtrlen.x * xdst),
+            .y = 0,
+            .w = 1,
+            .h = txtrlen.y
+        };
+        const Coord p = iC(xpos, ymid-height/2);
+        const Length l = iC(hsec+1, height);
+        drawTextureRectCoordResize(ray.wall->wall.texture, r, p, l);
+        return;
+    }
     setColor((const Color){
         .r = clamp(ray.wall->color.r-(((dst*1.2f)/2000.0f)*255), 0, 256),
         .g = clamp(ray.wall->color.g-(((dst*1.2f)/2000.0f)*255), 0, 256),
