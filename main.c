@@ -50,7 +50,7 @@ int main(int argc, char **argv)
         mapUpdateDynamics(map);
 
         drawFp(firstView, map, player, wlen);
-        drawBv(birdsView, map, player, coordMin(birdsView.len) / cfMax(mapBounds(map)), fC(0,0));
+        drawBv(birdsView, map, player, coordMin(birdsView.len) / cfMax(mapLength(map)), fC(0,0));
 
         frameEnd(t);
     }
