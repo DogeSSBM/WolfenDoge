@@ -17,6 +17,11 @@ bool textInputState(void)
     return keys.textInputState;
 }
 
+bool textInputEnded(void)
+{
+    return !keys.textInputState && keys.textInputChange;
+}
+
 void textInputAppendText(char *text)
 {
     const st maxlen = keys.textInputSize - keys.textInputPos;

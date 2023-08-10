@@ -3,13 +3,22 @@
 
 // Map.h
 Seg* mapLoad(char *);
-Coordf mapBounds(Seg *);
+Coordf mapBoundMax(Seg *);
+Coordf mapBoundMin(Seg *);
+Coordf mapLength(Seg *);
 Coordf screenToMap(const Coord, const float, const Coord);
 Coord mapToScreen(const Coord, const float, const Coordf);
+Seg* mapQueryObjId(Seg *, const uint);
 float triSign(const Coordf, const Coordf, const Coordf);
 bool cfInTri(Coordf, Coordf, Coordf, Coordf);
+bool cfInQuad(const Coordf, const Coordf, const Coordf, const Coordf, const Coordf);
 Seg* mapUpdateIdState(Seg *, const uint, const bool);
-void mapUpdateTriggers(const Coordf, const Coordf, Seg *);
+Update* upQueryId(Update *, const uint);
+Update* upAppend(Update *, Update *);
+Update* upNew(const uint, const bool);
+Update* upUpdate(Update *, const uint, const bool);
+Update* mapQueueUpdates(const Coordf, const Coordf, Seg *);
+Seg* mapApplyUpdates(Seg *, Update *);
 void mapUpdateDynamics(Seg *);
 
 // MapEditor.h
@@ -18,12 +27,20 @@ Seg* mapUnpack(SegPacked);
 Coord resizeTransform(const Length, const Length, const Coord);
 Coordf resizeTransformf(const Lengthf, const Lengthf, const Coordf);
 Seg* posNearest(Seg *, const Coordf, Coordf **);
+Seg* coordNext(Seg *, Coordf **);
+Seg* coordNextWrap(Seg *, Seg *, Coordf **);
+Seg* posNext(Seg *, Seg *, Coordf **);
 uint newMapFileNum(void);
 void mapSave(Seg *, char *);
+Texture* txtrQryLoad(Seg *, char *);
+Seg* txtrCleanup(Seg *, Seg *);
+Seg* txtrApply(Seg *, Texture *, char *);
 Seg* wallNew(const Color, const Coordf, const Coordf);
+Seg* txtrNew(Seg *, const Color, const Coordf, const Coordf, char *);
 Seg* windNew(const Color, const Color, const Coordf, const Coordf, const float, const float);
 Seg* doorNew(const Color, const Coordf, const Coordf, const uint, const float, const bool, const float, const Direction);
 Seg* trigNew(const Color, const Coordf, const Coordf, const uint, const Coordf, const Coordf);
+Seg* convNew(const Color, const Coordf, const Coordf, const uint, const uint);
 Seg* segAppend(Seg *, Seg *);
 Seg* segDelete(Seg *, Seg *);
 uint segListLen(Seg *);
@@ -31,36 +48,49 @@ void segFreeList(Seg *);
 Seg* mapDefault(void);
 int numKeyPressed(void);
 Coord editColor(Coord, Color*);
+uint editUint(uint);
+float editFloat(float);
 bool checkEditorExit(void);
 bool checkKeyS(Seg *, char *, bool, const float);
 void checkScroll(Offset *, const Coordf, const bool, float *, float *);
-void drawOriginLines(const Offset, const Length);
-void drawGrid(const Offset, const Length, const float, const bool, const float);
-void drawEditorMap(Seg *, const Selection, const Offset, const float);
-void drawSel(const Selection, const Offset, const float);
 void mlrUpdate(Minfo *, Minfo *, Selection *, const Offset, const float, const float);
 Minfo mlUpdate(Minfo, Selection *, Seg *, const float, const bool, const float);
 Minfo mrUpdate(Minfo, Selection *, Seg **, const Color, const bool);
-Selection selNext(Selection);
+Selection selUpdateCursor(Selection);
+Selection selUpdateNext(Selection, Seg *);
 Seg* updateDel(Seg *, Selection *);
 Length updateResize(Length, Offset *);
 Offset updatePan(Offset, Minfo *, Minfo *);
 Seg* mapEdit(Seg *, char *);
 
+// MapEditorDraw.h
+void drawOriginLines(const Offset, const Length);
+void drawGrid(const Offset, const Length, const float, const bool, const float);
+void drawEditorMap(Seg *, const Selection, const Offset, const float);
+Coord drawSegType(const Coord, const SegType, const bool);
+Coord drawColor(Coord, const uint, Color, const bool, const int);
+Coord drawCoordf(const Coord, const char *, const Coordf, const bool);
+Coord drawf(const Coord, const char *, const float, const bool);
+Coord drawstr(const Coord, const char *, const bool);
+Coord drawu(const Coord, const char *, const uint, const bool);
+Coord drawSelCommon(const Selection);
+void drawSelWall(const Selection, Coord);
+void drawSelWind(const Selection, Coord);
+void drawSelDoor(const Selection, Coord);
+void drawSelTrig(const Selection, Coord);
+void drawSelConv(const Selection, Coord);
+void drawSel(const Selection, const Offset, const float);
+
 // WolfenDoge.h
 Coord toView(const View, const Coordf, const float);
-bool lineIntersection(const Coordf, const Coordf, const Coordf, const Coordf, Coordf *);
-Offset wasdKeyStateOffset(void);
-Offset arrowKeyStateOffset(void);
-Offset dirKeyStateOffset(void);
-Offset wasdKeyPressedOffset(void);
-Offset arrowKeyPressedOffset(void);
-Offset dirKeyPressedOffset(void);
+bool inView(const View, const Coord);
+Direction viewBoundIntersect(Seg[4], const Coordf, const Coordf, Coordf *);
+bool limitViewBounds(const View, Coord *, Coord *);
 Ray castRayMin(const Coordf, const Coordf, Seg *, const bool, const float);
 Ray castRay(const Coordf, const Coordf, Seg *, const bool);
+void drawWall(const View, const Ray, const int, const int, const int, const float);
 void drawFp(const View, Seg *, const Player, const Length);
 void drawBv(const View, Seg *, const Player, const float, const Coordf);
-Player playerMoveMouse(Player, Seg *);
-Player playerMoveKeys(Player);
+Player playerMove(Player, Seg *);
 
 #endif /* end of include guard: WDDECLS_H */

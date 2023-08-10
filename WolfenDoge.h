@@ -194,12 +194,12 @@ void drawFp(const View view, Seg *map, const Player player, const Length wlen)
 
     const Coordf startingPos = cfAdd(player.pos, cfRotateDeg((const Coordf){.x=2048.0f,.y=-2048.0f}, player.ang));
     const float scanAng = degReduce(player.ang+90.0f);
-    const float hsec = (float)view.len.x/90;
+    const float hsec = (float)view.len.x/FOV_NUM_RAYS;
     const int ymid = view.pos.y+view.len.y/2;
-    for(int i = 0; i < 90; i++){
-        const Coordf farpos = cfAdd(startingPos, degMagToCf(scanAng, ((float)i/90.0f)*4096.0f));
+    for(int i = 0; i < FOV_NUM_RAYS; i++){
+        const Coordf farpos = cfAdd(startingPos, degMagToCf(scanAng, ((float)i/(float)FOV_NUM_RAYS)*4096.0f));
         const Ray ray = castRay(player.pos, farpos, map, true);
-        const float viewTan = (0.5-i/90.0f) / 0.5;
+        const float viewTan = (0.5-i/(float)FOV_NUM_RAYS) / 0.5;
         const int correctedDst = (int)(ray.dst/sqrtf(viewTan*viewTan+1.0f));
         const int xpos = view.pos.x+hsec/2+i*hsec;
         drawWall(view, ray, xpos, ymid, correctedDst, hsec);
@@ -265,7 +265,7 @@ void drawBv(const View view, Seg *map, const Player player, const float scale, c
 // moves the player
 Player playerMove(Player player, Seg *map)
 {
-    player.ang = degReduce(player.ang + (mouse.vec.x*2)/3);
+    player.ang = degReduce(player.ang + (float)(mouse.vec.x*2)/3.0f);
     player.ang = degReduce(player.ang + (keyState(SC_RIGHT) - keyState(SC_LEFT)));
     if(castRay(
         player.pos,

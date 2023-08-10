@@ -28,6 +28,7 @@ Seg* mapUnpack(SegPacked mapPacked)
         printf("copying seg %2u/%2u\n", i, mapPacked.len);
         Seg *seg = calloc(1, sizeof(Seg));
         memcpy(seg, &mapPacked.seg[i], sizeof(Seg));
+        seg->wall.texture = txtrQryLoad(map, seg->wall.path);
         seg->next = NULL;
         map = segAppend(map, seg);
     }
@@ -196,18 +197,36 @@ Texture* txtrQryLoad(Seg *map, char *path)
     return loadTexture(path);
 }
 
-// sets all textures to txtr if matching path
-// Seg* txtrApply(Seg *map, Texture *txtr, char *path)
-// {
-//     Seg *cur = map;
-//     while(cur){
-//         if(cur->type == S_WALL && cur->wall.path && !strcmp(cur->wall.path, path)){
-//             cur->wall.texture = txtr;
-//         }
-//         cur = cur->next;
-//     }
-//     return map;
-// }
+// sets seg's texture to NULL, checks to see if any other segments in map have
+// same texture, if none do, the texture is freed
+Seg* txtrCleanup(Seg *map, Seg *seg)
+{
+    if(!map || !seg || seg->type != S_WALL || !seg->wall.texture)
+        return map;
+    Texture *txtr = seg->wall.texture;
+    seg->wall.texture = NULL;
+    Seg *cur = map;
+    while(cur){
+        if(cur->type == S_WALL && cur->wall.texture == txtr)
+            return map;
+        cur = cur->next;
+    }
+    textureFree(txtr);
+    return map;
+}
+
+Seg* txtrApply(Seg *map, Texture *txtr, char *path)
+{
+    if(!map || !path)
+        return map;
+    Seg *cur = map;
+    while(cur){
+        if(cur->type == S_WALL && cur->wall.path[0] != '\0' && !strcmp(map->wall.path, path))
+            map->wall.texture = txtr;
+        cur = cur->next;
+    }
+    return map;
+}
 
 // creates a new segment with type S_WALL
 Seg* wallNew(const Color c, const Coordf a, const Coordf b)
@@ -371,7 +390,7 @@ Seg* mapDefault(void)
     map = segAppend(map, txtrNew(map, WHITE,
         (const Coordf){.x=250.0f, .y=500.0f},
         (const Coordf){.x=500.0f, .y=500.0f},
-        "./Assets/Bricks64x64.png"
+        "./Assets/Bricks.png"
     ));
     map = segAppend(map, doorNew(YELLOW,
         (const Coordf){.x=250.0f, .y=250.0f},
@@ -466,12 +485,6 @@ float editFloat(float f)
             f = 1.0f;
     }
     return f;
-}
-
-char* editPath(char *path)
-{
-
-    return path;
 }
 
 // returns true if ctrl + q or ctrl + w is pressed
@@ -630,7 +643,7 @@ Minfo mrUpdate(Minfo mr, Selection *sel, Seg **map, const Color c, const bool sn
 // sets cursor.x to 0 if cursor.y changed to a selection that only has a single option
 Selection selUpdateCursor(Selection sel)
 {
-    if(!sel.wall)
+    if(!sel.wall || textInputState())
         return sel;
     sel.cursor.y = wrap(sel.cursor.y + keyPressed(SC_DOWN) - keyPressed(SC_UP), 0, SegTypeNumFields[sel.wall->type]);
     if(!(
@@ -699,7 +712,6 @@ Seg* mapEdit(Seg *map, char *fileName)
     Minfo mr = {0};
     Selection sel = {.showInfo = true, .cursor = iC(0,3)};
     Color c = MAGENTA;
-
     while(1){
         const uint t = frameStart();
         if(checkEditorExit())
@@ -714,6 +726,10 @@ Seg* mapEdit(Seg *map, char *fileName)
         else if(sel.wall->type == S_WALL && sel.cursor.y == 4){
             if(keyPressed(SC_RETURN))
                 textInputStart(sel.wall->wall.path, 128, NULL);
+            if(textInputEnded()){
+                map = txtrCleanup(map, sel.wall);
+                sel.wall->wall.texture = txtrQryLoad(map, sel.wall->wall.path);
+            }
         }else if(sel.wall->type == S_WIND){
             if(sel.cursor.y == 5)
                 sel.wall->wind.height = editFloat(sel.wall->wind.height);
