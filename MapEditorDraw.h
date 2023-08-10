@@ -1,6 +1,7 @@
 #ifndef MAPEDITORDRAS_H
 #define MAPEDITORDRAS_H
 
+// draws X and Y axis lines if visible
 void drawOriginLines(const Offset off, const Length wlen)
 {
     setColor(WHITE);
@@ -10,6 +11,7 @@ void drawOriginLines(const Offset off, const Length wlen)
         drawVLine(off.x, 0, wlen.y);
 }
 
+// if snap is enabled, draws grid lines with snaplen distance between each line
 void drawGrid(const Offset off, const Length wlen, const float scale, const bool snap, const float snaplen)
 {
     if(!snap)
@@ -25,6 +27,7 @@ void drawGrid(const Offset off, const Length wlen, const float scale, const bool
     }
 }
 
+// draws all map segments in the editor
 void drawEditorMap(Seg *map, const Selection sel, const Offset off, const float scale)
 {
     Seg *cur = map;
@@ -47,6 +50,7 @@ void drawEditorMap(Seg *map, const Selection sel, const Offset off, const float 
     }
 }
 
+// draws segment type text returns position of beginning of next line
 Coord drawSegType(const Coord pos, const SegType type, const bool selected)
 {
     char buf[32] = {0};
@@ -59,6 +63,7 @@ Coord drawSegType(const Coord pos, const SegType type, const bool selected)
     return iC(0, pos.y+len.y);
 }
 
+// draws color text returns position of beginning of next line
 Coord drawColor(Coord pos, const uint tscale, Color c, const bool selected, const int ci)
 {
     setColor(BLACK);
@@ -78,6 +83,7 @@ Coord drawColor(Coord pos, const uint tscale, Color c, const bool selected, cons
     return iC(0, pos.y+tscale);
 }
 
+// draws label and Coordf text returns position of beginning of next line
 Coord drawCoordf(const Coord pos, const char *label, const Coordf cf, const bool selected)
 {
     char buf[64] = {0};
@@ -90,6 +96,7 @@ Coord drawCoordf(const Coord pos, const char *label, const Coordf cf, const bool
     return iC(0, pos.y+len.y);
 }
 
+// draws label and float text returns position of beginning of next line
 Coord drawf(const Coord pos, const char *label, const float f, const bool selected)
 {
     char buf[32] = {0};
@@ -102,6 +109,7 @@ Coord drawf(const Coord pos, const char *label, const float f, const bool select
     return iC(0, pos.y+len.y);
 }
 
+// draws str text returns position of beginning of next line
 Coord drawstr(const Coord pos, const char *str, const bool selected)
 {
     setColor(BLACK);
@@ -112,6 +120,7 @@ Coord drawstr(const Coord pos, const char *str, const bool selected)
     return iC(0, pos.y+len.y);
 }
 
+// draws uint text returns position of beginning of next line
 Coord drawu(const Coord pos, const char *label, const uint u, const bool selected)
 {
     char buf[16] = {0};
@@ -124,6 +133,7 @@ Coord drawu(const Coord pos, const char *label, const uint u, const bool selecte
     return iC(0, pos.y+len.y);
 }
 
+// draws fields common to all segments returns position of beginning of next line
 Coord drawSelCommon(const Selection sel)
 {
     if(!sel.wall)
@@ -134,6 +144,7 @@ Coord drawSelCommon(const Selection sel)
     return drawColor(pos, sel.tscale, sel.wall->color, sel.cursor.y == 3, sel.cursor.x);
 }
 
+// draws window segment fields returns position of beginning of next line
 void drawSelWind(const Selection sel, Coord pos)
 {
     if(!sel.wall || sel.wall->type != S_WIND)
@@ -143,6 +154,7 @@ void drawSelWind(const Selection sel, Coord pos)
     drawf(pos, "top", sel.wall->wind.top, sel.cursor.y == 6);
 }
 
+// draws door segment fields returns position of beginning of next line
 void drawSelDoor(const Selection sel, Coord pos)
 {
     if(!sel.wall || sel.wall->type != S_DOOR)
@@ -157,6 +169,7 @@ void drawSelDoor(const Selection sel, Coord pos)
     pos = drawstr(pos, buf, sel.cursor.y == 8);
 }
 
+// draws trigger segment fields returns position of beginning of next line
 void drawSelTrig(const Selection sel, Coord pos)
 {
     if(!sel.wall || sel.wall->type != S_TRIG)
@@ -164,6 +177,7 @@ void drawSelTrig(const Selection sel, Coord pos)
     pos = drawu(pos, "id", sel.wall->trig.id, sel.cursor.y == 4);
 }
 
+// highlights selected segment
 void drawSel(const Selection sel, const Offset off, const float scale)
 {
     if(sel.pos)

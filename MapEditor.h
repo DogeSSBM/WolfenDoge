@@ -525,36 +525,6 @@ Minfo mrUpdate(Minfo mr, Selection *sel, Seg **map, const Color c, const bool sn
     return mr;
 }
 
-// WIP
-// if coords is not NULL it is filled with pointers to the coords in the segment.
-// returns number of cords in segment.
-// uint segGetCoords(Seg *seg, Coordf **coords)
-// {
-//     if(!seg)
-//
-// }
-
-// cycles sel.pos to the next Coordf of the segment (alphabetical order). wraps after last Coordf
-// Selection selNext(Selection sel)
-// {
-//     if(!sel.wall || !sel.pos || !keyPressed(SC_R))
-//         return sel;
-//     Coordf *segCoords[4] = {0};
-//     sel.pos = sel.pos == &(sel.wall->a) ? &(sel.wall->b) : &(sel.wall->a);
-//     return sel;
-// }
-
-// WIP
-// Selection selCheckNext(const Selection sel, const Minfo ml, Seg *map)
-// {
-//     if(!keyPressed(SC_N) || !sel.wall)
-//         return sel;
-//
-//     if(sel.wall->type == )
-//     next.wall = next.wall->next;
-//     next.wall = posNearest(next.wall, *sel->pos, &(sel->pos));
-// }
-
 // updates selection cursor.y if up or down arrow keys are pressed
 // sets cursor.x to 0 if cursor.y changed to a selection that only has a single option
 Selection selUpdateCursor(Selection sel)
