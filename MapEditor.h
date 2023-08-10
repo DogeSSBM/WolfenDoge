@@ -590,7 +590,11 @@ Selection selUpdateCursor(Selection sel)
     if(!sel.wall)
         return sel;
     sel.cursor.y = wrap(sel.cursor.y + keyPressed(SC_DOWN) - keyPressed(SC_UP), 0, SegTypeNumFields[sel.wall->type]);
-    if(!(sel.cursor.y == 3 || (sel.wall->type == S_WIND && sel.cursor.y == 4)))
+    if(!(
+        sel.cursor.y == 3 ||
+        (sel.wall->type == S_WIND && sel.cursor.y == 4) ||
+        (sel.wall->type == S_DOOR && sel.cursor.y == 8)
+    ))
         sel.cursor.x = 0;
     return sel;
 }
