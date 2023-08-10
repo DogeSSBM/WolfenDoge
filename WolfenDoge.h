@@ -1,16 +1,19 @@
 #ifndef WOLFENDOGE_H
 #define WOLFENDOGE_H
 
+// scales and offsets pos into view
 Coord toView(const View view, const Coordf pos, const float scale)
 {
     return coordAdd(view.pos, iC(pos.x*scale, pos.y*scale));
 }
 
+// returns true if pos is in view
 bool inView(const View view, const Coord pos)
 {
     return inBound(pos.x, view.pos.x, view.pos.x+view.len.x) && inBound(pos.y, view.pos.y, view.pos.y+view.len.y);
 }
 
+// returns the direction of the boundary of the segment that is intersected by the line segment ab
 Direction viewBoundIntersect(Seg bounds[4], const Coordf a, const Coordf b, Coordf *at)
 {
     for(Direction d = 0; d < 4; d++){
@@ -20,6 +23,7 @@ Direction viewBoundIntersect(Seg bounds[4], const Coordf a, const Coordf b, Coor
     return 4;
 }
 
+// if line segment ab goes out of bounds of view, sets ab to the point where the boundary is intersected
 bool limitViewBounds(const View view, Coord *a, Coord *b)
 {
     const Coordf fa = CCf(*a);
@@ -66,6 +70,7 @@ bool limitViewBounds(const View view, Coord *a, Coord *b)
     return true;
 }
 
+// casts ray from origin to distantPoint and returns the nearest intersection that is > min distance away
 Ray castRayMin(const Coordf origin, const Coordf distantPoint, Seg *map, const bool solidOnly, const float min)
 {
     Ray ray = {
@@ -95,11 +100,13 @@ Ray castRayMin(const Coordf origin, const Coordf distantPoint, Seg *map, const b
     return ray;
 }
 
+// casts ray from origin to distantPoint and returns the nearest intersection
 Ray castRay(const Coordf origin, const Coordf distantPoint, Seg *map, const bool solidOnly)
 {
     return castRayMin(origin, distantPoint, map, solidOnly, -1.0f);
 }
 
+// draws vertical slice of wall based on ray information
 void drawWall(const View view, const Ray ray, const int xpos, const int ymid, const int dst, const float hsec)
 {
     const int height = (view.len.y*120) / fmax(dst, .01f);
@@ -154,6 +161,7 @@ void drawWall(const View view, const Ray ray, const int xpos, const int ymid, co
     );
 }
 
+// draw first person view
 void drawFp(const View view, Seg *map, const Player player, const Length wlen)
 {
     setColor(GREY2);
@@ -193,6 +201,7 @@ void drawFp(const View view, Seg *map, const Player player, const Length wlen)
     freeTexture(texture);
 }
 
+// draw birds eye view
 void drawBv(const View view, Seg *map, const Player player, const float scale, const Coordf off)
 {
     setColor(BLACK);
@@ -230,6 +239,7 @@ void drawBv(const View view, Seg *map, const Player player, const float scale, c
     fillCircleCoord(ppos, 2);
 }
 
+// moves the player
 Player playerMove(Player player, Seg *map)
 {
     player.ang = degReduce(player.ang + (mouse.vec.x*2)/3);
