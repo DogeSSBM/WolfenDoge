@@ -140,6 +140,8 @@ void mapUpdateIdState(Seg *map, const uint id, const bool state)
     }
 }
 
+// checks to see if the state of any triggers have changed and if so, update the map segments with
+// corrosponding ids to reflect the new state
 void mapUpdateTriggers(const Coordf oldPos, const Coordf newPos, Seg *map)
 {
     Seg *cur = map;
