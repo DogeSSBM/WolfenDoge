@@ -15,7 +15,7 @@ typedef struct Player{
 typedef enum{S_WALL, S_WIND, S_TRIG, S_DOOR, S_CONV, S_N}SegType;
 char *SegTypeStr[S_N] = {"S_WALL", "S_WIND", "S_TRIG", "S_DOOR", "S_CONV"};
 
-const uint SegTypeNumFields[S_N] = {4, 7, 5, 9, 6};
+const uint SegTypeNumFields[S_N] = {5, 7, 5, 9, 6};
 
 typedef struct Seg{
     SegType type;
@@ -24,7 +24,7 @@ typedef struct Seg{
     Color color;
     union{
         struct{
-            char *path;
+            char path[128];
             Texture *texture;
         }wall;
         struct{

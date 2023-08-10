@@ -36,6 +36,8 @@ typedef int64_t             i64;
 #define U32MAX              UINT32_MAX
 #define U64MAX              UINT64_MAX
 
+typedef bool (*boolFunc)(void);
+
 typedef SDL_Event           Event;
 typedef SDL_Rect            Rect;
 typedef SDL_Color           Color;

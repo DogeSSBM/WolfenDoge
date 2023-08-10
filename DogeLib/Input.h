@@ -2,9 +2,63 @@
 #define DOGELIB_INPUT_H
 
 struct{
+    bool textInputState;
+    bool textInputChange;
     u8 key[SDL_NUM_SCANCODES];
     u8 prev[SDL_NUM_SCANCODES];
+    char *textInput;
+    st textInputSize;
+    st textInputPos;
+    boolFunc textInputDone;
 }keys = {0};
+
+bool textInputState(void)
+{
+    return keys.textInputState;
+}
+
+void textInputAppendText(char *text)
+{
+    const st maxlen = keys.textInputSize - keys.textInputPos;
+    const st textlen = strlen(text);
+    const st appendlen = imin(maxlen, textlen);
+    if(appendlen < textlen)
+        printf("Discarding text input: \"%s\"\n", text+appendlen);
+    if(appendlen <= 0)
+        return;
+    memcpy(keys.textInput+keys.textInputPos, text, appendlen);
+    keys.textInputPos += appendlen;
+}
+
+void textInputStop(void)
+{
+    if(!keys.textInputState)
+        return;
+    keys.textInputState = false;
+    keys.textInputChange = true;
+    keys.textInput = NULL;
+    keys.textInputSize = 0;
+    keys.textInputPos = 0;
+}
+
+bool defaultTextInputDone(void)
+{
+    return keyState(SC_ESCAPE);
+}
+
+void textInputStart(char *buf, const st bufsize, boolFunc textInputDone)
+{
+    if(!keys.textInputState)
+        keys.textInputChange = true;
+    keys.textInputState = true;
+    keys.textInput = buf;
+    keys.textInputSize = bufsize;
+    keys.textInputPos = strlen(buf);
+    if(textInputDone == NULL)
+        keys.textInputDone = defaultTextInputDone;
+    else
+        keys.textInputDone = textInputDone;
+}
 
 bool keyState(const Scancode key)
 {
@@ -13,7 +67,7 @@ bool keyState(const Scancode key)
 
 bool keyPressed(const Scancode key)
 {
-    return keys.key[key] && !keys.prev[key];
+    return !keys.textInputState && (keys.key[key] && !keys.prev[key]);
 }
 
 bool keyHeld(const Scancode key)
@@ -29,6 +83,13 @@ bool keyChanged(const Scancode key)
 bool keyReleased(const Scancode key)
 {
     return !keys.key[key] && keys.prev[key];
+}
+
+bool isTextKey(const char *keyName)
+{
+    if(strlen(keyName) != 1)
+        return false;
+    return keyName[0] >= ' ' && keyName[0] <= '~';
 }
 
 struct{

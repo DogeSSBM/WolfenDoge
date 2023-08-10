@@ -9,6 +9,14 @@ void events(const uint endOfFrame)
     bool e = false;
     gfx.winFlags = SDL_GetWindowFlags(gfx.window);
     gfx.prvLen = gfx.winLen;
+    if(keys.textInputChange){
+        printf("textInputState changed to: %s\n", keys.textInputState?"true":"false");
+        keys.textInputChange = false;
+        if(keys.textInputState)
+            SDL_StartTextInput();
+        else
+            SDL_StopTextInput();
+    }
     do{
         Event event;
         if(ticksLeft > 0)
@@ -21,6 +29,18 @@ void events(const uint endOfFrame)
             case SDL_QUIT:
                 printf("Quitting now!\n");
                 exit(0);
+                break;
+            case SDL_KEYDOWN:
+                if(keys.textInputState && event.key.keysym.scancode == SC_BACKSPACE){
+                    if(keys.textInputPos > 0){
+                        keys.textInputPos--;
+                        keys.textInput[keys.textInputPos] = '\0';
+                    }
+                }
+                break;
+            case SDL_TEXTINPUT:
+                assertExpr(keys.textInputState);
+                textInputAppendText(event.text.text);
                 break;
             case SDL_MOUSEWHEEL:
                 mouse.wheel.x += event.wheel.x;
@@ -40,6 +60,11 @@ void events(const uint endOfFrame)
     mouse.prev.vec = mouse.vec;
     mouse.state = SDL_GetMouseState(&mouse.pos.x, &mouse.pos.y);
     SDL_GetRelativeMouseState(&mouse.vec.x, &mouse.vec.y);
+
+    if(keys.textInputState){
+        if(keys.textInputDone())
+            textInputStop();
+    }
 }
 
 #endif /* end of include guard: DOGELIB_EVENTS_H */

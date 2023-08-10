@@ -4,6 +4,7 @@ int main(int argc, char **argv)
 {
     assertExpr(argc <= 2);
     init();
+    SDL_StopTextInput();
     gfx.outlined = false;
     winSetPosCoord(coordAddi(coordDivi(getWinDisplayLen(), 2), -400));
     Seg *map = NULL;

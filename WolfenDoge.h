@@ -125,7 +125,7 @@ void drawWall(const View view, const Ray ray, const int xpos, const int ymid, co
         );
         return;
     }
-    if(ray.wall->type == S_WALL && ray.wall->wall.path){
+    if(ray.wall->type == S_WALL && ray.wall->wall.path[0] != '\0'){
         const Length txtrlen = textureLen(ray.wall->wall.texture);
         const float walllen = cfDist(ray.wall->a, ray.wall->b);
         const float poslen = cfDist(ray.wall->a, ray.pos);

@@ -144,7 +144,16 @@ Coord drawSelCommon(const Selection sel)
     return drawColor(pos, sel.tscale, sel.wall->color, sel.cursor.y == 3, sel.cursor.x);
 }
 
-// draws window segment fields returns position of beginning of next line
+// draws wall segment fields returns position of beginning of next line
+void drawSelWall(const Selection sel, Coord pos)
+{
+    if(!sel.wall || sel.wall->type != S_WALL)
+        return;
+    // pos = drawu(pos, "asdf ", 10, sel.cursor.y == 4);
+    pos = drawstr(pos, (sel.wall->wall.path[0] == '\0') ? "       " : sel.wall->wall.path, sel.cursor.y == 4);
+}
+
+// draws window segment fields
 void drawSelWind(const Selection sel, Coord pos)
 {
     if(!sel.wall || sel.wall->type != S_WIND)
@@ -154,7 +163,7 @@ void drawSelWind(const Selection sel, Coord pos)
     drawf(pos, "top", sel.wall->wind.top, sel.cursor.y == 6);
 }
 
-// draws door segment fields returns position of beginning of next line
+// draws door segment fields
 void drawSelDoor(const Selection sel, Coord pos)
 {
     if(!sel.wall || sel.wall->type != S_DOOR)
@@ -169,7 +178,7 @@ void drawSelDoor(const Selection sel, Coord pos)
     pos = drawstr(pos, buf, sel.cursor.y == 8);
 }
 
-// draws trigger segment fields returns position of beginning of next line
+// draws trigger segment fields
 void drawSelTrig(const Selection sel, Coord pos)
 {
     if(!sel.wall || sel.wall->type != S_TRIG)
@@ -177,7 +186,7 @@ void drawSelTrig(const Selection sel, Coord pos)
     pos = drawu(pos, "id", sel.wall->trig.id, sel.cursor.y == 4);
 }
 
-// draws converter segment fields returns position of beginning of next line
+// draws converter segment fields
 void drawSelConv(const Selection sel, Coord pos)
 {
     if(!sel.wall || sel.wall->type != S_CONV)
@@ -206,6 +215,8 @@ void drawSel(const Selection sel, const Offset off, const float scale)
         drawCircleCoord(mapToScreen(off, scale, sel.wall->trig.d), 4);
     }
     Coord pos = drawSelCommon(sel);
+    if(sel.wall->type == S_WALL)
+        drawSelWall(sel, pos);
     if(sel.wall->type == S_WIND)
         drawSelWind(sel, pos);
     if(sel.wall->type == S_DOOR)

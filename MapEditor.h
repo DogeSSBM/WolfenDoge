@@ -196,6 +196,19 @@ Texture* txtrQryLoad(Seg *map, char *path)
     return loadTexture(path);
 }
 
+// sets all textures to txtr if matching path
+// Seg* txtrApply(Seg *map, Texture *txtr, char *path)
+// {
+//     Seg *cur = map;
+//     while(cur){
+//         if(cur->type == S_WALL && cur->wall.path && !strcmp(cur->wall.path, path)){
+//             cur->wall.texture = txtr;
+//         }
+//         cur = cur->next;
+//     }
+//     return map;
+// }
+
 // creates a new segment with type S_WALL
 Seg* wallNew(const Color c, const Coordf a, const Coordf b)
 {
@@ -215,7 +228,9 @@ Seg* txtrNew(Seg *map, const Color c, const Coordf a, const Coordf b, char *path
     w->color = c;
     w->a = a;
     w->b = b;
-    w->wall.path = path;
+    const st len = strlen(path);
+    assertExpr(len < 128);
+    memcpy(w->wall.path, path, len);
     w->wall.texture = txtrQryLoad(map, path);
     return w;
 }
@@ -453,6 +468,12 @@ float editFloat(float f)
     return f;
 }
 
+char* editPath(char *path)
+{
+
+    return path;
+}
+
 // returns true if ctrl + q or ctrl + w is pressed
 bool checkEditorExit(void)
 {
@@ -633,7 +654,7 @@ Selection selUpdateNext(Selection sel, Seg *map)
 // if a segment is selected, deletes it from map segment list and updates *sel
 Seg* updateDel(Seg *map, Selection *sel)
 {
-    if((keyPressed(SC_DELETE) || keyPressed(SC_BACKSPACE)) && sel->wall){
+    if(keyPressed(SC_DELETE) && sel->wall){
         map = segDelete(map, sel->wall);
         sel->wall = NULL;
         sel->pos = NULL;
@@ -690,7 +711,10 @@ Seg* mapEdit(Seg *map, char *fileName)
             sel.newSegType = wrap(sel.newSegType + keyPressed(SC_RIGHT) - keyPressed(SC_LEFT), 0, S_N);
         else if((sel.cursor.y == 3 || (sel.wall->type == S_WIND && sel.cursor.y == 4)))
             sel.cursor = editColor(sel.cursor, sel.cursor.y == 3 ? &sel.wall->color : &sel.wall->wind.topColor);
-        else if(sel.wall->type == S_WIND){
+        else if(sel.wall->type == S_WALL && sel.cursor.y == 4){
+            if(keyPressed(SC_RETURN))
+                textInputStart(sel.wall->wall.path, 128, NULL);
+        }else if(sel.wall->type == S_WIND){
             if(sel.cursor.y == 5)
                 sel.wall->wind.height = editFloat(sel.wall->wind.height);
             else if(sel.cursor.y == 6)
