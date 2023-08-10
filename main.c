@@ -7,7 +7,7 @@ int main(int argc, char **argv)
     gfx.outlined = false;
     winSetPosCoord(coordAddi(coordDivi(getWinDisplayLen(), 2), -400));
     Seg *map = NULL;
-    char mapFilePath[128] = "map.bork";
+    char mapFilePath[128] = "./Maps/map.bork";
     if(argc < 2){
         const uint mapNum = newMapFileNum();
         if(mapNum != 0)
@@ -15,7 +15,8 @@ int main(int argc, char **argv)
         map = mapDefault();
     }else{
         assertExpr(strlen(argv[1]) < 128);
-        memcpy(mapFilePath, argv[1], strlen(argv[1]));
+        sprintf(mapFilePath, "./Maps/%s", argv[1]);
+        printf("mapFilePath: \"%s\"\n", mapFilePath);
         map = mapLoad(mapFilePath);
     }
 

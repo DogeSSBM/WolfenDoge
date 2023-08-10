@@ -13,8 +13,8 @@ void mapUpdateTriggers(const Coordf, const Coordf, Seg *);
 void mapUpdateDynamics(Seg *);
 
 // MapEditor.h
-WallPacked* mapPack(Seg *);
-Seg* mapUnpack(WallPacked *, const uint);
+SegPacked mapPack(Seg *);
+Seg* mapUnpack(SegPacked);
 Coord resizeTransform(const Length, const Length, const Coord);
 Coordf resizeTransformf(const Lengthf, const Lengthf, const Coordf);
 Seg* posNearest(Seg *, const Coordf, Coordf **);

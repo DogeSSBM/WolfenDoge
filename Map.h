@@ -1,27 +1,30 @@
 #ifndef MAP_H
 #define MAP_H
 
-Seg* mapLoad(char *fileName)
+Seg* mapLoad(char *filePath)
 {
     File *file = NULL;
-    assertExpr(fileName);
-    if((file = fopen(fileName, "rb")) == NULL){
-        printf("Couldn't open file \"%s\"\n", fileName);
+    assertExpr(filePath);
+    if((file = fopen(filePath, "rb")) == NULL){
+        printf("Couldn't open file \"%s\"\n", filePath);
         return NULL;
     }
-    uint len = 0;
-    fread(&len, sizeof(uint), 1, file);
-    if(feof(file) || len == 0){
-        printf("Error reading len of map in file \"%s\"\n", fileName);
+    SegPacked packed = {0};
+    fread(&packed.len, sizeof(uint), 1, file);
+    printf("map file len: %u\n", packed.len);
+    if(feof(file) || packed.len == 0){
+        printf("Error reading len of map in file \"%s\"\n", filePath);
         fclose(file);
         return NULL;
     }
-    WallPacked *mapPacked = calloc(len, sizeof(WallPacked));
-    fread(mapPacked, sizeof(WallPacked), len, file);
+    packed.seg = calloc(packed.len, sizeof(Seg));
+    fread(packed.seg, sizeof(Seg), packed.len, file);
     if(fgetc(file) != EOF || !feof(file))
-        printf("Not at end of file after reading expected len (%u)\n", len);
-    Seg* map = mapUnpack(mapPacked, len);
-    free(mapPacked);
+        printf("Not at end of file after reading expected len (%u)\n", packed.len);
+    printf("finished reading packed map\n");
+    Seg* map = mapUnpack(packed);
+    free(packed.seg);
+    printf("free'd packed map\n");
     return map;
 }
 

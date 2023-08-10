@@ -12,10 +12,26 @@ typedef struct Player{
     float speed;
 }Player;
 
-typedef enum{S_WALL, S_WIND, S_TRIG, S_DOOR, S_N}SegType;
-char *SegTypeStr[S_N] = {"S_WALL", "S_WIND", "S_TRIG", "S_DOOR"};
+typedef enum{F_COORDF, F_COLOR, F_FLOAT, F_DIRECTION, F_UINT, F_BOOL, F_N}FieldType;
+char *FieldTypeStr[F_N] = {"F_COORDF", "F_COLOR", "F_FLOAT", "F_DIRECTION", "F_UINT", "F_BOOL"};
+
+typedef struct{
+    FieldType type;
+    union{
+        Coordf *cf;
+        Color *color;
+        float *f;
+        Direction *dir;
+        uint *u;
+        bool *b;
+    };
+}Field;
+
+typedef enum{S_WALL, S_WIND, S_TRIG, S_DOOR, S_CONV, S_N}SegType;
+char *SegTypeStr[S_N] = {"S_WALL", "S_WIND", "S_TRIG", "S_DOOR", "S_CONV"};
 
 const uint SegTypeNumFields[S_N] = {4, 7, 6, 9};
+
 typedef struct Seg{
     SegType type;
     Coordf a;
@@ -39,21 +55,31 @@ typedef struct Seg{
             Coordf c;
             Coordf d;
         }trig;
+        struct{
+            bool bidirectional;
+            uint idA;
+            uint idB;
+        }conv;
     };
     struct Seg *next;
 }Seg;
+
+// typedef struct{
+//     Seg *seg;
+//     uint numfield;
+//     Field *field;
+// }MetaSeg;
+
+typedef struct{
+    Seg *seg;
+    uint len;
+}SegPacked;
 
 typedef struct{
     Seg *wall;
     float dst;
     Coordf pos;
 }Ray;
-
-typedef struct{
-    Color c;
-    Coordf a;
-    Coordf b;
-}WallPacked;
 
 typedef struct{
     Coord spos;

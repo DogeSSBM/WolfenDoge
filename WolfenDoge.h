@@ -233,6 +233,7 @@ void drawBv(const View view, Seg *map, const Player player, const float scale, c
 Player playerMove(Player player, Seg *map)
 {
     player.ang = degReduce(player.ang + (mouse.vec.x*2)/3);
+    player.ang = degReduce(player.ang + (keyState(SC_RIGHT) - keyState(SC_LEFT)));
     if(castRay(
         player.pos,
         cfAdd(player.pos, cfRotateDeg(cfMulf(CCf(wasdKeyStateOffset()), 10.0f), player.ang+90.0f)),

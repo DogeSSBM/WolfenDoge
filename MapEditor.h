@@ -2,29 +2,35 @@
 #define MAPEDITOR_H
 
 // Serializes the list of segments into an array
-WallPacked* mapPack(Seg *map)
+SegPacked mapPack(Seg *map)
 {
     const uint len = segListLen(map);
     if(len == 0)
-        return NULL;
-    WallPacked *mapPacked = calloc(len, sizeof(WallPacked));
+        return (SegPacked){0};
+    SegPacked mapPacked = {
+        .len = len,
+        .seg = calloc(len, sizeof(Seg))
+    };
     for(uint i = 0; i < len; i++){
-        mapPacked[i].c = map->color;
-        mapPacked[i].a = map->a;
-        mapPacked[i].b = map->b;
+        mapPacked.seg[i] = *map;
         map = map->next;
     }
     return mapPacked;
 }
 
 // De-serializes the map segment array into a list
-Seg* mapUnpack(WallPacked *mapPacked, const uint len)
+Seg* mapUnpack(SegPacked mapPacked)
 {
-    if(len == 0)
+    if(mapPacked.len == 0 || !mapPacked.seg)
         return NULL;
     Seg *map = NULL;
-    for(uint i = 0; i < len; i++)
-        map = segAppend(map, wallNew(mapPacked[i].c, mapPacked[i].a, mapPacked[i].b));
+    for(uint i = 0; i < mapPacked.len; i++){
+        printf("copying seg %2u/%2u\n", i, mapPacked.len);
+        Seg *seg = calloc(1, sizeof(Seg));
+        memcpy(seg, &mapPacked.seg[i], sizeof(Seg));
+        seg->next = NULL;
+        map = segAppend(map, seg);
+    }
     return map;
 }
 
@@ -110,12 +116,12 @@ void mapSave(Seg *map, char *path)
     assertExpr(path);
     File *file = NULL;
     file = fopen(path, "wb");
-    const uint len = segListLen(map);
-    WallPacked *mapPacked = mapPack(map);
-    fwrite(&len, sizeof(uint), 1, file);
-    fwrite(mapPacked, sizeof(WallPacked), len, file);
+    SegPacked mapPacked = mapPack(map);
+    printf("Writing map of length: %u to \"%s\"\n", mapPacked.len, path);
+    fwrite(&mapPacked.len, sizeof(uint), 1, file);
+    fwrite(mapPacked.seg, sizeof(Seg), mapPacked.len, file);
     fclose(file);
-    free(mapPacked);
+    free(mapPacked.seg);
 }
 
 // creates a new segment with type S_WALL
@@ -161,6 +167,20 @@ Seg* trigNew(const Color color, const Coordf a, const Coordf b, const uint id, c
     w->trig.id = id;
     w->trig.c = c;
     w->trig.d = d;
+    return w;
+}
+
+// creates a new segment with type S_CONV
+Seg* convNew(const Color c, const Coordf a, const Coordf b, const bool bidirectional, const uint idA, const uint idB)
+{
+    Seg *w = calloc(1, sizeof(Seg));
+    w->type = S_CONV;
+    w->color = c;
+    w->a = a;
+    w->b = b;
+    w->conv.bidirectional = bidirectional;
+    w->conv.idA = idA;
+    w->conv.idB = idB;
     return w;
 }
 
@@ -477,6 +497,9 @@ Minfo mrUpdate(Minfo mr, Selection *sel, Seg **map, const Color c, const bool sn
                 break;
             case S_TRIG:
                 newSeg = trigNew(c, a, b, 0, cfAddf(a, 100.0f), cfAddf(b, 100.0f));
+                break;
+            case S_CONV:
+                newSeg = convNew(c, a, b, false, 0, 0);
                 break;
             default:
                 panic("uh oh");
