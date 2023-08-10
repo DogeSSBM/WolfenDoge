@@ -45,11 +45,8 @@ int main(int argc, char **argv)
 
         const Coordf oldPos = player.pos;
         player = playerMove(player, map);
-        if(!cfSame(oldPos, player.pos)){
+        if(!cfSame(oldPos, player.pos))
             map = mapApplyUpdates(map, mapQueueUpdates(oldPos, player.pos, map));
-        }
-        // if(!cfSame(oldPos, player.pos))
-            // mapUpdateTriggers(oldPos, player.pos, map);
         mapUpdateDynamics(map);
 
         drawFp(firstView, map, player, wlen);
