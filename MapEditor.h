@@ -290,6 +290,13 @@ Seg* mapDefault(void)
         (const Coordf){.x=250.0f, .y=250.0f},
         (const Coordf){.x=500.0f, .y=250.0f}
     ));
+    map = segAppend(map, trigNew(YELLOW,
+        (const Coordf){.x=250.0f, .y=250.0f},
+        (const Coordf){.x=500.0f, .y=250.0f},
+        0,
+        (const Coordf){.x=250.0f, .y=500.0f},
+        (const Coordf){.x=500.0f, .y=500.0f}
+    ));
     return map;
 }
 

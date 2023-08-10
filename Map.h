@@ -140,7 +140,6 @@ void mapUpdateIdState(Seg *map, const uint id, const bool state)
     }
 }
 
-
 void mapUpdateTriggers(const Coordf oldPos, const Coordf newPos, Seg *map)
 {
     Seg *cur = map;
