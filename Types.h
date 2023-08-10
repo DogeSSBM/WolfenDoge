@@ -12,21 +12,6 @@ typedef struct Player{
     float speed;
 }Player;
 
-typedef enum{F_COORDF, F_COLOR, F_FLOAT, F_DIRECTION, F_UINT, F_BOOL, F_N}FieldType;
-char *FieldTypeStr[F_N] = {"F_COORDF", "F_COLOR", "F_FLOAT", "F_DIRECTION", "F_UINT", "F_BOOL"};
-
-typedef struct{
-    FieldType type;
-    union{
-        Coordf *cf;
-        Color *color;
-        float *f;
-        Direction *dir;
-        uint *u;
-        bool *b;
-    };
-}Field;
-
 typedef enum{S_WALL, S_WIND, S_TRIG, S_DOOR, S_CONV, S_N}SegType;
 char *SegTypeStr[S_N] = {"S_WALL", "S_WIND", "S_TRIG", "S_DOOR", "S_CONV"};
 
@@ -63,12 +48,6 @@ typedef struct Seg{
     };
     struct Seg *next;
 }Seg;
-
-// typedef struct{
-//     Seg *seg;
-//     uint numfield;
-//     Field *field;
-// }MetaSeg;
 
 typedef struct{
     Seg *seg;
