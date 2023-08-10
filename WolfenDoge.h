@@ -79,7 +79,7 @@ Ray castRayMin(const Coordf origin, const Coordf distantPoint, Seg *map, const b
         .pos = distantPoint
     };
     while(map){
-        if(map->type == S_TRIG || (solidOnly && (map->type == S_WIND || (map->type == S_DOOR && map->door.pos < 1.0f)))){
+        if(map->type == S_CONV || map->type == S_TRIG || (solidOnly && (map->type == S_WIND || (map->type == S_DOOR && map->door.pos < 1.0f)))){
             map = map->next;
             continue;
         }

@@ -177,6 +177,15 @@ void drawSelTrig(const Selection sel, Coord pos)
     pos = drawu(pos, "id", sel.wall->trig.id, sel.cursor.y == 4);
 }
 
+// draws converter segment fields returns position of beginning of next line
+void drawSelConv(const Selection sel, Coord pos)
+{
+    if(!sel.wall || sel.wall->type != S_CONV)
+        return;
+    pos = drawu(pos, "idA", sel.wall->conv.idA, sel.cursor.y == 4);
+    pos = drawu(pos, "idB", sel.wall->conv.idB, sel.cursor.y == 5);
+}
+
 // highlights selected segment
 void drawSel(const Selection sel, const Offset off, const float scale)
 {
@@ -203,6 +212,8 @@ void drawSel(const Selection sel, const Offset off, const float scale)
         drawSelDoor(sel, pos);
     if(sel.wall->type == S_TRIG)
         drawSelTrig(sel, pos);
+    if(sel.wall->type == S_CONV)
+        drawSelConv(sel, pos);
 }
 
 #endif /* end of include guard: MAPEDITORDRAS_H */

@@ -197,6 +197,15 @@ Update* mapQueueUpdates(const Coordf oldPos, const Coordf newPos, Seg *map)
         }
         cur = cur->next;
     }
+    cur = map;
+    while(cur){
+        if(cur->type == S_CONV){
+            Update *src = upQueryId(up, cur->conv.idA);
+            if(src)
+                up = upUpdate(up, cur->conv.idB, src->state);
+        }
+        cur = cur->next;
+    }
     return up;
 }
 

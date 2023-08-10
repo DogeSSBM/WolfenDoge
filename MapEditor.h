@@ -171,14 +171,13 @@ Seg* trigNew(const Color color, const Coordf a, const Coordf b, const uint id, c
 }
 
 // creates a new segment with type S_CONV
-Seg* convNew(const Color c, const Coordf a, const Coordf b, const bool bidirectional, const uint idA, const uint idB)
+Seg* convNew(const Color c, const Coordf a, const Coordf b, const uint idA, const uint idB)
 {
     Seg *w = calloc(1, sizeof(Seg));
     w->type = S_CONV;
     w->color = c;
     w->a = a;
     w->b = b;
-    w->conv.bidirectional = bidirectional;
     w->conv.idA = idA;
     w->conv.idB = idB;
     return w;
@@ -501,7 +500,7 @@ Minfo mrUpdate(Minfo mr, Selection *sel, Seg **map, const Color c, const bool sn
                 newSeg = trigNew(c, a, b, 0, cfAddf(a, 100.0f), cfAddf(b, 100.0f));
                 break;
             case S_CONV:
-                newSeg = convNew(c, a, b, false, 0, 0);
+                newSeg = convNew(c, a, b, 0, 0);
                 break;
             default:
                 panic("uh oh");
@@ -612,6 +611,11 @@ Seg* mapEdit(Seg *map, char *fileName)
         }else if(sel.wall->type == S_TRIG){
             if(sel.cursor.y == 4)
                 sel.wall->trig.id = editUint(sel.wall->trig.id);
+        }else if(sel.wall->type == S_CONV){
+            if(sel.cursor.y == 4)
+                sel.wall->conv.idA = editUint(sel.wall->conv.idA);
+            else if(sel.cursor.y == 5)
+                sel.wall->conv.idB = editUint(sel.wall->conv.idB);
         }
         mlrUpdate(&ml, &mr, &sel, off, scale, snaplen);
         wlen = updateResize(wlen, &off);

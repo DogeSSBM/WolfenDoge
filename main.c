@@ -14,8 +14,9 @@ int main(int argc, char **argv)
             sprintf(mapFilePath, "./Maps/map(%u).bork", mapNum);
         map = mapDefault();
     }else{
+        assertExpr(argc == 2);
         assertExpr(strlen(argv[1]) < 128);
-        sprintf(mapFilePath, "./Maps/%s", argv[1]);
+        sprintf(mapFilePath, "%s", argv[1]);
         printf("mapFilePath: \"%s\"\n", mapFilePath);
         map = mapLoad(mapFilePath);
     }
