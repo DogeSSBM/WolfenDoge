@@ -91,6 +91,66 @@ Seg* posNearest(Seg *map, const Coordf pos, Coordf **nearest)
     return wall;
 }
 
+// returns the segment containing the next coord and sets pos to the next coord
+// returns NULL if end is reached
+Seg* coordNext(Seg *seg, Coordf **pos)
+{
+    if(!seg || !pos)
+        return NULL;
+    const uint numCoords = seg->type == S_TRIG ? 4 : 2;
+    Coordf *coord[4] = {&seg->a, &seg->b};
+    if(seg->type == S_TRIG){
+        coord[2] = &seg->trig.c;
+        coord[3] = &seg->trig.d;
+    }
+    uint i = 0;
+    for(i = 0; i < numCoords; i++)
+        if(coord[i] == pos)
+            break;
+    assertExpr(i < numCoords);
+    if(i+1 < numCoords){
+        *pos = coord[i+1];
+        return seg;
+    }
+    if(!seg->next)
+        return NULL;
+    *pos = seg->next.a;
+    return seg->next;
+}
+
+// returns next coord, wraps if end is reached
+Seg* coordNextWrap(Seg *map, Seg *seg, Coordf **pos)
+{
+    if(!map)
+        return NULL;
+    Seg *next = coordNext(seg, pos);
+    if(next)
+        return next;
+    *pos = map->a;
+    return map;
+}
+
+// iterates from seg sets *nextCoord = & the coord with same value as pos
+// if none found, iterates from map up to seg
+// returns the segment containing the nextCoord coord
+Seg* posNext(Seg *map, Seg *seg, const Coordf **pos)
+{
+    if(!map || !seg){
+        nextCoord = NULL;
+        return NULL;
+    }
+    Seg* next = seg;
+    Coordf *nextCoord = *pos;
+    do{
+        seg = coordNextWrap(map, seg, &nextCoord);
+        if(cfSame(*nextCoord, **pos)){
+            *pos = nextCoord;
+            return seg;
+        }
+    }while(nextCoord != *pos);
+    return next;
+}
+
 // attempts to open map.bork then map(n).bork with n starting at 1 and increasing
 // once a file name that doesnt exist is found returns n
 uint newMapFileNum(void)
@@ -536,6 +596,15 @@ Selection selUpdateCursor(Selection sel)
     return sel;
 }
 
+// updates selection to next seg / coord that overlaps
+Selection selUpdateNext(Selection sel, Seg *map)
+{
+    if(!keyPressed(SC_N))
+        return sel;
+    sel.wall = posNext(map, sel.wall, &sel.pos);
+    return sel;
+}
+
 // if a segment is selected, deletes it from map segment list and updates *sel
 Seg* updateDel(Seg *map, Selection *sel)
 {
@@ -624,9 +693,9 @@ Seg* mapEdit(Seg *map, char *fileName)
         off = updatePan(off, &ml, &mr);
         ml = mlUpdate(ml, &sel, map, scale, snap, snaplen);
         mr = mrUpdate(mr, &sel, &map, c, snap);
-        // sel = selNext(sel);
-        // sel = selCheckNext(sel, ml, map);
-        sel.showInfo = keyPressed(SC_I) ? !sel.showInfo : sel.showInfo;
+        if(keyPressed(SC_I))
+            sel.showInfo = !sel.showInfo;
+        sel = selUpdateNext(sel, map);
         sel.tscale = (wlen.y/3)/12;
         setTextSize(sel.tscale);
 
