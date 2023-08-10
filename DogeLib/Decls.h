@@ -298,5 +298,8 @@ bool winIsMaximized(void);
 bool winIsMinimized(void);
 void winSetGrab(const bool);
 bool winIsGrabbed(void);
+Window* winGetFocused(void);
+bool winIsFocused(void);
+
 
 #endif /* end of include guard: DOGELIB_DECLS_H */

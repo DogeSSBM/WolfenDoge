@@ -31,11 +31,11 @@ int main(int argc, char **argv)
         if(keyPressed(SC_ESCAPE) || checkCtrlKey(SC_Q) || checkCtrlKey(SC_W)){
             return 0;
         }
+        setRelativeMouse(winIsFocused());
 
         if(checkCtrlKey(SC_E)){
             printf("Editing map: '%s'\n", mapFilePath);
             map = mapEdit(map, mapFilePath);
-            setRelativeMouse(true);
         }
 
         const Length wlen = getWindowLen();
