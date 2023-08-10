@@ -105,7 +105,7 @@ Seg* coordNext(Seg *seg, Coordf **pos)
     }
     uint i = 0;
     for(i = 0; i < numCoords; i++)
-        if(coord[i] == pos)
+        if(coord[i] == *pos)
             break;
     assertExpr(i < numCoords);
     if(i+1 < numCoords){
@@ -114,7 +114,7 @@ Seg* coordNext(Seg *seg, Coordf **pos)
     }
     if(!seg->next)
         return NULL;
-    *pos = seg->next.a;
+    *pos = &seg->next->a;
     return seg->next;
 }
 
@@ -126,17 +126,16 @@ Seg* coordNextWrap(Seg *map, Seg *seg, Coordf **pos)
     Seg *next = coordNext(seg, pos);
     if(next)
         return next;
-    *pos = map->a;
+    *pos = &map->a;
     return map;
 }
 
 // iterates from seg sets *nextCoord = & the coord with same value as pos
 // if none found, iterates from map up to seg
 // returns the segment containing the nextCoord coord
-Seg* posNext(Seg *map, Seg *seg, const Coordf **pos)
+Seg* posNext(Seg *map, Seg *seg, Coordf **pos)
 {
     if(!map || !seg){
-        nextCoord = NULL;
         return NULL;
     }
     Seg* next = seg;
