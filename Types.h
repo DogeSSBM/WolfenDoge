@@ -48,6 +48,11 @@ typedef struct Seg{
     struct Seg *next;
 }Seg;
 
+typedef struct Obj{
+    
+    struct Obj *next;
+}Obj;
+
 typedef struct{
     Seg *seg;
     uint len;

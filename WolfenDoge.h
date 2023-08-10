@@ -205,7 +205,7 @@ void drawFp(const View view, Seg *map, const Player player, const Length wlen)
     const Coord pos = coordSub(wlen, textureLen(texture));
     fillRectCoordLength(pos, textureLen(texture));
     drawTextureCoord(texture, pos);
-    freeTexture(texture);
+    textureFree(texture);
 }
 
 // draw birds eye view

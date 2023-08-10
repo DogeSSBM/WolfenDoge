@@ -28,7 +28,7 @@ Length drawText(const char *text, const int x, const int y)
     Texture *t = textTexture(text);
     const Rect r = textureRect(t, iC(x,y));
     SDL_RenderCopy(gfx.renderer, t, NULL, &r);
-    freeTexture(t);
+    textureFree(t);
     return iC(r.w, r.h);
 }
 
@@ -41,7 +41,7 @@ Length drawTextCentered(const char *text, const int x, const int y)
 {
     Texture *t = textTexture(text);
     const Length len = drawTextureCentered(t, x, y);
-    freeTexture(t);
+    textureFree(t);
     return len;
 }
 

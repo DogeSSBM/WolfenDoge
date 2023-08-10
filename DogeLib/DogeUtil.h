@@ -15,6 +15,7 @@ void init(void)
 {
     srand(time(NULL));
     gfx_init();
+    img_init();
     text_init();
     input_init();
 }

@@ -204,7 +204,7 @@ void text_init(void);
 void img_quit(void);
 void img_init(void);
 void freeImg(Img*);
-void freeTexture(Texture*);
+Texture* textureFree(Texture*);
 Img* loadImg(const char*);
 Texture* imgTexture(Img*);
 Texture* loadTexture(const char*);
