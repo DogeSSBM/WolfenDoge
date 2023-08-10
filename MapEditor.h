@@ -268,11 +268,6 @@ Seg* mapDefault(void)
         (const Coordf){.x=250.0f, .y=500.0f},
         .25f, .25f
     ));
-    map = segAppend(map, doorNew(YELLOW,
-        (const Coordf){.x=500.0f, .y=0.0f},
-        (const Coordf){.x=500.0f, .y=250.0f},
-        0, 0.0f, true, 0.01f, DIR_D
-    ));
     map = segAppend(map, windNew(RED, BLUE,
         (const Coordf){.x=500.0f, .y=250.0f},
         (const Coordf){.x=500.0f, .y=500.0f},
