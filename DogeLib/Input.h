@@ -59,10 +59,7 @@ void textInputStart(char *buf, const st bufsize, boolFunc textInputDone)
     keys.textInput = buf;
     keys.textInputSize = bufsize;
     keys.textInputPos = strlen(buf);
-    if(textInputDone == NULL)
-        keys.textInputDone = defaultTextInputDone;
-    else
-        keys.textInputDone = textInputDone;
+    keys.textInputDone = textInputDone == NULL ? defaultTextInputDone : textInputDone;
 }
 
 bool keyState(const Scancode key)

@@ -27,29 +27,6 @@ void drawGrid(const Offset off, const Length wlen, const float scale, const bool
     }
 }
 
-// draws all map segments in the editor
-void drawEditorMap(Seg *map, const Selection sel, const Offset off, const float scale)
-{
-    Seg *cur = map;
-    while(cur){
-        const Coord a = mapToScreen(off, scale, cur->a);
-        const Coord b = mapToScreen(off, scale, cur->b);
-        if(cur->type == S_TRIG){
-            const Coord c = mapToScreen(off, scale, cur->trig.c);
-            const Coord d = mapToScreen(off, scale, cur->trig.d);
-            setColor(YELLOW);
-            drawLineCoords(a, c);
-            drawLineCoords(a, d);
-            drawLineCoords(b, c);
-            drawLineCoords(b, d);
-            drawLineCoords(c, d);
-        }
-        setColor(cur->color);
-        drawLineThickCoords(a, b, (sel.pos == &cur->a || sel.pos == &cur->b) ? 3 : 1);
-        cur = cur->next;
-    }
-}
-
 // draws segment type text returns position of beginning of next line
 Coord drawSegType(const Coord pos, const SegType type, const bool selected)
 {
@@ -133,7 +110,8 @@ Coord drawu(const Coord pos, const char *label, const uint u, const bool selecte
     return iC(0, pos.y+len.y);
 }
 
-// draws fields common to all segments returns position of beginning of next line
+// draws fields common to all segments when selected
+// returns position of beginning of next line
 Coord drawSelCommon(const Selection sel)
 {
     if(!sel.wall)
@@ -144,7 +122,7 @@ Coord drawSelCommon(const Selection sel)
     return drawColor(pos, sel.tscale, sel.wall->color, sel.cursor.y == 3, sel.cursor.x);
 }
 
-// draws wall segment fields returns position of beginning of next line
+// draws wall segment fields when selected
 void drawSelWall(const Selection sel, Coord pos)
 {
     if(!sel.wall || sel.wall->type != S_WALL)
@@ -153,7 +131,7 @@ void drawSelWall(const Selection sel, Coord pos)
     pos = drawstr(pos, (sel.wall->wall.path[0] == '\0') ? "       " : sel.wall->wall.path, sel.cursor.y == 4);
 }
 
-// draws window segment fields
+// draws window segment fields when selected
 void drawSelWind(const Selection sel, Coord pos)
 {
     if(!sel.wall || sel.wall->type != S_WIND)
@@ -163,7 +141,7 @@ void drawSelWind(const Selection sel, Coord pos)
     drawf(pos, "top", sel.wall->wind.top, sel.cursor.y == 6);
 }
 
-// draws door segment fields
+// draws door segment fields when selected
 void drawSelDoor(const Selection sel, Coord pos)
 {
     if(!sel.wall || sel.wall->type != S_DOOR)
@@ -178,7 +156,7 @@ void drawSelDoor(const Selection sel, Coord pos)
     pos = drawstr(pos, buf, sel.cursor.y == 8);
 }
 
-// draws trigger segment fields
+// draws trigger segment fields when selected
 void drawSelTrig(const Selection sel, Coord pos)
 {
     if(!sel.wall || sel.wall->type != S_TRIG)
@@ -186,7 +164,7 @@ void drawSelTrig(const Selection sel, Coord pos)
     pos = drawu(pos, "id", sel.wall->trig.id, sel.cursor.y == 4);
 }
 
-// draws converter segment fields
+// draws converter segment fields when selected
 void drawSelConv(const Selection sel, Coord pos)
 {
     if(!sel.wall || sel.wall->type != S_CONV)
@@ -195,7 +173,7 @@ void drawSelConv(const Selection sel, Coord pos)
     pos = drawu(pos, "idB", sel.wall->conv.idB, sel.cursor.y == 5);
 }
 
-// highlights selected segment
+// draws selected segment highlights
 void drawSel(const Selection sel, const Offset off, const float scale)
 {
     if(sel.pos)
@@ -225,6 +203,29 @@ void drawSel(const Selection sel, const Offset off, const float scale)
         drawSelTrig(sel, pos);
     if(sel.wall->type == S_CONV)
         drawSelConv(sel, pos);
+}
+
+// draws all map segments in the editor
+void drawEditorMap(Seg *map, const Selection sel, const Offset off, const float scale)
+{
+    Seg *cur = map;
+    while(cur){
+        const Coord a = mapToScreen(off, scale, cur->a);
+        const Coord b = mapToScreen(off, scale, cur->b);
+        if(cur->type == S_TRIG){
+            const Coord c = mapToScreen(off, scale, cur->trig.c);
+            const Coord d = mapToScreen(off, scale, cur->trig.d);
+            setColor(YELLOW);
+            drawLineCoords(a, c);
+            drawLineCoords(a, d);
+            drawLineCoords(b, c);
+            drawLineCoords(b, d);
+            drawLineCoords(c, d);
+        }
+        setColor(cur->color);
+        drawLineThickCoords(a, b, (sel.pos == &cur->a || sel.pos == &cur->b) ? 3 : 1);
+        cur = cur->next;
+    }
 }
 
 #endif /* end of include guard: MAPEDITORDRAS_H */
