@@ -215,6 +215,7 @@ Seg* txtrCleanup(Seg *map, Seg *seg)
     return map;
 }
 
+// applys a texture to all segments that match path
 Seg* txtrApply(Seg *map, Texture *txtr, char *path)
 {
     if(!map || !path)
