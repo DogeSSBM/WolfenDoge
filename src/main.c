@@ -1,4 +1,4 @@
-#define FOV_NUM_RAYS    720
+#define FOV_NUM_RAYS        720
 #include "Includes.h"
 
 int main(int argc, char **argv)
@@ -9,11 +9,11 @@ int main(int argc, char **argv)
     gfx.outlined = false;
     winSetPosCoord(coordAddi(coordDivi(getWinDisplayLen(), 2), -400));
     Seg *map = NULL;
-    char mapFilePath[128] = "./Maps/map.bork";
+    char mapFilePath[128] = "../Maps/map.bork";
     if(argc < 2){
         const uint mapNum = newMapFileNum();
         if(mapNum != 0)
-            sprintf(mapFilePath, "./Maps/map(%u).bork", mapNum);
+            sprintf(mapFilePath, "../Maps/map(%u).bork", mapNum);
         map = mapDefault();
     }else{
         assertExpr(argc == 2);

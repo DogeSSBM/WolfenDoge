@@ -1,5 +1,5 @@
-#ifndef MAPEDITORDRAS_H
-#define MAPEDITORDRAS_H
+#ifndef MAPEDITORDRAW_H
+#define MAPEDITORDRAW_H
 
 // draws X and Y axis lines if visible
 void drawOriginLines(const Offset off, const Length wlen)
@@ -110,8 +110,7 @@ Coord drawu(const Coord pos, const char *label, const uint u, const bool selecte
     return iC(0, pos.y+len.y);
 }
 
-// draws fields common to all segments when selected
-// returns position of beginning of next line
+// draws fields common to all segments when selected returns position of beginning of next line
 Coord drawSelCommon(const Selection sel)
 {
     if(!sel.wall)
@@ -127,7 +126,6 @@ void drawSelWall(const Selection sel, Coord pos)
 {
     if(!sel.wall || sel.wall->type != S_WALL)
         return;
-    // pos = drawu(pos, "asdf ", 10, sel.cursor.y == 4);
     pos = drawstr(pos, (sel.wall->wall.path[0] == '\0') ? "       " : sel.wall->wall.path, sel.cursor.y == 4);
 }
 
@@ -228,4 +226,4 @@ void drawEditorMap(Seg *map, const Selection sel, const Offset off, const float 
     }
 }
 
-#endif /* end of include guard: MAPEDITORDRAS_H */
+#endif /* end of include guard: MAPEDITORDRAW_H */

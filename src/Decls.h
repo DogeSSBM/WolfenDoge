@@ -21,20 +21,7 @@ Update* mapQueueUpdates(const Coordf, const Coordf, Seg *);
 Seg* mapApplyUpdates(Seg *, Update *);
 void mapUpdateDynamics(Seg *);
 
-// MapEditor.h
-SegPacked mapPack(Seg *);
-Seg* mapUnpack(SegPacked);
-Coord resizeTransform(const Length, const Length, const Coord);
-Coordf resizeTransformf(const Lengthf, const Lengthf, const Coordf);
-Seg* posNearest(Seg *, const Coordf, Coordf **);
-Seg* coordNext(Seg *, Coordf **);
-Seg* coordNextWrap(Seg *, Seg *, Coordf **);
-Seg* posNext(Seg *, Seg *, Coordf **);
-uint newMapFileNum(void);
-void mapSave(Seg *, char *);
-Texture* txtrQryLoad(Seg *, char *);
-Seg* txtrCleanup(Seg *, Seg *);
-Seg* txtrApply(Seg *, Texture *, char *);
+// MapEditorSegments.h
 Seg* wallNew(const Color, const Coordf, const Coordf);
 Seg* txtrNew(Seg *, const Color, const Coordf, const Coordf, char *);
 Seg* windNew(const Color, const Color, const Coordf, const Coordf, const float, const float);
@@ -44,24 +31,33 @@ Seg* convNew(const Color, const Coordf, const Coordf, const uint, const uint);
 Seg* segAppend(Seg *, Seg *);
 Seg* segDelete(Seg *, Seg *);
 uint segListLen(Seg *);
-void segFreeList(Seg *);
-Seg* mapDefault(void);
+void segListFree(Seg *);
+
+// MapEditor.h
+Coord resizeTransform(const Length, const Length, const Coord);
+Coordf resizeTransformf(const Lengthf, const Lengthf, const Coordf );
+Seg* posNearest(Seg *, const Coordf, Coordf **);
+Seg* coordNext(Seg *, Coordf **);
+Seg* coordNextWrap(Seg *, Seg *, Coordf **);
+Seg* posNext(Seg *, Seg *, Coordf **);
 int numKeyPressed(void);
-Coord editColor(Coord, Color*);
+Coord editColor(Coord, Color *);
 uint editUint(uint);
 float editFloat(float);
 bool checkEditorExit(void);
 bool checkKeyS(Seg *, char *, bool, const float);
 void checkScroll(Offset *, const Coordf, const bool, float *, float *);
-void mlrUpdate(Minfo *, Minfo *, Selection *, const Offset, const float, const float);
-Minfo mlUpdate(Minfo, Selection *, Seg *, const float, const bool, const float);
-Minfo mrUpdate(Minfo, Selection *, Seg **, const Color, const bool);
-Selection selUpdateCursor(Selection);
-Selection selUpdateNext(Selection, Seg *);
-Seg* updateDel(Seg *, Selection *);
-Length updateResize(Length, Offset *);
-Offset updatePan(Offset, Minfo *, Minfo *);
 Seg* mapEdit(Seg *, char *);
+
+// MapIO.h
+Texture* txtrQryLoad(Seg *, char *);
+Seg* txtrCleanup(Seg *, Seg *);
+Seg* txtrApply(Seg *, Texture *, char *);
+uint newMapFileNum(void);
+void mapSave(Seg *, char *);
+SegPacked mapPack(Seg *);
+Seg* mapUnpack(SegPacked);
+Seg* mapDefault(void);
 
 // MapEditorDraw.h
 void drawOriginLines(const Offset, const Length);
