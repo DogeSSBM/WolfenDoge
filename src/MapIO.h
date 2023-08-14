@@ -1,54 +1,161 @@
 #ifndef MAPIO_H
 #define MAPIO_H
 
-// searches for wall with texture path, if found returns the texture else returns
-// newly allocated texture
-Texture* txtrQryLoad(Seg *map, char *path)
+// gets length of map name, allocates memory for it, parses it
+// returns its strlen
+st mapParseName(Map *map)
 {
-    while(map){
-        if(map->type == S_WALL && map->wall.path && map->wall.texture && !strcmp(map->wall.path, path))
-            return map->wall.texture;
-        map = map->next;
-    }
-    printf("Loading texture: \"%s\"\n", path);
-    return loadTexture(path);
+    assertExpr(map->file);
+    int c = ' ';
+    st len = 0;
+    while((c = fgetc(map->file)) != '\n' && c != EOF)
+        len++;
+    assertExpr(len && c != EOF);
+
+    map->name = calloc(len+1, sizeof(char));
+    rewind(map->file);
+    for(st i = 0; i < len; i++)
+        map->name[i] = fgetc(map->file);
+
+    assertExpr(fgetc(map->file) == '\n');
+    return len;
 }
 
-// sets seg's texture to NULL, checks to see if any other segments in map have
-// same texture, if none do, the texture is freed
-Seg* txtrCleanup(Seg *map, Seg *seg)
+// resets player health / speed
+// sets player pos / ang to random spawn from map->obj[O_SPAWN]
+// if there are no spawn objs, places at random ang and pos in map bounding box
+void mapSpawnPlayer(Map *map)
 {
-    if(!map || !seg || seg->type != S_WALL || !seg->wall.texture)
-        return map;
-    Texture *txtr = seg->wall.texture;
-    seg->wall.texture = NULL;
-    Seg *cur = map;
-    while(cur){
-        if(cur->type == S_WALL && cur->wall.texture == txtr)
-            return map;
-        cur = cur->next;
+    assertExpr(map);
+    map->player.speed = 0;
+    map->player.health = map->player.maxHealth;
+    if(!map->obj[O_SPAWN]){
+        const Coordf maxBound = mapSegBoundMax(map->seg);
+        const Coordf minBound = mapSegBoundMin(map->seg);
+        const Coordf lenBound = cfSub(maxBound, minBound);
+        map->player.pos = fC(minBound.x + randRange(0.0f, lenBound.x), minBound.y + randRange(0.0f, lenBound.y));
+        map->player.ang = rand() % 360;
+        return;
     }
-    textureFree(txtr);
-    return map;
+
+    const st index = rand() % objListLen(map->obj[O_SPAWN]);
+    Obj *obj = map->obj[O_SPAWN];
+    for(st i = 0; i < index; i++){
+        obj = obj->next;
+        assertExpr(obj);
+    }
+    map->player.pos = obj->pos;
+    map->player.ang = obj->spawn.ang;
 }
 
-// applys a texture to all segments that match path
-Seg* txtrApply(Seg *map, Texture *txtr, char *path)
+// parses a list of all segments from map file
+Seg* mapParseAllSegments(Map *map)
 {
-    if(!map || !path)
-        return map;
-    Seg *cur = map;
-    while(cur){
-        if(cur->type == S_WALL && cur->wall.path[0] != '\0' && !strcmp(map->wall.path, path))
-            map->wall.texture = txtr;
-        cur = cur->next;
+    assertExpr(map && map->file);
+    Seg *segList = NULL;
+    st len = 0;
+    while(1){
+        Seg *seg = calloc(1, sizeof(Seg));
+        assertExpr(fread(seg, sizeof(Seg), 1, map->file) == 1);
+        if(seg->type == S_END){
+            free(seg);
+            break;
+        }
+        segList = segAppend(segList, seg);
+        len++;
     }
-    return map;
+    printf("Total segments: %zu\n", len);
+    return segList;
 }
 
-// attempts to open map.bork then map(n).bork with n starting at 1 and increasing
-// once a file name that doesnt exist is found returns n
-uint newMapFileNum(void)
+// takes list of all map segments (ordered by SegType)
+// splits list up into seperate lists for each SegType in map->seg[type]
+void mapSortSegments(Map *map, Seg *segList)
+{
+    for(SegType type = 0; type < S_N; type++){
+        if(!segList)
+            return;
+        if(segList->type != type)
+            continue;
+        map->seg[type] = segList;
+        while(segList && segList->type == type){
+            if(segList->next->type == type){
+                segList = segList->next;
+            }else{
+                Seg *next = segList->next;
+                segList->next = NULL;
+                segList = next;
+            }
+        }
+    }
+}
+
+// parses map segments into their respective SegType index
+void mapParseSegments(Map *map)
+{
+    mapSortSegments(map, mapParseAllSegments(map));
+    for(SegType type = 0; type < S_N; type++)
+        printf("%s: %zu\n", SegTypeStr[type], segListLen(map->seg[type]));
+}
+
+// parses a list of all objects from map file
+Obj* mapParseAllObjects(Map *map)
+{
+    assertExpr(map && map->file);
+    Obj *objList = NULL;
+    st len = 0;
+    while(!feof(map->file)){
+        Obj *obj = calloc(1, sizeof(Obj));
+        objList = objAppend(objList, obj);
+        len++;
+    }
+    printf("Total objments: %zu\n", len);
+    return objList;
+}
+
+// takes list of all map segments (ordered by SegType)
+// splits list up into seperate lists for each SegType in map->seg[type]
+void mapSortObjects(Map *map, Obj *objList)
+{
+    for(ObjType type = 0; type < O_N; type++){
+        if(!objList)
+            return;
+        if(objList->type != type)
+            continue;
+        map->obj[type] = objList;
+        while(objList && objList->type == type){
+            if(objList->next->type == type){
+                objList = objList->next;
+            }else{
+                Obj *next = objList->next;
+                objList->next = NULL;
+                objList = next;
+            }
+        }
+    }
+}
+
+// parses map objects into their respective ObjType index
+void mapParseObjects(Map *map)
+{
+    mapSortObjects(map, mapParseAllObjects(map));
+    for(ObjType type = 0; type < O_N; type++)
+        printf("%s: %zu\n", ObjTypeStr[type], objListLen(map->obj[type]));
+}
+
+// parses map file
+void mapParseFile(Map *map)
+{
+    assertExpr(map && map->file);
+    assertExpr(mapParseName(map) > 0);
+    mapParseSegments(map);
+    mapParseObjects(map);
+    fclose(map->file);
+}
+
+// attempts to open ../Maps/map.bork then ../Maps/map(n).bork with n starting at 1 and increasing
+// once a file name that doesnt exist is found returns the path
+char* newMapFileNum(void)
 {
     uint n = 0;
     File *file = NULL;
@@ -58,115 +165,165 @@ uint newMapFileNum(void)
         n++;
         sprintf(path, "../Maps/map(%u).bork", n);
     }
-    return n;
+    printf("No map path supplied, this map will be saved to \"%s\"\n", path);
+    return strdup(path);
 }
 
-// saves map to path
-void mapSave(Seg *map, char *path)
+// sets seg's texture to NULL, checks to see if any other segments in map have
+// same texture, if none do, the texture is freed
+Seg* wallListTxtrCleanup(Seg *wallList, Seg *seg)
 {
-    if(!map){
-        printf("Map is empty, skipping save\n");
-        return;
+    if(!wallList || !seg || !seg->wall.texture)
+        return wallList;
+    assertExpr(seg->type == S_WALL);
+    Texture *txtr = seg->wall.texture;
+    seg->wall.texture = NULL;
+    Seg *cur = wallList;
+    while(cur){
+        assertExpr(cur->type == S_WALL);
+        if(cur->wall.texture == txtr)
+            return wallList;
+        cur = cur->next;
     }
-    assertExpr(path);
-    File *file = NULL;
-    file = fopen(path, "wb");
-    SegPacked mapPacked = mapPack(map);
-    printf("Writing map of length: %u to \"%s\"\n", mapPacked.len, path);
-    fwrite(&mapPacked.len, sizeof(uint), 1, file);
-    fwrite(mapPacked.seg, sizeof(Seg), mapPacked.len, file);
-    fclose(file);
-    free(mapPacked.seg);
+    textureFree(txtr);
+    return wallList;
 }
 
-// Serializes the list of segments into an array
-SegPacked mapPack(Seg *map)
+// applys a texture to all wall segments that match path
+Seg* wallListTxtrApply(Seg *wallList, Texture *txtr, char *path)
 {
-    const uint len = segListLen(map);
-    if(len == 0)
-        return (SegPacked){0};
-    SegPacked mapPacked = {
-        .len = len,
-        .seg = calloc(len, sizeof(Seg))
-    };
-    for(uint i = 0; i < len; i++){
-        mapPacked.seg[i] = *map;
-        map = map->next;
+    if(!wallList || !path)
+        return wallList;
+    Seg *cur = wallList;
+    while(cur){
+        assertExpr(cur->type == S_WALL);
+        if(!strcmp(wallList->wall.path, path))
+            wallList->wall.texture = txtr;
+        cur = cur->next;
     }
-    return mapPacked;
+    return wallList;
 }
 
-// De-serializes the map segment array into a list
-Seg* mapUnpack(SegPacked mapPacked)
+// returns already loaded texture with matching path if exists
+// else returns newly allocated texture
+Texture* wallListTxtrQryLoad(Seg *wallList, char *path)
 {
-    if(mapPacked.len == 0 || !mapPacked.seg)
-        return NULL;
-    Seg *map = NULL;
-    for(uint i = 0; i < mapPacked.len; i++){
-        printf("copying seg %2u/%2u\n", i, mapPacked.len);
-        Seg *seg = calloc(1, sizeof(Seg));
-        memcpy(seg, &mapPacked.seg[i], sizeof(Seg));
-        seg->wall.texture = txtrQryLoad(map, seg->wall.path);
-        seg->next = NULL;
-        map = segAppend(map, seg);
+    while(wallList){
+        assertExpr(wallList->type == S_WALL);
+        if(wallList->wall.texture && !strcmp(wallList->wall.path, path)){
+            printf("Found texture: \"%s\"\n", path);
+            return wallList->wall.texture;
+        }
+        wallList = wallList->next;
     }
+    printf("Loading texture: \"%s\"\n", path);
+    return loadTexture(path);
+}
+
+// Loads default map segments
+void mapDefaultSegments(Map *map)
+{
+    assertExpr(map);
+    // Walls
+    map->seg[S_WALL] = segAppend(map->seg[S_WALL], wallNew(GREEN,
+        fC(  0.0f,   0.0f), fC(750.0f,   0.0f)
+    ));
+    map->seg[S_WALL] = segAppend(map->seg[S_WALL], wallNew(MAGENTA,
+        fC(750.0f,   0.0f), fC(750.0f, 750.0f)
+    ));
+    map->seg[S_WALL] = segAppend(map->seg[S_WALL], wallNew(MAGENTA,
+        fC(  0.0f,   0.0f), fC(  0.0f, 750.0f)
+    ));
+    map->seg[S_WALL] = segAppend(map->seg[S_WALL], wallNew(GREEN,
+        fC(  0.0f, 750.0f), fC(750.0f, 750.0f)
+    ));
+
+    // Textured walls
+    map->seg[S_WALL] = segAppend(map->seg[S_WALL], txtrNew(map->seg[S_WALL], WHITE,
+        fC(250.0f, 500.0f), fC(500.0f, 500.0f), "./Assets/Bricks.png"
+    ));
+
+    // Windows
+    map->seg[S_WIND] = segAppend(map->seg[S_WIND], windNew(RED, BLUE,
+        fC(250.0f, 250.0f), fC(250.0f, 500.0f), .25f, .25f
+    ));
+    map->seg[S_WIND] = segAppend(map->seg[S_WIND], windNew(RED, BLUE,
+        fC(500.0f, 250.0f), fC(500.0f, 500.0f), .25f, .25f
+    ));
+
+    // Doors
+    map->seg[S_DOOR] = segAppend(map->seg[S_DOOR], doorNew(YELLOW,
+        fC(250.0f, 250.0f), fC(500.0f, 250.0f), 0, 0.0f, false, 0.01f, DIR_D
+    ));
+
+    // Trigger Zones
+    map->seg[S_TRIG] = segAppend(map->seg[S_TRIG], trigNew(YELLOW,
+        fC(250.0f,   0.0f), fC(500.0f,   0.0f), 0,
+        fC(250.0f, 250.0f), fC(500.0f, 250.0f)
+    ));
+    map->seg[S_TRIG] = segAppend(map->seg[S_TRIG], trigNew(YELLOW,
+        fC(250.0f, 250.0f), fC(500.0f, 250.0f), 0,
+        fC(250.0f, 500.0f), fC(500.0f, 500.0f)
+    ));
+}
+
+// loads default map objects
+void mapDefaultObjects(Map *map)
+{
+    assertExpr(map);
+    map->obj[O_SPAWN] = spawnNew(fC(125.0f, 125.0f), 0);
+}
+
+void mapDefault(Map *map)
+{
+    mapDefaultSegments(map);
+    mapDefaultObjects(map);
+}
+
+// attempts to load map file at mapPathArg if present
+// if not present, sets map.path to ../Maps/map.bork or ../Maps/map(n).bork
+// starting at n=1 and increasing until unique file path is found
+Map mapLoad(char *mapPathArg)
+{
+    Map map = {0};
+    map.path = mapPathArg ? strdup(mapPathArg) : newMapFileNum();
+    if((map.file = fopen(map.path, "rb")))
+        mapParseFile(&map);
+    else
+        mapDefault(&map);
+    mapSpawnPlayer(&map);
     return map;
+
 }
 
-// allocates and returns the default map
-Seg* mapDefault(void)
+// saves map to map->path
+void mapSave(Map *map)
 {
-    Seg *map =           wallNew(GREEN,
-        (const Coordf){.x=  0.0f, .y=  0.0f},
-        (const Coordf){.x=750.0f, .y=  0.0f}
-    );
-    map = segAppend(map, wallNew(MAGENTA,
-        (const Coordf){.x=750.0f, .y=  0.0f},
-        (const Coordf){.x=750.0f, .y=750.0f}
-    ));
-    map = segAppend(map, wallNew(MAGENTA,
-        (const Coordf){.x=  0.0f, .y=  0.0f},
-        (const Coordf){.x=  0.0f, .y=750.0f}
-    ));
-    map = segAppend(map, wallNew(GREEN,
-        (const Coordf){.x=  0.0f, .y=750.0f},
-        (const Coordf){.x=750.0f, .y=750.0f}
-    ));
-    map = segAppend(map, windNew(RED, BLUE,
-        (const Coordf){.x=250.0f, .y=250.0f},
-        (const Coordf){.x=250.0f, .y=500.0f},
-        .25f, .25f
-    ));
-    map = segAppend(map, windNew(RED, BLUE,
-        (const Coordf){.x=500.0f, .y=250.0f},
-        (const Coordf){.x=500.0f, .y=500.0f},
-        .25f, .25f
-    ));
-    map = segAppend(map, txtrNew(map, WHITE,
-        (const Coordf){.x=250.0f, .y=500.0f},
-        (const Coordf){.x=500.0f, .y=500.0f},
-        "./Assets/Bricks.png"
-    ));
-    map = segAppend(map, doorNew(YELLOW,
-        (const Coordf){.x=250.0f, .y=250.0f},
-        (const Coordf){.x=500.0f, .y=250.0f},
-        0, 0.0f, false, 0.01f, DIR_D
-    ));
-    map = segAppend(map, trigNew(YELLOW,
-        (const Coordf){.x=250.0f, .y=0.0f},
-        (const Coordf){.x=500.0f, .y=0.0f},
-        0,
-        (const Coordf){.x=250.0f, .y=250.0f},
-        (const Coordf){.x=500.0f, .y=250.0f}
-    ));
-    map = segAppend(map, trigNew(YELLOW,
-        (const Coordf){.x=250.0f, .y=250.0f},
-        (const Coordf){.x=500.0f, .y=250.0f},
-        0,
-        (const Coordf){.x=250.0f, .y=500.0f},
-        (const Coordf){.x=500.0f, .y=500.0f}
-    ));
-    return map;
+    assertExpr(map && map->path && map->name);
+    if(map->file)
+        fclose(map->file);
+    assertExpr((map->file = fopen(map->path, "wb")));
+    const st nameLen = strlen(map->name);
+    assertExpr(fwrite(map->name, sizeof(char), nameLen, map->file) == nameLen);
+    fputc('\n', map->file);
+    for(SegType type = 0; type < S_N; type++){
+        Seg *seg = map->seg[type];
+        while(seg){
+            assertExpr(fwrite(seg, sizeof(Seg), 1, map->file) == 1);
+            seg = seg->next;
+        }
+    }
+    Seg seg = {.type = S_END};
+    assertExpr(fwrite(&seg, sizeof(Seg), 1, map->file) == 1);
+
+    for(ObjType type = 0; type < O_N; type++){
+        Obj *obj = map->obj[type];
+        while(obj){
+            assertExpr(fwrite(obj, sizeof(Obj), 1, map->file) == 1);
+            obj = obj->next;
+        }
+    }
+    fclose(map->file);
 }
 
 #endif /* end of include guard: MAPIO_H */

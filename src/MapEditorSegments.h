@@ -13,7 +13,7 @@ Seg* wallNew(const Color c, const Coordf a, const Coordf b)
 }
 
 // creates a new segment with type S_WALL that has a texture
-Seg* txtrNew(Seg *map, const Color c, const Coordf a, const Coordf b, char *path)
+Seg* txtrNew(Seg *wallList, const Color c, const Coordf a, const Coordf b, char *path)
 {
     Seg *w = calloc(1, sizeof(Seg));
     w->type = S_WALL;
@@ -21,9 +21,9 @@ Seg* txtrNew(Seg *map, const Color c, const Coordf a, const Coordf b, char *path
     w->a = a;
     w->b = b;
     const st len = strlen(path);
-    assertExpr(len < 128);
+    assertExpr(len < 127);
     memcpy(w->wall.path, path, len);
-    w->wall.texture = txtrQryLoad(map, path);
+    w->wall.texture = wallListTxtrQryLoad(wallList, path);
     return w;
 }
 
@@ -75,6 +75,15 @@ Seg* convNew(const Color c, const Coordf a, const Coordf b, const uint idA, cons
     return w;
 }
 
+// creates a new segment with type S_END
+// (for denoting end of segment portion of map when saving / reading to file)
+Seg* segEndNew(void)
+{
+    Seg *end = calloc(1, sizeof(Seg));
+    end->type = S_END;
+    return end;
+}
+
 // appends tail to the end of the list (head)
 Seg* segAppend(Seg *head, Seg *tail)
 {
@@ -87,47 +96,47 @@ Seg* segAppend(Seg *head, Seg *tail)
     return head;
 }
 
-// searches for del in map list, removes and frees it
-Seg* segDelete(Seg *map, Seg *del)
+// searches for del in segList, removes and frees it
+Seg* segDelete(Seg *segList, Seg *del)
 {
     if(!del)
-        return map;
-    if(!map)
+        return segList;
+    if(!segList)
         return NULL;
-    if(del == map){
-        Seg *next = map->next;
-        free(map);
+    if(del == segList){
+        Seg *next = segList->next;
+        free(segList);
         return next;
     }
-    Seg *cur = map;
+    Seg *cur = segList;
     while(cur && cur->next != del)
         cur = cur->next;
     if(!cur)
-        return map;
+        return segList;
     Seg *next = cur->next->next;
     free(cur->next);
     cur->next = next;
-    return map;
+    return segList;
 }
 
-// returns the number of segments in the map list
-uint segListLen(Seg *map)
+// returns the number of segments in the list
+st segListLen(Seg *segList)
 {
-    uint len = 0;
-    while(map){
+    st len = 0;
+    while(segList){
         len++;
-        map = map->next;
+        segList = segList->next;
     }
     return len;
 }
 
-// frees all segments in the list
-void segListFree(Seg *list)
+// frees all segments in segList
+void segListFree(Seg *segList)
 {
-    while(list){
-        Seg *next = list->next;
-        free(list);
-        list = next;
+    while(segList){
+        Seg *next = segList->next;
+        free(segList);
+        segList = next;
     }
 }
 

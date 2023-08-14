@@ -6,13 +6,7 @@ typedef struct{
     Length len;
 }View;
 
-typedef struct Player{
-    Coordf pos;
-    float ang;
-    float speed;
-}Player;
-
-typedef enum{S_WALL, S_WIND, S_TRIG, S_DOOR, S_CONV, S_N}SegType;
+typedef enum{S_END = -1, S_WALL, S_WIND, S_TRIG, S_DOOR, S_CONV, S_N}SegType;
 char *SegTypeStr[S_N] = {"S_WALL", "S_WIND", "S_TRIG", "S_DOOR", "S_CONV"};
 
 const uint SegTypeNumFields[S_N] = {5, 7, 5, 9, 6};
@@ -57,6 +51,57 @@ typedef struct{
     uint len;
 }SegPacked;
 
+typedef enum{O_SPAWN, O_KEY, O_MOB, O_N}ObjType;
+char *ObjTypeStr[O_N] = {"O_SPAWN", "O_KEY", "O_MOB"};
+typedef struct Obj{
+    ObjType type;
+    Coordf pos;
+    union{
+        struct{
+            float ang;
+        }spawn;
+        struct{
+            Color c;
+        }key;
+        struct{
+            Coordf origin;
+            Coordf vec;
+            Texture *txtr;
+            char *path;
+        }mob;
+    };
+    struct Obj *next;
+}Obj;
+
+typedef struct Player{
+    Coordf pos;
+    float ang;
+    float speed;
+    uint health;
+    uint maxHealth;
+}Player;
+
+typedef enum{M_SEG, M_OBJ, M_ANY, M_NONE}MapPieceType;
+const int PieceTypeNum[2] = {S_N, O_N};
+typedef struct{
+    MapPieceType type;
+    union{
+        Seg *seg;
+        Obj *obj;
+    };
+}MapPiece;
+
+typedef struct{
+    Player player;
+    char *name;
+    char *path;
+    File *file;
+    // each index is a list of the corrosponding SegType
+    Seg *seg[S_N];
+    // each index is a list of the corrosponding ObjType
+    Obj *obj[O_N];
+}Map;
+
 typedef struct{
     Seg *wall;
     float dst;
@@ -77,11 +122,11 @@ typedef struct{
 
 typedef struct Selection{
     SegType newSegType;
+    ObjType newObjType;
+    MapPiece piece;
     bool showInfo;
-    Seg *wall;
     Coordf posOrig;
     Coordf *pos;
-    struct Selection *next;
     Coord cursor;
     uint tscale;
 }Selection;

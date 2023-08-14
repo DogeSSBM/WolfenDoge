@@ -1,80 +1,74 @@
 #ifndef MAP_H
 #define MAP_H
 
-// loads the map located at filePath and returns it as a list of map segments
-Seg* mapLoad(char *filePath)
-{
-    File *file = NULL;
-    assertExpr(filePath);
-    if((file = fopen(filePath, "rb")) == NULL){
-        printf("Couldn't open file \"%s\"\n", filePath);
-        return NULL;
-    }
-    SegPacked packed = {0};
-    fread(&packed.len, sizeof(uint), 1, file);
-    printf("map file len: %u\n", packed.len);
-    if(feof(file) || packed.len == 0){
-        printf("Error reading len of map in file \"%s\"\n", filePath);
-        fclose(file);
-        return NULL;
-    }
-    packed.seg = calloc(packed.len, sizeof(Seg));
-    fread(packed.seg, sizeof(Seg), packed.len, file);
-    if(fgetc(file) != EOF || !feof(file))
-        printf("Not at end of file after reading expected len (%u)\n", packed.len);
-    printf("finished reading packed map\n");
-    Seg* map = mapUnpack(packed);
-    free(packed.seg);
-    printf("free'd packed map\n");
-    return map;
-}
-
-// returns max map bounds
-Coordf mapBoundMax(Seg *map)
+// returns max coord of segList bounding box
+Coordf segListBoundMax(Seg *segList)
 {
     Coordf bound = {0};
-    while(map)
+    while(segList)
     {
-        bound.x = fmost(bound.x, map->a.x);
-        bound.x = fmost(bound.x, map->b.x);
-        bound.y = fmost(bound.y, map->a.y);
-        bound.y = fmost(bound.y, map->b.y);
-        if(map->type == S_TRIG){
-            bound.x = fmost(bound.x, map->trig.c.x);
-            bound.x = fmost(bound.x, map->trig.d.x);
-            bound.y = fmost(bound.y, map->trig.c.y);
-            bound.y = fmost(bound.y, map->trig.d.y);
+        bound.x = fmost(bound.x, segList->a.x);
+        bound.x = fmost(bound.x, segList->b.x);
+        bound.y = fmost(bound.y, segList->a.y);
+        bound.y = fmost(bound.y, segList->b.y);
+        if(segList->type == S_TRIG){
+            bound.x = fmost(bound.x, segList->trig.c.x);
+            bound.x = fmost(bound.x, segList->trig.d.x);
+            bound.y = fmost(bound.y, segList->trig.c.y);
+            bound.y = fmost(bound.y, segList->trig.d.y);
         }
-        map = map->next;
+        segList = segList->next;
     }
     return bound;
 }
 
-// returns min map bounds
-Coordf mapBoundMin(Seg *map)
+// returns max coord of map segments bounding box
+Coordf mapSegBoundMax(Seg *seg[S_N])
+{
+    Coordf maxBound = {0};
+    for(SegType type = 0; type < S_N; type++){
+        if(seg[type])
+            maxBound = cfMost(maxBound, segListBoundMax(seg[type]));
+    }
+    return maxBound;
+}
+
+// returns min coord of segList bounding box
+Coordf segListBoundMin(Seg *segList)
 {
     Coordf bound = {0};
-    while(map)
+    while(segList)
     {
-        bound.x = fleast(bound.x, map->a.x);
-        bound.x = fleast(bound.x, map->b.x);
-        bound.y = fleast(bound.y, map->a.y);
-        bound.y = fleast(bound.y, map->b.y);
-        if(map->type == S_TRIG){
-            bound.x = fleast(bound.x, map->trig.c.x);
-            bound.x = fleast(bound.x, map->trig.d.x);
-            bound.y = fleast(bound.y, map->trig.c.y);
-            bound.y = fleast(bound.y, map->trig.d.y);
+        bound.x = fleast(bound.x, segList->a.x);
+        bound.x = fleast(bound.x, segList->b.x);
+        bound.y = fleast(bound.y, segList->a.y);
+        bound.y = fleast(bound.y, segList->b.y);
+        if(segList->type == S_TRIG){
+            bound.x = fleast(bound.x, segList->trig.c.x);
+            bound.x = fleast(bound.x, segList->trig.d.x);
+            bound.y = fleast(bound.y, segList->trig.c.y);
+            bound.y = fleast(bound.y, segList->trig.d.y);
         }
-        map = map->next;
+        segList = segList->next;
     }
     return bound;
 }
 
-// returns length of map
-Coordf mapLength(Seg *map)
+// returns min coord of map segments bounding box
+Coordf mapSegBoundMin(Seg *seg[S_N])
 {
-    return cfSub(mapBoundMax(map), mapBoundMin(map));
+    Coordf minBound = {0};
+    for(SegType type = 0; type < S_N; type++){
+        if(seg[type])
+            minBound = cfLeast(minBound, segListBoundMin(seg[type]));
+    }
+    return minBound;
+}
+
+// returns length of map segments bounding box
+Coordf mapSegBoundLen(Seg *seg[S_N])
+{
+    return cfSub(mapSegBoundMax(seg), mapSegBoundMin(seg));
 }
 
 // converts a coordinate relative to the window to a map coordinate
@@ -87,21 +81,6 @@ Coordf screenToMap(const Coord off, const float scale, const Coord pos)
 Coord mapToScreen(const Coord off, const float scale, const Coordf pos)
 {
     return coordAdd(CfC(cfDivf(pos, scale)), off);
-}
-
-// returns the first segment in the list that contains an id equal to id
-Seg* mapQueryObjId(Seg *map, const uint id)
-{
-    while(map){
-        if(
-            (map->type == S_DOOR && map->door.id == id) ||
-            (map->type == S_TRIG && map->trig.id == id) ||
-            (map->type == S_CONV && (map->conv.idA == id || map->conv.idB == id))
-        )
-            break;
-        map = map->next;
-    }
-    return map;
 }
 
 // honestly idk
@@ -130,16 +109,23 @@ bool cfInQuad(const Coordf pos, const Coordf a, const Coordf b, const Coordf c, 
     );
 }
 
-// sets map segments whos id equals id with state equal to state
-Seg* mapUpdateIdState(Seg *map, const uint id, const bool state)
+// true if segment type has an id and it matches id
+bool segMatchId(Seg *seg, const uint id)
 {
-    Seg *cur = map;
+    return (seg->type == S_DOOR && seg->door.id == id) ||
+    (seg->type == S_TRIG && seg->trig.id == id) ||
+    (seg->type == S_CONV && (seg->conv.idA == id || seg->conv.idB == id));
+}
+
+// sets map segments whos id equals id with state equal to state
+void mapUpdateIdState(Map *map, const uint id, const bool state)
+{
+    Seg *cur = map->seg[S_DOOR];
     while(cur){
         if(cur->type == S_DOOR && cur->door.id == id)
             cur->door.state = state;
         cur = cur->next;
     }
-    return map;
 }
 
 // returns update with corrosponding id or NULL if none found
@@ -183,56 +169,49 @@ Update* upUpdate(Update *up, const uint id, const bool state)
 }
 
 // constructs and returns a list of updates that occured on the current frame
-Update* mapQueueUpdates(const Coordf oldPos, const Coordf newPos, Seg *map)
+Update* mapQueueUpdates(const Coordf oldPos, const Coordf newPos, Map *map)
 {
-    Seg *cur = map;
+    Seg *cur = map->seg[S_TRIG];
     Update *up = NULL;
     while(cur){
-        if(cur->type == S_TRIG){
-            const bool oldState = cfInQuad(oldPos, cur->a, cur->b, cur->trig.c, cur->trig.d);
-            const bool newState = cfInQuad(newPos, cur->a, cur->b, cur->trig.c, cur->trig.d);
-            if(oldState != newState){
-                up = upUpdate(up, cur->trig.id, newState);
-            }
-        }
+        const bool oldState = cfInQuad(oldPos, cur->a, cur->b, cur->trig.c, cur->trig.d);
+        const bool newState = cfInQuad(newPos, cur->a, cur->b, cur->trig.c, cur->trig.d);
+        if(oldState != newState)
+            up = upUpdate(up, cur->trig.id, newState);
         cur = cur->next;
     }
-    cur = map;
+    cur = map->seg[S_CONV];
     while(cur){
-        if(cur->type == S_CONV){
-            Update *src = upQueryId(up, cur->conv.idA);
-            if(src)
-                up = upUpdate(up, cur->conv.idB, src->state);
-        }
+        Update *src = upQueryId(up, cur->conv.idA);
+        if(src)
+            up = upUpdate(up, cur->conv.idB, src->state);
         cur = cur->next;
     }
     return up;
 }
 
 // applys and frees all updates in list to map
-Seg* mapApplyUpdates(Seg *map, Update *up)
+void mapApplyUpdates(Map *map, Update *up)
 {
     while(up){
         Update *next = up->next;
-        map = mapUpdateIdState(map, up->id, up->state);
+        mapUpdateIdState(map, up->id, up->state);
         free(up);
         up = next;
     }
-    return map;
 }
 
 // updates the dynamic segments of the map
-void mapUpdateDynamics(Seg *map)
+void mapUpdateDynamics(Map *map)
 {
-    while(map){
-        if(map->type == S_DOOR){
-            map->door.pos += map->door.state ? -map->door.speed : map->door.speed;
-            if(map->door.pos < 0.0f)
-                map->door.pos = 0.0f;
-            if(map->door.pos > 1.0f)
-                map->door.pos = 1.0f;
-        }
-        map = map->next;
+    Seg *cur = map->seg[S_DOOR];
+    while(cur){
+        cur->door.pos += cur->door.state ? -cur->door.speed : cur->door.speed;
+        if(cur->door.pos < 0.0f)
+            cur->door.pos = 0.0f;
+        if(cur->door.pos > 1.0f)
+            cur->door.pos = 1.0f;
+        cur = cur->next;
     }
 }
 

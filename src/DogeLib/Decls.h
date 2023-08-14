@@ -175,6 +175,7 @@ void gfx_quit(void);
 void gfx_init(void);
 
 // Text.h
+char* strdup(char *str);
 bool strEndsWith(const char*, const char*);
 Img* textImg(const char*);
 Texture* textTexture(const char*);

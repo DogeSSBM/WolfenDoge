@@ -71,36 +71,34 @@ bool limitViewBounds(const View view, Coord *a, Coord *b)
 }
 
 // casts ray from origin to distantPoint and returns the nearest intersection that is > min distance away
-Ray castRayMin(const Coordf origin, const Coordf distantPoint, Seg *map, const bool solidOnly, const float min)
+Ray castRayMin(const Coordf origin, const Coordf distantPoint, Map *map, const bool solidOnly, const float min)
 {
     Ray ray = {
-        .wall = map,
+        .wall = map->seg[S_WALL],
         .dst = 60000.0f,
         .pos = distantPoint
     };
-    while(map){
-        if(
-            map->type == S_CONV ||
-            map->type == S_TRIG ||
-            (solidOnly && (
-                map->type == S_WIND ||
-                (map->type == S_DOOR && map->door.pos < 1.0f)
-            ))
-        ){
-            map = map->next;
+    for(SegType type = 0; type < S_N; type++){
+        if(type == S_CONV || type == S_TRIG || (solidOnly && type == S_WIND))
             continue;
+        Seg *seg = map->seg[type];
+        while(seg){
+            if(solidOnly && seg->type == S_DOOR && seg->door.pos < 1.0f){
+                seg = seg->next;
+                continue;
+            }
+            float curDst = 0;
+            Coordf curPos = {0};
+            if(
+                lineIntersection(origin, distantPoint, seg->a, seg->b, &curPos) &&
+                (curDst = cfDist(origin, curPos)) > min && curDst < ray.dst
+            ){
+                ray.wall = seg;
+                ray.dst = curDst;
+                ray.pos = curPos;
+            }
+            seg = seg->next;
         }
-        float curDst = 0;
-        Coordf curPos = {0};
-        if(
-            lineIntersection(origin, distantPoint, map->a, map->b, &curPos) &&
-            (curDst = cfDist(origin, curPos)) > min && curDst < ray.dst
-        ){
-            ray.wall = map;
-            ray.dst = curDst;
-            ray.pos = curPos;
-        }
-        map = map->next;
     }
     if(ray.dst == 60000.0f)
         ray.wall = NULL;
@@ -108,7 +106,7 @@ Ray castRayMin(const Coordf origin, const Coordf distantPoint, Seg *map, const b
 }
 
 // casts ray from origin to distantPoint and returns the nearest intersection
-Ray castRay(const Coordf origin, const Coordf distantPoint, Seg *map, const bool solidOnly)
+Ray castRay(const Coordf origin, const Coordf distantPoint, Map *map, const bool solidOnly)
 {
     return castRayMin(origin, distantPoint, map, solidOnly, -1.0f);
 }
@@ -185,7 +183,7 @@ void drawWall(const View view, const Ray ray, const int xpos, const int ymid, co
 }
 
 // draw first person view
-void drawFp(const View view, Seg *map, const Player player, const Length wlen)
+void drawFp(const View view, Map *map, const Player player, const Length wlen)
 {
     setColor(GREY2);
     fillRectCoordLength(view.pos, iC(view.len.x,view.len.y/2));
@@ -225,55 +223,54 @@ void drawFp(const View view, Seg *map, const Player player, const Length wlen)
 }
 
 // draw birds eye view
-void drawBv(const View view, Seg *map, const Player player, const float scale, const Coordf off)
+void drawBv(const View view, Map *map, const Player player, const float scale, const Coordf off)
 {
     setColor(BLACK);
     fillRectCoordLength(view.pos, view.len);
     (void)off;
-    Seg *cur = map;
-    const Length hlen = coordDivi(view.len, 2);
-    while(cur){
-        if(cur->type == S_TRIG){
-            cur = cur->next;
+    for(SegType type = 0; type < S_N; type++){
+        if(type == S_TRIG)
             continue;
+        Seg *cur = map->seg[type];
+        const Length hlen = coordDivi(view.len, 2);
+        while(cur){
+            Coord a = coordAdd(toView(view, cfSub(cur->a, player.pos), scale), hlen);
+            Coord b = coordAdd(toView(view, cfSub(cur->b, player.pos), scale), hlen);
+            setColor(cur->color);
+            if(limitViewBounds(view, &a, &b))
+                drawLineCoords(a, b);
+            cur = cur->next;
         }
-        Coord a = coordAdd(toView(view, cfSub(cur->a, player.pos), scale), hlen);
-        Coord b = coordAdd(toView(view, cfSub(cur->b, player.pos), scale), hlen);
-        setColor(cur->color);
-        if(limitViewBounds(view, &a, &b))
-            drawLineCoords(a, b);
-        cur = cur->next;
-    }
 
-    Coord ppos = coordAdd(view.pos, hlen);
-    Coord rpos = coordAdd(toView(view, cfSub(castRay(
-        player.pos, cfAdd(player.pos, degMagToCf(degReduce(player.ang + 45.0f), 6000.0f)),
-        map, false
-    ).pos, player.pos), scale), hlen);
-    Coord lpos = coordAdd(toView(view, cfSub(castRay(
-        player.pos, cfAdd(player.pos, degMagToCf(degReduce(player.ang - 45.0f), 6000.0f)),
-        map, false
-    ).pos, player.pos), scale), hlen);
-    limitViewBounds(view, &ppos, &rpos);
-    limitViewBounds(view, &ppos, &lpos);
-    setColor(YELLOW);
-    drawLineCoords(ppos, rpos);
-    drawLineCoords(ppos, lpos);
-    fillCircleCoord(ppos, 2);
+        Coord ppos = coordAdd(view.pos, hlen);
+        Coord rpos = coordAdd(toView(view, cfSub(castRay(
+            player.pos, cfAdd(player.pos, degMagToCf(degReduce(player.ang + 45.0f), 6000.0f)),
+            map, false
+        ).pos, player.pos), scale), hlen);
+        Coord lpos = coordAdd(toView(view, cfSub(castRay(
+            player.pos, cfAdd(player.pos, degMagToCf(degReduce(player.ang - 45.0f), 6000.0f)),
+            map, false
+        ).pos, player.pos), scale), hlen);
+        limitViewBounds(view, &ppos, &rpos);
+        limitViewBounds(view, &ppos, &lpos);
+        setColor(YELLOW);
+        drawLineCoords(ppos, rpos);
+        drawLineCoords(ppos, lpos);
+        fillCircleCoord(ppos, 2);
+    }
 }
 
 // moves the player
-Player playerMove(Player player, Seg *map)
+void playerMove(Map *map)
 {
-    player.ang = degReduce(player.ang + (float)(mouse.vec.x*2)/3.0f);
-    player.ang = degReduce(player.ang + (keyState(SC_RIGHT) - keyState(SC_LEFT)));
+    map->player.ang = degReduce(map->player.ang + (float)(mouse.vec.x*2)/3.0f);
+    map->player.ang = degReduce(map->player.ang + (keyState(SC_RIGHT) - keyState(SC_LEFT)));
     if(castRay(
-        player.pos,
-        cfAdd(player.pos, cfRotateDeg(cfMulf(CCf(wasdKeyStateOffset()), 10.0f), player.ang+90.0f)),
+        map->player.pos,
+        cfAdd(map->player.pos, cfRotateDeg(cfMulf(CCf(wasdKeyStateOffset()), 10.0f), map->player.ang+90.0f)),
         map, true
     ).dst > 10.0f)
-        player.pos = cfAdd(player.pos, cfRotateDeg(CCf(coordMuli(wasdKeyStateOffset(), 2)), player.ang+90.0f));
-    return player;
+        map->player.pos = cfAdd(map->player.pos, cfRotateDeg(CCf(coordMuli(wasdKeyStateOffset(), 2)), map->player.ang+90.0f));
 }
 
 #endif /* end of include guard: WOLFENDOGE_H */

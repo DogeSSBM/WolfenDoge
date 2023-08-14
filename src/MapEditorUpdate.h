@@ -13,20 +13,24 @@ void updateMouseCommon(Minfo *ml, Minfo *mr, Selection *sel, const Offset off, c
     mr->msnap = ml->msnap;
     ml->ssnap = mapToScreen(off, scale, ml->msnap);
     mr->ssnap = ml->ssnap;
-    if(keyPressed(SC_ESCAPE)){
-        sel->wall = NULL;
-        sel->pos = NULL;
-        mr->drag = false;
-        ml->drag = false;
-    }
+    if(!keyPressed(SC_ESCAPE))
+        return;
+    if(sel->piece.type == M_SEG)
+        sel->piece.seg = NULL;
+    else if(sel->piece.type == M_SEG)
+        sel->piece.seg = NULL;
+    sel->piece.type = M_NONE;
+    sel->pos = NULL;
+    mr->drag = false;
+    ml->drag = false;
 }
 
 // updates left mouse button info
 // updates selection if left mouse is pressed, dragged, or released
-Minfo updateMouseL(Minfo ml, Selection *sel, Seg *map, const float scale, const bool snap, const float snaplen)
+Minfo updateMouseL(Minfo ml, Selection *sel, Map *map, const float scale, const bool snap, const float snaplen)
 {
-    if(!sel->wall && mouseBtnReleased(MOUSE_L))
-        sel->wall = posNearest(map, ml.mpos, &(sel->pos));
+    if(sel->piece.type == M_NONE && mouseBtnReleased(MOUSE_L))
+        sel->piece = posNearest(map, ml.mpos, M_ANY, &(sel->pos));
 
     if(mouseBtnPressed(MOUSE_L) && sel->pos){
         ml.drag = true;
@@ -55,7 +59,7 @@ Minfo updateMouseL(Minfo ml, Selection *sel, Seg *map, const float scale, const 
 
 // updates right mouse button info
 // updates selection if right mouse is pressed, dragged, or released
-Minfo updateMouseR(Minfo mr, Selection *sel, Seg **map, const Color c, const bool snap)
+Minfo updateMouseR(Minfo mr, Selection *sel, Map *map, const Color c, const bool snap)
 {
     if(mouseBtnPressed(MOUSE_R)){
         mr.sposd = mr.spos;
@@ -91,8 +95,8 @@ Minfo updateMouseR(Minfo mr, Selection *sel, Seg **map, const Color c, const boo
                 break;
         }
         assertExpr(newSeg);
-        *map = segAppend(*map, newSeg);
-        sel->wall = newSeg;
+        map->seg[newSeg->type] = segAppend(map->seg[newSeg->type], newSeg);
+        sel->piece.seg = newSeg;
         sel->pos = &(newSeg->a);
     }
 
@@ -112,36 +116,46 @@ Minfo updateMouseR(Minfo mr, Selection *sel, Seg **map, const Color c, const boo
 // sets cursor.x to 0 if cursor.y changed to a selection that only has a single option
 Selection updateSelCursor(Selection sel)
 {
-    if(!sel.wall || textInputState())
+    if(!sel.piece.seg || textInputState())
         return sel;
-    sel.cursor.y = wrap(sel.cursor.y + keyPressed(SC_DOWN) - keyPressed(SC_UP), 0, SegTypeNumFields[sel.wall->type]);
+    sel.cursor.y = wrap(sel.cursor.y + keyPressed(SC_DOWN) - keyPressed(SC_UP), 0, SegTypeNumFields[sel.piece.seg->type]);
     if(!(
         sel.cursor.y == 3 ||
-        (sel.wall->type == S_WIND && sel.cursor.y == 4) ||
-        (sel.wall->type == S_DOOR && sel.cursor.y == 8)
+        (sel.piece.seg->type == S_WIND && sel.cursor.y == 4) ||
+        (sel.piece.seg->type == S_DOOR && sel.cursor.y == 8)
     ))
         sel.cursor.x = 0;
     return sel;
 }
 
 // updates selection to next seg / coord that overlaps
-Selection updateSelNext(Selection sel, Seg *map)
+Selection updateSelNext(Selection sel, Map *map)
 {
     if(!keyPressed(SC_N))
         return sel;
-    sel.wall = posNext(map, sel.wall, &sel.pos);
+    sel.piece = posNext(map, sel.piece, &sel.pos);
     return sel;
 }
 
 // if a segment is selected, deletes it from map segment list and updates *sel
-Seg* updateDel(Seg *map, Selection *sel)
+bool updateDel(Map *map, Selection *sel)
 {
-    if(keyPressed(SC_DELETE) && sel->wall){
-        map = segDelete(map, sel->wall);
-        sel->wall = NULL;
+    if(!keyPressed(SC_DELETE))
+        return false;
+    if(sel->piece.type == M_SEG && sel->piece.seg){
+        map->seg[sel->piece.seg->type] = segDelete(map->seg[sel->piece.seg->type], sel->piece.seg);
+        sel->piece.type = M_NONE;
+        sel->piece.seg = NULL;
         sel->pos = NULL;
+        return true;
+    }else if(sel->piece.type == M_OBJ && sel->piece.obj){
+        map->obj[sel->piece.obj->type] = objDelete(map->obj[sel->piece.obj->type], sel->piece.obj);
+        sel->piece.type = M_NONE;
+        sel->piece.obj = NULL;
+        sel->pos = NULL;
+        return true;
     }
-    return map;
+    return false;
 }
 
 // if window is resized updates it preserving off relative to new window lengths

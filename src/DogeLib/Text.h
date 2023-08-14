@@ -1,6 +1,13 @@
 #ifndef DOGELIB_TEXT_H
 #define DOGELIB_TEXT_H
 
+char* strdup(char *str)
+{
+    char *dup = calloc(strlen(str)+1, sizeof(char));
+    memcpy(dup, str, strlen(str));
+    return dup;
+}
+
 bool strEndsWith(const char *str, const char *end)
 {
     if(str == NULL || end == NULL)
