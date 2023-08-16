@@ -9,14 +9,7 @@ int main(int argc, char **argv)
     gfx.outlined = false;
     winSetPosCoord(coordAddi(coordDivi(getWinDisplayLen(), 2), -400));
 
-    Map map = {0};
-    if(argc == 2){
-        char mapFilePath[128] = {0};
-        sprintf(mapFilePath, "../Maps/%s", argv[1]);
-        map = mapLoad(mapFilePath);
-    }else{
-        map = mapLoad(NULL);
-    }
+    Map map = mapLoad(argc == 2 ? argv[1] : NULL);
 
     while(1){
         const uint t = frameStart();

@@ -71,7 +71,7 @@ void mapEdit(Map *);
 Texture* wallListTxtrQryLoad(Seg *, char *);
 Seg* txtrCleanup(Seg *, Seg *);
 Seg* txtrApply(Seg *, Texture *, char *);
-char* newMapFileNum(void);
+void newMapFileNum(Map *);
 Map mapLoad(char *);
 void mapSave(Map *);
 SegPacked mapPack(Seg *);

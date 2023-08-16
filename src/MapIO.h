@@ -12,6 +12,8 @@ st mapParseName(Map *map)
         len++;
     assertExpr(len && c != EOF);
 
+    if(map->name)
+        free(map->name);
     map->name = calloc(len+1, sizeof(char));
     rewind(map->file);
     for(st i = 0; i < len; i++)
@@ -48,125 +50,81 @@ void mapSpawnPlayer(Map *map)
     map->player.ang = obj->spawn.ang;
 }
 
-// parses a list of all segments from map file
-Seg* mapParseAllSegments(Map *map)
-{
-    assertExpr(map && map->file);
-    Seg *segList = NULL;
-    st len = 0;
-    while(1){
-        Seg *seg = calloc(1, sizeof(Seg));
-        assertExpr(fread(seg, sizeof(Seg), 1, map->file) == 1);
-        if(seg->type == S_END){
-            free(seg);
-            break;
-        }
-        segList = segAppend(segList, seg);
-        len++;
-    }
-    printf("Total segments: %zu\n", len);
-    return segList;
-}
-
-// takes list of all map segments (ordered by SegType)
-// splits list up into seperate lists for each SegType in map->seg[type]
-void mapSortSegments(Map *map, Seg *segList)
-{
-    for(SegType type = 0; type < S_N; type++){
-        if(!segList)
-            return;
-        if(segList->type != type)
-            continue;
-        map->seg[type] = segList;
-        while(segList && segList->type == type){
-            if(segList->next->type == type){
-                segList = segList->next;
-            }else{
-                Seg *next = segList->next;
-                segList->next = NULL;
-                segList = next;
-            }
-        }
-    }
-}
-
 // parses map segments into their respective SegType index
 void mapParseSegments(Map *map)
 {
-    mapSortSegments(map, mapParseAllSegments(map));
-    for(SegType type = 0; type < S_N; type++)
-        printf("%s: %zu\n", SegTypeStr[type], segListLen(map->seg[type]));
-}
-
-// parses a list of all objects from map file
-Obj* mapParseAllObjects(Map *map)
-{
-    assertExpr(map && map->file);
-    Obj *objList = NULL;
-    st len = 0;
-    while(!feof(map->file)){
-        Obj *obj = calloc(1, sizeof(Obj));
-        objList = objAppend(objList, obj);
-        len++;
-    }
-    printf("Total objments: %zu\n", len);
-    return objList;
-}
-
-// takes list of all map segments (ordered by SegType)
-// splits list up into seperate lists for each SegType in map->seg[type]
-void mapSortObjects(Map *map, Obj *objList)
-{
-    for(ObjType type = 0; type < O_N; type++){
-        if(!objList)
-            return;
-        if(objList->type != type)
-            continue;
-        map->obj[type] = objList;
-        while(objList && objList->type == type){
-            if(objList->next->type == type){
-                objList = objList->next;
-            }else{
-                Obj *next = objList->next;
-                objList->next = NULL;
-                objList = next;
+    Seg *seg = NULL;
+    do{
+        seg = calloc(1, sizeof(Seg));
+        assertExpr(fread(seg, sizeof(Seg), 1, map->file) == 1);
+        seg->next = NULL;
+        if(seg->type != S_END){
+            map->seg[seg->type] = segAppend(map->seg[seg->type], seg);
+            printf("read a segment with type %s\n", SegTypeStr[seg->type]);
+            if(seg->type == S_WALL && strlen(seg->wall.path)){
+                seg->wall.texture = NULL;
+                seg->wall.texture = wallListTxtrQryLoad(map->seg[S_WALL], seg->wall.path);
             }
         }
-    }
+    }while(seg->type != S_END);
+    printf("done parsing segments\n");
+    free(seg);
 }
 
 // parses map objects into their respective ObjType index
 void mapParseObjects(Map *map)
 {
-    mapSortObjects(map, mapParseAllObjects(map));
-    for(ObjType type = 0; type < O_N; type++)
-        printf("%s: %zu\n", ObjTypeStr[type], objListLen(map->obj[type]));
+    Obj *obj = NULL;
+    while(!feof(map->file)){
+        obj = calloc(1, sizeof(Obj));
+        if(fread(obj, sizeof(Obj), 1, map->file) == 1){
+            obj->next = NULL;
+            map->obj[obj->type] = objAppend(map->obj[obj->type], obj);
+            printf("read an object with type %s\n", ObjTypeStr[obj->type]);
+        }else{
+            assertExpr(feof(map->file));
+            break;
+        }
+    }
+    printf("done parsing objects\n");
+    free(obj);
 }
 
 // parses map file
 void mapParseFile(Map *map)
 {
+    printf("Parsing map: \"%s\"\nat: \"%s\"\n", map->name, map->path);
     assertExpr(map && map->file);
     assertExpr(mapParseName(map) > 0);
+    printf("parsed map name: \"%s\"\n", map->name);
     mapParseSegments(map);
     mapParseObjects(map);
     fclose(map->file);
+    map->file = NULL;
 }
 
 // attempts to open ../Maps/map.bork then ../Maps/map(n).bork with n starting at 1 and increasing
-// once a file name that doesnt exist is found returns the path
-char* newMapFileNum(void)
+// once a file name that doesnt exist is found sets map.name to it
+void newMapFileNum(Map *map)
 {
     uint n = 0;
     File *file = NULL;
-    char path[256] = "../Maps/map.bork";
-    while((file = fopen(path, "rb")) != NULL){
+    char name[128] = "map";
+    char path[256] = "./Maps/map.bork";
+    while(1){
+        if(n > 0){
+            sprintf(name, "map(%u)", n);
+            sprintf(path, "./Maps/%s.bork", name);
+        }
+        if(!(file = fopen(path, "rb")))
+            break;
         fclose(file);
         n++;
-        sprintf(path, "../Maps/map(%u).bork", n);
+        sprintf(path, "./Maps/map(%u).bork", n);
     }
-    printf("No map path supplied, this map will be saved to \"%s\"\n", path);
-    return strdup(path);
+
+    printf("No map path supplied, this map will be named: \"%s\" and saved to: \"%s\"\n", name, path);
+    map->name = strdup(name);
 }
 
 // sets seg's texture to NULL, checks to see if any other segments in map have
@@ -274,19 +232,27 @@ void mapDefaultObjects(Map *map)
     map->obj[O_SPAWN] = spawnNew(fC(125.0f, 125.0f), 0);
 }
 
+// loads default map
 void mapDefault(Map *map)
 {
     mapDefaultSegments(map);
     mapDefaultObjects(map);
 }
 
-// attempts to load map file at mapPathArg if present
+// attempts to load map file at ./Maps/name if present
 // if not present, sets map.path to ../Maps/map.bork or ../Maps/map(n).bork
 // starting at n=1 and increasing until unique file path is found
-Map mapLoad(char *mapPathArg)
+Map mapLoad(char *name)
 {
     Map map = {0};
-    map.path = mapPathArg ? strdup(mapPathArg) : newMapFileNum();
+    if(name)
+        map.name = strdup(name);
+    else
+        newMapFileNum(&map);
+    char path[256] = {0};
+    sprintf(path, "./Maps/%s.bork", map.name);
+    map.path = strdup(path);
+    printf("name: \"%s\"\npath: \"%s\"\n", map.name, map.path);
     if((map.file = fopen(map.path, "rb")))
         mapParseFile(&map);
     else
