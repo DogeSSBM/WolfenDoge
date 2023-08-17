@@ -88,39 +88,6 @@ MapPiece posNearest(Map *map, const Coordf pos, const MapPieceType pieceType, Co
     }
 
     return piece;
-
-    // *nearest = &(map->a);
-    // float dst = cfDist(pos, map->a);
-    // while(map){
-    //     float curDst = cfDist(pos, map->a);
-    //     if(curDst < dst){
-    //         dst = curDst;
-    //         wall = map;
-    //         *nearest = &(map->a);
-    //     }
-    //     curDst = cfDist(pos, map->b);
-    //     if(curDst < dst){
-    //         dst = curDst;
-    //         wall = map;
-    //         *nearest = &(map->b);
-    //     }
-    //     if(map->type == S_TRIG){
-    //         curDst = cfDist(pos, map->trig.c);
-    //         if(curDst < dst){
-    //             dst = curDst;
-    //             wall = map;
-    //             *nearest = &(map->trig.c);
-    //         }
-    //         curDst = cfDist(pos, map->trig.d);
-    //         if(curDst < dst){
-    //             dst = curDst;
-    //             wall = map;
-    //             *nearest = &(map->trig.d);
-    //         }
-    //     }
-    //     map = map->next;
-    // }
-    // return wall;
 }
 
 // if *pos == NULL, sets it to first coord of piece
@@ -249,7 +216,17 @@ MapPiece coordNextWrap(Map *map, MapPiece piece, Coordf **pos)
             return coordNext(mapPieceFromListOfType(piece.type, list), pos);
         }
     }
-    panic("good greif");
+    assertExpr(type == PieceTypeNum[piece.type]);
+    *pos = NULL;
+    piece.type = (piece.type + 1) % 2;
+    for(type = mapPiecePieceType(piece); type < PieceTypeNum[piece.type]; type++){
+        void *list = mapGetPieceListOfTypeAtIndex(map, piece.type, type);
+        if(list){
+            *pos = NULL;
+            return coordNext(mapPieceFromListOfType(piece.type, list), pos);
+        }
+    }
+    // panic("good greif");
     return piece;
 }
 
@@ -408,7 +385,7 @@ void mapEdit(Map *map)
     Length wlen = getWindowLen();
     Minfo ml = {0};
     Minfo mr = {0};
-    Selection sel = {.showInfo = true, .cursor = iC(0,3)};
+    Selection sel = {.piece.type = M_NONE, .showInfo = true, .cursor = iC(0,3)};
     Color c = MAGENTA;
     while(1){
         const uint t = frameStart();

@@ -158,6 +158,11 @@ Coordf fC(const float x, const float y)
     return (const Coordf){.x=x, .y=y};
 }
 
+Coordf ffC(const float f)
+{
+    return (const Coordf){.x=f, .y=f};
+}
+
 typedef enum{DIR_U = 0, DIR_R, DIR_D, DIR_L}Direction;
 
 const char DirectionChar[4] = {'U', 'R', 'D', 'L'};

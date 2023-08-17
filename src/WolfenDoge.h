@@ -105,10 +105,101 @@ Ray castRayMin(const Coordf origin, const Coordf distantPoint, Map *map, const b
     return ray;
 }
 
+// inserts ins such that list will be sorted greatest dst to least
+RaySect* raySectInsert(RaySect *list, RaySect *ins)
+{
+    if(!list)
+        return ins;
+    if(ins->dst > list->dst){
+        ins->next = list;
+        return ins;
+    }
+    RaySect *cur = list;
+    while(cur->next && cur->next->dst > ins->dst)
+        cur = cur->next;
+    RaySect *next = cur->next;
+    cur->next = ins;
+    ins->next = next;
+    return list;
+}
+
+RaySect* raySectNew(const MapPiece piece, const float dst, const Coordf pos)
+{
+    assertExpr(piece.type < M_ANY);
+    RaySect *rs = calloc(1, sizeof(RaySect));
+    rs->piece = piece;
+    rs->dst = dst;
+    rs->pos = pos;
+    return rs;
+}
+
+RaySect* raySectFree(RaySect *list)
+{
+    if(!list)
+        return list;
+    RaySect *next = list->next;
+    free(list);
+    return next;
+}
+
+// casts ray from origin to distantPoint and returns all intersections that are < max distance away
+RaySect* castRayMax(const Coordf origin, const Coordf distantPoint, Map *map, const float max)
+{
+    RaySect *list = NULL;
+    for(SegType type = 0; type < S_N; type++){
+        if(type == S_CONV || type == S_TRIG)
+            continue;
+        Seg *seg = map->seg[type];
+        while(seg){
+            float dst = 0;
+            Coordf pos = {0};
+            if(
+                lineIntersection(origin, distantPoint, seg->a, seg->b, &pos) &&
+                (dst = cfDist(origin, pos)) < max
+            )
+                list = raySectInsert(list, raySectNew((MapPiece){.type = M_SEG, .seg = seg}, dst, pos));
+            seg = seg->next;
+        }
+    }
+
+    Obj *obj = map->obj[O_MOB];
+    while(obj){
+        float dst = 0;
+        Coordf pos = {0};
+        if(
+            lineIntersection(origin, distantPoint, obj->mob.a, obj->mob.b, &pos) &&
+            (dst = cfDist(origin, pos)) < max
+        )
+            list = raySectInsert(list, raySectNew((MapPiece){.type = M_OBJ, .obj = obj}, dst, pos));
+        obj = obj->next;
+    }
+    return list;
+}
+
 // casts ray from origin to distantPoint and returns the nearest intersection
 Ray castRay(const Coordf origin, const Coordf distantPoint, Map *map, const bool solidOnly)
 {
     return castRayMin(origin, distantPoint, map, solidOnly, -1.0f);
+}
+
+void drawObj(const View view, const RaySect *rs, const int xpos, const int ymid, const int dst, const float hsec)
+{
+    const int height = (view.len.y*120) / fmax(dst, .01f);
+    assertExpr(rs->piece.type == M_OBJ && rs->piece.obj->type == O_MOB);
+    const Length txtrlen = textureLen(rs->piece.obj->mob.texture);
+    const float walllen = cfDist(rs->piece.obj->mob.a, rs->piece.obj->mob.b);
+    const float poslen = cfDist(rs->piece.obj->mob.a, rs->pos);
+    const float xdst = poslen/walllen;
+    const Rect r = {
+        .x = (int)((float)txtrlen.x * xdst),
+        .y = 0,
+        .w = 1,
+        .h = txtrlen.y
+    };
+    const Coord p = iC(xpos, ymid-height/2);
+    const Length l = iC(hsec+1, height);
+    drawTextureRectCoordResize(rs->piece.obj->mob.texture, r, p, l);
+    return;
 }
 
 // draws vertical slice of wall based on ray information
@@ -200,26 +291,37 @@ void drawFp(const View view, Map *map, const Player player, const Length wlen)
         const float viewTan = (0.5-i/(float)FOV_NUM_RAYS) / 0.5;
         const int correctedDst = (int)(ray.dst/sqrtf(viewTan*viewTan+1.0f));
         const int xpos = view.pos.x+hsec/2+i*hsec;
+        RaySect *list = castRayMax(player.pos, farpos, map, ray.dst-1.0f);
         drawWall(view, ray, xpos, ymid, correctedDst, hsec);
-        const Ray wray1 = castRay(player.pos, farpos, map, false);
-        if(wray1.wall && wray1.wall->type != S_WALL){
-            const Ray wray2 = castRayMin(player.pos, farpos, map, false, wray1.dst+1.0f);
-            if(wray2.wall && wray2.wall->type != S_WALL)
-                drawWall(view, wray2, xpos, ymid, (int)(wray2.dst/sqrtf(viewTan*viewTan+1.0f)), hsec);
-            drawWall(view, wray1, xpos, ymid, (int)(wray1.dst/sqrtf(viewTan*viewTan+1.0f)), hsec);
+        while(list){
+            const int corDst = (int)(list->dst/sqrtf(viewTan*viewTan+1.0f));
+            if(list->piece.type == M_SEG)
+                drawWall(view, (Ray){.wall=list->piece.seg, .dst = list->dst, .pos = list->pos}, xpos, ymid, corDst, hsec);
+            else
+                drawObj(view, list, xpos, ymid, corDst, hsec);
+            list = raySectFree(list);
         }
+        // const Ray wray1 = castRay(player.pos, farpos, map, false);
+        // if(wray1.wall && wray1.wall->type != S_WALL){
+        //     const Ray wray2 = castRayMin(player.pos, farpos, map, false, wray1.dst+1.0f);
+        //     if(wray2.wall && wray2.wall->type != S_WALL)
+        //         drawWall(view, wray2, xpos, ymid, (int)(wray2.dst/sqrtf(viewTan*viewTan+1.0f)), hsec);
+        //     drawWall(view, wray1, xpos, ymid, (int)(wray1.dst/sqrtf(viewTan*viewTan+1.0f)), hsec);
+        // }
     }
-    char buf[32] = {0};
-    sprintf(buf, "%+14.6f, %+14.6f", player.pos.x, player.pos.y);
-    const uint tscale = (wlen.x/3)/10;
-    setTextSize(tscale);
-    Texture *texture = textTexture(buf);
-    setColor(BLACK);
-    setTextColor(WHITE);
-    const Coord pos = coordSub(wlen, textureLen(texture));
-    fillRectCoordLength(pos, textureLen(texture));
-    drawTextureCoord(texture, pos);
-    textureFree(texture);
+
+    (void)wlen;
+    // char buf[32] = {0};
+    // sprintf(buf, "%+14.6f, %+14.6f", player.pos.x, player.pos.y);
+    // const uint tscale = (wlen.x/3)/10;
+    // setTextSize(tscale);
+    // Texture *texture = textTexture(buf);
+    // setColor(BLACK);
+    // setTextColor(WHITE);
+    // const Coord pos = coordSub(wlen, textureLen(texture));
+    // fillRectCoordLength(pos, textureLen(texture));
+    // drawTextureCoord(texture, pos);
+    // textureFree(texture);
 }
 
 // draw birds eye view
@@ -228,11 +330,11 @@ void drawBv(const View view, Map *map, const Player player, const float scale, c
     setColor(BLACK);
     fillRectCoordLength(view.pos, view.len);
     (void)off;
+    const Length hlen = coordDivi(view.len, 2);
     for(SegType type = 0; type < S_N; type++){
         if(type == S_TRIG)
             continue;
         Seg *cur = map->seg[type];
-        const Length hlen = coordDivi(view.len, 2);
         while(cur){
             Coord a = coordAdd(toView(view, cfSub(cur->a, player.pos), scale), hlen);
             Coord b = coordAdd(toView(view, cfSub(cur->b, player.pos), scale), hlen);
@@ -257,6 +359,16 @@ void drawBv(const View view, Map *map, const Player player, const float scale, c
         drawLineCoords(ppos, rpos);
         drawLineCoords(ppos, lpos);
         fillCircleCoord(ppos, 2);
+    }
+
+    Obj *obj = map->obj[O_MOB];
+    while(obj){
+        Coord a = coordAdd(toView(view, cfSub(obj->mob.a, player.pos), scale), hlen);
+        Coord b = coordAdd(toView(view, cfSub(obj->mob.b, player.pos), scale), hlen);
+        setColor(BLUE);
+        if(limitViewBounds(view, &a, &b))
+            drawLineCoords(a, b);
+        obj = obj->next;
     }
 }
 

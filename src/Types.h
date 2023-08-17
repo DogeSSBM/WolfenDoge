@@ -64,10 +64,13 @@ typedef struct Obj{
             Color c;
         }key;
         struct{
+            Coordf a;       // a and b are updated dynamically at runtime. they corrospond to where the left and right sides of
+            Coordf b;       // the mob would be as it faces the player
             Coordf origin;
             Coordf vec;
-            Texture *txtr;
-            char *path;
+            Coordf len;
+            Texture *texture;
+            char path[128];
         }mob;
     };
     struct Obj *next;
@@ -107,6 +110,14 @@ typedef struct{
     float dst;
     Coordf pos;
 }Ray;
+
+// ray intersections
+typedef struct RaySect{
+    MapPiece piece;
+    float dst;
+    Coordf pos;
+    struct RaySect *next;
+}RaySect;
 
 typedef struct{
     Coord spos;

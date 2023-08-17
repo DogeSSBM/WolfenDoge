@@ -178,6 +178,22 @@ Texture* wallListTxtrQryLoad(Seg *wallList, char *path)
     return loadTexture(path);
 }
 
+// returns already loaded texture with matching path if exists
+// else returns newly allocated texture
+Texture* mobListTxtrQryLoad(Obj *mobList, char *path)
+{
+    while(mobList){
+        assertExpr(mobList->type == O_MOB);
+        if(mobList->mob.texture && !strcmp(mobList->mob.path, path)){
+            printf("Found texture: \"%s\"\n", path);
+            return mobList->mob.texture;
+        }
+        mobList = mobList->next;
+    }
+    printf("Loading texture: \"%s\"\n", path);
+    return loadTexture(path);
+}
+
 // Loads default map segments
 void mapDefaultSegments(Map *map)
 {
@@ -230,13 +246,17 @@ void mapDefaultObjects(Map *map)
 {
     assertExpr(map);
     map->obj[O_SPAWN] = spawnNew(fC(125.0f, 125.0f), 0);
+    map->obj[O_MOB] = mobNew(map->obj[O_MOB], ffC(600.0f), ffC(100.0f), "./Assets/Doggo.png");
 }
 
 // loads default map
 void mapDefault(Map *map)
 {
+    // printf("Loading default segments...\n");
     mapDefaultSegments(map);
+    // printf("...Loading default objects...\n");
     mapDefaultObjects(map);
+    // printf("...done\n");
 }
 
 // attempts to load map file at ./Maps/name if present

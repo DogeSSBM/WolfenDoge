@@ -5,11 +5,13 @@ int main(int argc, char **argv)
 {
     assertExpr(argc <= 2);
     init();
+    setBlend(BLEND_NONE);
     SDL_StopTextInput();
     gfx.outlined = false;
     winSetPosCoord(coordAddi(coordDivi(getWinDisplayLen(), 2), -400));
 
     Map map = mapLoad(argc == 2 ? argv[1] : NULL);
+    bool focus = false;
 
     while(1){
         const uint t = frameStart();
@@ -18,7 +20,10 @@ int main(int argc, char **argv)
         if(keyPressed(SC_ESCAPE) || checkCtrlKey(SC_Q) || checkCtrlKey(SC_W)){
             return 0;
         }
-        setRelativeMouse(winIsFocused());
+        const bool prvFocus = focus;
+        focus = winIsFocused();
+        if(prvFocus != focus)
+            setRelativeMouse(focus);
 
         if(checkCtrlKey(SC_E)){
             printf("Editing map: '%s'\n", map.path);

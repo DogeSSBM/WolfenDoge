@@ -213,6 +213,16 @@ void mapUpdateDynamics(Map *map)
             cur->door.pos = 1.0f;
         cur = cur->next;
     }
+    Obj *mob = map->obj[O_MOB];
+    while(mob){
+        const float hwidth = mob->mob.len.x/2.0f;
+        const float angToPlayer = cfCfToDeg(mob->pos, map->player.pos);
+        const float lang = degReduce(angToPlayer-90.0f);
+        const float rang = degReduce(angToPlayer+90.0f);
+        mob->mob.a = cfAdd(mob->pos, degMagToCf(lang, hwidth));
+        mob->mob.b = cfAdd(mob->pos, degMagToCf(rang, hwidth));
+        mob = mob->next;
+    }
 }
 
 #endif /* end of include guard: MAP_H */

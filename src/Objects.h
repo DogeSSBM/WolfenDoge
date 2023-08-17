@@ -83,4 +83,16 @@ Obj* spawnNew(const Coordf pos, const float ang)
     return obj;
 }
 
+// creates a new object of type O_MOB
+Obj* mobNew(Obj *mobList, const Coordf origin, const Coordf len, char *path)
+{
+    Obj *obj = objNew(O_MOB, origin);
+    obj->mob.len = len;
+    const st txtlen = strlen(path);
+    assertExpr(txtlen < 127);
+    memcpy(obj->mob.path, path, txtlen);
+    obj->mob.texture = mobListTxtrQryLoad(mobList, path);
+    return obj;
+}
+
 #endif /* end of include guard: OBJECTS_H */

@@ -50,6 +50,7 @@ void objListFree(Obj *);
 Obj* objNew(const ObjType, const Coordf);
 Obj* keyNew(const Coordf, const Color);
 Obj* spawnNew(const Coordf, const float);
+Obj* mobNew(Obj *, const Coordf, const Coordf, char *);
 
 // MapEditor.h
 Coord resizeTransform(const Length, const Length, const Coord);
