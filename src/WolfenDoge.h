@@ -308,12 +308,9 @@ void drawFp(const View view, Map *map, const Player player)
     const int ymid = view.pos.y+view.len.y/2;
     for(int i = 0; i < FOV_NUM_RAYS; i++){
         const Coordf farpos = cfAdd(startingPos, degMagToCf(scanAng, ((float)i/(float)FOV_NUM_RAYS)*4096.0f));
-        // const Ray ray = castRay(player.pos, farpos, map, true);
         const float viewTan = (0.5-i/(float)FOV_NUM_RAYS) / 0.5;
         const int xpos = view.pos.x+hsec/2+i*hsec;
-        // Ray *list = castRayMax(player.pos, farpos, map, ray.dst-1.0f);
         Ray *list = castRay(player.pos, farpos, map);
-        // list = RayInsert(list, rayToSect(ray));
         while(list){
             const int corDst = (int)(list->dst/sqrtf(viewTan*viewTan+1.0f));
             if(list->piece.type == M_SEG)
