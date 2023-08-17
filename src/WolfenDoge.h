@@ -198,11 +198,13 @@ void drawObj(const View view, const RaySect *rs, const int xpos, const int ymid,
     const Rect r = {
         .x = (int)((float)txtrlen.x * xdst),
         .y = 0,
-        .w = 2,
+        .w = 1,
         .h = txtrlen.y
     };
     Coord p = iC(xpos-hsec/2, ymid-height/2);
-    const Length l = iC(hsec, height);
+    const Length l = iC(hsec+1, height);
+    // setColor(BLACK);
+    // fillRectCoordLength(p, l);
     drawTextureRectCoordResize(rs->piece.obj->mob.texture, r, p, l);
     // p.x++;
     // drawTextureRectCoordResize(rs->piece.obj->mob.texture, r, p, l);

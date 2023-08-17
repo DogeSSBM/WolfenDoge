@@ -217,8 +217,8 @@ void mapUpdateDynamics(Map *map)
     while(mob){
         const float hwidth = mob->mob.len.x/2.0f;
         const float angToPlayer = cfCfToDeg(mob->pos, map->player.pos);
-        const float lang = degReduce(angToPlayer-90.0f);
-        const float rang = degReduce(angToPlayer+90.0f);
+        const float rang = degReduce(angToPlayer-90.0f);
+        const float lang = degReduce(angToPlayer+90.0f);
         mob->mob.a = cfAdd(mob->pos, degMagToCf(lang, hwidth));
         mob->mob.b = cfAdd(mob->pos, degMagToCf(rang, hwidth));
         mob = mob->next;
