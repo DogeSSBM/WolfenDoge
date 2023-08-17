@@ -105,19 +105,13 @@ typedef struct{
     Obj *obj[O_N];
 }Map;
 
-typedef struct{
-    Seg *wall;
-    float dst;
-    Coordf pos;
-}Ray;
-
 // ray intersections
-typedef struct RaySect{
+typedef struct Ray{
     MapPiece piece;
     float dst;
     Coordf pos;
-    struct RaySect *next;
-}RaySect;
+    struct Ray *next;
+}Ray;
 
 typedef struct{
     Coord spos;

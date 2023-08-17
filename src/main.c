@@ -6,29 +6,24 @@ int main(int argc, char **argv)
 {
     assertExpr(argc <= 2);
     init();
-    // setBlend(BLEND_NONE);
     SDL_StopTextInput();
     gfx.outlined = false;
     winSetPosCoord(coordAddi(coordDivi(getWinDisplayLen(), 2), -400));
 
     Map map = mapLoad(argc == 2 ? argv[1] : NULL);
-    bool focus = false;
 
+    setRelativeMouse(true);
     while(1){
         const uint t = frameStart();
 
-        setRelativeMouse(winIsFocused());
         if(keyPressed(SC_ESCAPE) || checkCtrlKey(SC_Q) || checkCtrlKey(SC_W)){
             return 0;
         }
-        const bool prvFocus = focus;
-        focus = winIsFocused();
-        if(prvFocus != focus)
-            setRelativeMouse(focus);
 
         if(checkCtrlKey(SC_E)){
             printf("Editing map: '%s'\n", map.path);
             mapEdit(&map);
+            setRelativeMouse(true);
         }
 
         const Length wlen = getWindowLen();
@@ -42,7 +37,7 @@ int main(int argc, char **argv)
             mapApplyUpdates(&map, mapQueueUpdates(oldPos, map.player.pos, &map));
         mapUpdateDynamics(&map);
 
-        drawFp(firstView, &map, map.player, wlen);
+        drawFp(firstView, &map, map.player);
         drawBv(birdsView, &map, map.player, coordMin(birdsView.len) / cfMax(mapSegBoundLen(map.seg)), fC(0,0));
 
         frameEnd(t);

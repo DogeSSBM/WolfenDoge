@@ -92,8 +92,6 @@ Obj* mobNew(Obj *mobList, const Coordf origin, char *path)
     memcpy(obj->mob.path, path, txtlen);
     obj->mob.texture = mobListTxtrQryLoad(mobList, path);
     obj->mob.len = ffC(200.0f);
-    // obj->mob.len = CCf(textureLen(obj->mob.texture));
-    // printf("\"%s\": (%f,%f)\n", path, obj->mob.len.x, obj->mob.len.y);
     return obj;
 }
 
