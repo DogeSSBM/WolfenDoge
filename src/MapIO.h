@@ -252,11 +252,8 @@ void mapDefaultObjects(Map *map)
 // loads default map
 void mapDefault(Map *map)
 {
-    // printf("Loading default segments...\n");
     mapDefaultSegments(map);
-    // printf("...Loading default objects...\n");
     mapDefaultObjects(map);
-    // printf("...done\n");
 }
 
 // attempts to load map file at ./Maps/name if present

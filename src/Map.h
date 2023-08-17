@@ -181,6 +181,7 @@ Update* mapQueueUpdates(const Coordf oldPos, const Coordf newPos, Map *map)
         cur = cur->next;
     }
     cur = map->seg[S_CONV];
+
     while(cur){
         Update *src = upQueryId(up, cur->conv.idA);
         if(src)

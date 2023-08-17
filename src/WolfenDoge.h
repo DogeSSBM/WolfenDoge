@@ -294,14 +294,19 @@ void drawSegSlice(const View view, const Ray *rs, const int xpos, const int ymid
     );
 }
 
-// draw first person view
-void drawFp(const View view, Map *map, const Player player)
+// draws ceiling and floor
+void drawCeilFloor(const View view)
 {
     setColor(GREY2);
     fillRectCoordLength(view.pos, iC(view.len.x,view.len.y/2));
     setColor(GREY3);
     fillRectCoordLength(iC(view.pos.x,view.len.y/2), iC(view.len.x,view.len.y/2));
+}
 
+// draw first person view
+void drawFp(const View view, Map *map, const Player player)
+{
+    drawCeilFloor(view);
     const Coordf startingPos = cfAdd(player.pos, cfRotateDeg((const Coordf){.x=2048.0f,.y=-2048.0f}, player.ang));
     const float scanAng = degReduce(player.ang+90.0f);
     const float hsec = (float)view.len.x/FOV_NUM_RAYS;

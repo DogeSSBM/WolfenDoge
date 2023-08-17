@@ -6,11 +6,9 @@ typedef struct{
     Length len;
 }View;
 
-typedef enum{S_END = -1, S_WALL, S_WIND, S_TRIG, S_DOOR, S_CONV, S_N}SegType;
-char *SegTypeStr[S_N] = {"S_WALL", "S_WIND", "S_TRIG", "S_DOOR", "S_CONV"};
-
-const uint SegTypeNumFields[S_N] = {5, 7, 5, 9, 6};
-
+typedef enum{S_END = -1,  S_WALL,    S_WIND,     S_TRIG,     S_DOOR,     S_CONV, S_N}SegType;
+st SegTypeFields[S_N] = { 5,         7,          7,          9,          6      };
+char *SegTypeStr[S_N] = {"S_WALL",  "S_WIND",   "S_TRIG",   "S_DOOR",   "S_CONV"};
 typedef struct Seg{
     SegType type;
     Coordf a;
@@ -46,13 +44,9 @@ typedef struct Seg{
     struct Seg *next;
 }Seg;
 
-typedef struct{
-    Seg *seg;
-    uint len;
-}SegPacked;
-
-typedef enum{O_SPAWN, O_KEY, O_MOB, O_N}ObjType;
-char *ObjTypeStr[O_N] = {"O_SPAWN", "O_KEY", "O_MOB"};
+typedef enum{             O_SPAWN,       O_KEY,      O_MOB, O_N}ObjType;
+st ObjTypeFields[O_N] = { 3,             3,          8         };
+char *ObjTypeStr[O_N] = {"O_SPAWN",     "O_KEY",    "O_MOB"    };
 typedef struct Obj{
     ObjType type;
     Coordf pos;
@@ -84,7 +78,8 @@ typedef struct Player{
     uint maxHealth;
 }Player;
 
-typedef enum{M_SEG, M_OBJ, M_ANY, M_NONE}MapPieceType;
+typedef enum{M_SEG, M_OBJ, M_ANY, M_NONE, M_N}MapPieceType;
+char *MapPieceTypeStr[M_N] = {"M_SEG", "M_OBJ", "M_ANY", "M_NONE"};
 const int PieceTypeNum[2] = {S_N, O_N};
 typedef struct{
     MapPieceType type;
@@ -113,33 +108,25 @@ typedef struct Ray{
     struct Ray *next;
 }Ray;
 
-typedef struct{
-    Coord spos;
-    Coordf mpos;
-    Coord sposd;
-    Coordf mposd;
-    Coord ssnap;
-    Coordf msnap;
-    Coord ssnapd;
-    Coordf msnapd;
-    bool drag;
-}Minfo;
-
-typedef struct Selection{
-    SegType newSegType;
-    ObjType newObjType;
-    MapPiece piece;
-    bool showInfo;
-    Coordf posOrig;
-    Coordf *pos;
-    Coord cursor;
-    uint tscale;
-}Selection;
-
 typedef struct Update{
     uint id;
     bool state;
     struct Update *next;
 }Update;
+
+typedef enum              {F_MAPPIECETYPE, F_SEGTYPE, F_OBJTYPE, F_COORDF, F_COLOR, F_PATH, F_FLOAT, F_UINT, F_BOOL, F_DIR, F_N}FieldType;
+uint FieldTypeXlen[F_N] = {             1,         1,         1,        2,       3,      1,       1,      1,      1,     1};
+char *FieldTypeStr[F_N] = {"MapPieceType", "SegType", "ObjType", "Coordf", "Color", "Path", "float", "uint", "bool", "Direction"};
+typedef struct{
+    char *label;
+    FieldType type;
+    void *ptr;
+}Field;
+
+typedef struct{
+    st numFields;
+    MapPiece piece;
+    Field field[10];
+}PieceFields;
 
 #endif /* end of include guard: TYPES_H */
