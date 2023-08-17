@@ -84,14 +84,16 @@ Obj* spawnNew(const Coordf pos, const float ang)
 }
 
 // creates a new object of type O_MOB
-Obj* mobNew(Obj *mobList, const Coordf origin, const Coordf len, char *path)
+Obj* mobNew(Obj *mobList, const Coordf origin, char *path)
 {
     Obj *obj = objNew(O_MOB, origin);
-    obj->mob.len = len;
     const st txtlen = strlen(path);
     assertExpr(txtlen < 127);
     memcpy(obj->mob.path, path, txtlen);
     obj->mob.texture = mobListTxtrQryLoad(mobList, path);
+    obj->mob.len = ffC(200.0f);
+    // obj->mob.len = CCf(textureLen(obj->mob.texture));
+    // printf("\"%s\": (%f,%f)\n", path, obj->mob.len.x, obj->mob.len.y);
     return obj;
 }
 

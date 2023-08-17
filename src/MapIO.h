@@ -246,7 +246,7 @@ void mapDefaultObjects(Map *map)
 {
     assertExpr(map);
     map->obj[O_SPAWN] = spawnNew(fC(125.0f, 125.0f), 0);
-    map->obj[O_MOB] = mobNew(map->obj[O_MOB], ffC(600.0f), ffC(100.0f), "./Assets/Doggo.png");
+    map->obj[O_MOB] = mobNew(map->obj[O_MOB], ffC(600.0f), "./Assets/Doggo.png");
 }
 
 // loads default map

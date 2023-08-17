@@ -1,3 +1,4 @@
+// #define FOV_NUM_RAYS        90
 #define FOV_NUM_RAYS        720
 #include "Includes.h"
 
@@ -5,7 +6,7 @@ int main(int argc, char **argv)
 {
     assertExpr(argc <= 2);
     init();
-    setBlend(BLEND_NONE);
+    // setBlend(BLEND_NONE);
     SDL_StopTextInput();
     gfx.outlined = false;
     winSetPosCoord(coordAddi(coordDivi(getWinDisplayLen(), 2), -400));

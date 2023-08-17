@@ -182,6 +182,11 @@ Ray castRay(const Coordf origin, const Coordf distantPoint, Map *map, const bool
     return castRayMin(origin, distantPoint, map, solidOnly, -1.0f);
 }
 
+RaySect* rayToSect(const Ray ray)
+{
+    return raySectNew((MapPiece){.type = M_SEG, .seg = ray.wall}, ray.dst, ray.pos);
+}
+
 void drawObj(const View view, const RaySect *rs, const int xpos, const int ymid, const int dst, const float hsec)
 {
     const int height = (view.len.y*120) / fmax(dst, .01f);
@@ -193,12 +198,14 @@ void drawObj(const View view, const RaySect *rs, const int xpos, const int ymid,
     const Rect r = {
         .x = (int)((float)txtrlen.x * xdst),
         .y = 0,
-        .w = 1,
+        .w = 2,
         .h = txtrlen.y
     };
-    const Coord p = iC(xpos, ymid-height/2);
-    const Length l = iC(hsec+1, height);
+    Coord p = iC(xpos-hsec/2, ymid-height/2);
+    const Length l = iC(hsec, height);
     drawTextureRectCoordResize(rs->piece.obj->mob.texture, r, p, l);
+    // p.x++;
+    // drawTextureRectCoordResize(rs->piece.obj->mob.texture, r, p, l);
     return;
 }
 
@@ -225,7 +232,7 @@ void drawWall(const View view, const Ray ray, const int xpos, const int ymid, co
             .w = 1,
             .h = txtrlen.y
         };
-        const Coord p = iC(xpos, ymid-height/2);
+        const Coord p = iC(xpos-hsec/2, ymid-height/2);
         const Length l = iC(hsec+1, height);
         drawTextureRectCoordResize(ray.wall->wall.texture, r, p, l);
         return;
@@ -289,10 +296,11 @@ void drawFp(const View view, Map *map, const Player player, const Length wlen)
         const Coordf farpos = cfAdd(startingPos, degMagToCf(scanAng, ((float)i/(float)FOV_NUM_RAYS)*4096.0f));
         const Ray ray = castRay(player.pos, farpos, map, true);
         const float viewTan = (0.5-i/(float)FOV_NUM_RAYS) / 0.5;
-        const int correctedDst = (int)(ray.dst/sqrtf(viewTan*viewTan+1.0f));
+        // const int correctedDst = (int)(ray.dst/sqrtf(viewTan*viewTan+1.0f));
         const int xpos = view.pos.x+hsec/2+i*hsec;
         RaySect *list = castRayMax(player.pos, farpos, map, ray.dst-1.0f);
-        drawWall(view, ray, xpos, ymid, correctedDst, hsec);
+        list = raySectInsert(list, rayToSect(ray));
+        // drawWall(view, ray, xpos, ymid, correctedDst, hsec);
         while(list){
             const int corDst = (int)(list->dst/sqrtf(viewTan*viewTan+1.0f));
             if(list->piece.type == M_SEG)
