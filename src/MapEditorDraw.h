@@ -39,31 +39,37 @@ void editorDrawPiece(const MapPiece piece, const Offset off, const float scale, 
             const Coord c = mapToScreen(off, scale, *coords.coord[2]);
             const Coord d = mapToScreen(off, scale, *coords.coord[3]);
             if(selected){
+                drawLineThickCoords(a, c, 4);
+                drawLineThickCoords(a, d, 4);
+                drawLineThickCoords(b, c, 4);
+                drawLineThickCoords(b, d, 4);
+            }
+            if(selected){
                 if(selectedPos == coords.coord[2])
-                    fillCircleCoord(c, scale/4);
+                    fillCircleCoord(c, 6);
                 else
-                    drawCircleCoord(c, scale/4);
+                    drawCircleCoord(c, 6);
                 if(selectedPos == coords.coord[3])
-                    fillCircleCoord(d, scale/4);
+                    fillCircleCoord(d, 6);
                 else
-                    drawCircleCoord(d, scale/4);
+                    drawCircleCoord(d, 6);
             }
         }
         drawLineThickCoords(a, b, selected?4:1);
         if(selected){
             if(selectedPos == coords.coord[0])
-                fillCircleCoord(a, scale/4);
+                fillCircleCoord(a, 6);
             else
-                drawCircleCoord(a, scale/4);
+                drawCircleCoord(a, 6);
             if(selectedPos == coords.coord[1])
-                fillCircleCoord(b, scale/4);
+                fillCircleCoord(b, 6);
             else
-                drawCircleCoord(b, scale/4);
+                drawCircleCoord(b, 6);
         }
         return;
     }
     const Coord a = mapToScreen(off, scale, *coords.coord[0]);
-    fillCircleCoord(a, scale/4);
+    fillCircleCoord(a, 6);
 }
 
 void editorDrawMap(Map *map, const Offset off, const float scale, Coordf *selectedPos)

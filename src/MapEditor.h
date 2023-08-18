@@ -124,7 +124,8 @@ void mapEdit(Map *map)
             state.cursor.x = wrap(state.cursor.x, 0, FieldTypeXlen[state.fields.field[state.cursor.y].type]);
         }
 
-        editorInputZoom(&state.scale, &state.prv.scale, &state.off, state.mouse.map.pos);
+        if(editorInputZoom(&state.scale, &state.prv.scale, &state.off, state.mouse.map.pos))
+            printf("scale: %+14.6f\n", state.scale);
         state.off = editorInputPan(state.off);
         if(state.snap.enabled)
             editorDrawGrid(state.off, state.wlen, state.scale, state.snap.len);
