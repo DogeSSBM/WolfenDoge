@@ -107,6 +107,11 @@ struct{
     }prev;
 }mouse = {0};
 
+Coord mousePos(void)
+{
+    return mouse.pos;
+}
+
 bool mouseBtnPressed(const u32 mouseBtn)
 {
     return mouse.state&mouseBtn && !(mouse.prev.state&mouseBtn);

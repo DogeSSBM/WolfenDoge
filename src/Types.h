@@ -72,6 +72,12 @@ typedef struct Obj{
     struct Obj *next;
 }Obj;
 
+typedef struct Update{
+    uint id;
+    bool state;
+    struct Update *next;
+}Update;
+
 typedef struct Player{
     Coordf pos;
     float ang;
@@ -110,12 +116,6 @@ typedef struct Ray{
     struct Ray *next;
 }Ray;
 
-typedef struct Update{
-    uint id;
-    bool state;
-    struct Update *next;
-}Update;
-
 typedef enum              {F_MAPPIECETYPE, F_SEGTYPE, F_OBJTYPE, F_COORDF, F_COLOR, F_PATH, F_FLOAT, F_UINT, F_BOOL, F_DIR,  F_N}FieldType;
 uint FieldTypeXlen[F_N] = {             1,         1,         1,        2,       3,      1,       1,      1,      1,     1      };
 char *FieldTypeStr[F_N] = {"MapPieceType", "SegType", "ObjType", "Coordf", "Color", "Path", "float", "uint", "bool", "Direction"};
@@ -126,45 +126,56 @@ typedef struct{
 }Field;
 
 typedef struct{
-    st numFields;
-    MapPiece piece;
-    Field field[10];
-}PieceFields;
-
-typedef struct{
-    Offset off;
-    float scale;
-    Coord cursor;
-    Length wlen;
-    Lengthf mlen;
-    bool selection;
-    Coordf *selectedPos;
-    PieceFields fields;
-    struct{
-        float scale;
-        Length wlen;
-        Lengthf mlen;
-    }prv;
-    struct{
-        bool enabled;
-        float len;
-    }snap;
-    struct{
-        struct{
-            Coordf pos;
-            Coordf ldown;
-        }map;
-        struct{
-            Coord pos;
-            Coord ldown;
-        }win;
-    }mouse;
-}EditorState;
-
-typedef struct{
     MapPiece piece;
     st numCoord;
     Coordf *coord[4];
 }PieceCoords;
+
+typedef struct{
+    st numFields;
+    MapPiece piece;
+    Field field[10];
+}PieceFields;
+typedef struct{
+    Offset off;
+    Length wlen;
+    Lengthf mlen;
+    float scale;
+    struct{
+        Offset off;
+        Length wlen;
+        Lengthf mlen;
+        float scale;
+    }prv;
+}Camera;
+typedef struct{
+    bool active;
+    Coord cursor;
+    Coordf *pos;
+    PieceFields fields;
+}Selection;
+typedef struct{
+    struct{
+        Coordf pos;
+        Coordf ldown;
+        Coordf rdown;
+    }map;
+    struct{
+        Coord pos;
+        Coord ldown;
+        Coord rdown;
+    }win;
+}Mouse;
+typedef struct{
+    bool active;
+    float len;
+}Snap;
+
+typedef struct{
+    Camera cam;
+    Selection sel;
+    Mouse mouse;
+    Snap snap;
+}EditorState;
 
 #endif /* end of include guard: TYPES_H */
