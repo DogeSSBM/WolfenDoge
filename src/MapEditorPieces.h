@@ -1,6 +1,22 @@
 #ifndef MAPEDITORPIECES_H
 #define MAPEDITORPIECES_H
 
+MapPiece segToPiece(Seg *seg)
+{
+    return (MapPiece){
+        .type = seg ? M_SEG : M_NONE,
+        .seg = seg
+    };
+}
+
+MapPiece objToPiece(Obj *obj)
+{
+    return (MapPiece){
+        .type = obj ? M_OBJ : M_NONE,
+        .obj = obj
+    };
+}
+
 PieceCoords pieceCoords(const MapPiece piece)
 {
     PieceCoords pp = {.piece = piece};

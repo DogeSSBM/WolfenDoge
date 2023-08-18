@@ -50,6 +50,38 @@ void mapSpawnPlayer(Map *map)
     map->player.ang = obj->spawn.ang;
 }
 
+// returns already loaded texture with matching path if exists
+// else returns newly allocated texture
+Texture* wallListTxtrQryLoad(Seg *wallList, char *path)
+{
+    while(wallList){
+        assertExpr(wallList->type == S_WALL);
+        if(wallList->wall.texture && !strcmp(wallList->wall.path, path)){
+            printf("Found texture: \"%s\"\n", path);
+            return wallList->wall.texture;
+        }
+        wallList = wallList->next;
+    }
+    printf("Loading texture: \"%s\"\n", path);
+    return loadTexture(path);
+}
+
+// returns already loaded texture with matching path if exists
+// else returns newly allocated texture
+Texture* mobListTxtrQryLoad(Obj *mobList, char *path)
+{
+    while(mobList){
+        assertExpr(mobList->type == O_MOB);
+        if(mobList->mob.texture && !strcmp(mobList->mob.path, path)){
+            printf("Found texture: \"%s\"\n", path);
+            return mobList->mob.texture;
+        }
+        mobList = mobList->next;
+    }
+    printf("Loading texture: \"%s\"\n", path);
+    return loadTexture(path);
+}
+
 // parses map segments into their respective SegType index
 void mapParseSegments(Map *map)
 {
@@ -78,6 +110,10 @@ void mapParseObjects(Map *map)
     while(!feof(map->file)){
         obj = calloc(1, sizeof(Obj));
         if(fread(obj, sizeof(Obj), 1, map->file) == 1){
+            if(obj->type == O_MOB){
+                obj->mob.texture = NULL;
+                obj->mob.texture = mobListTxtrQryLoad(map->obj[O_MOB], obj->mob.path);
+            }
             obj->next = NULL;
             map->obj[obj->type] = objAppend(map->obj[obj->type], obj);
             printf("read an object with type %s\n", ObjTypeStr[obj->type]);
@@ -160,38 +196,6 @@ Seg* wallListTxtrApply(Seg *wallList, Texture *txtr, char *path)
         cur = cur->next;
     }
     return wallList;
-}
-
-// returns already loaded texture with matching path if exists
-// else returns newly allocated texture
-Texture* wallListTxtrQryLoad(Seg *wallList, char *path)
-{
-    while(wallList){
-        assertExpr(wallList->type == S_WALL);
-        if(wallList->wall.texture && !strcmp(wallList->wall.path, path)){
-            printf("Found texture: \"%s\"\n", path);
-            return wallList->wall.texture;
-        }
-        wallList = wallList->next;
-    }
-    printf("Loading texture: \"%s\"\n", path);
-    return loadTexture(path);
-}
-
-// returns already loaded texture with matching path if exists
-// else returns newly allocated texture
-Texture* mobListTxtrQryLoad(Obj *mobList, char *path)
-{
-    while(mobList){
-        assertExpr(mobList->type == O_MOB);
-        if(mobList->mob.texture && !strcmp(mobList->mob.path, path)){
-            printf("Found texture: \"%s\"\n", path);
-            return mobList->mob.texture;
-        }
-        mobList = mobList->next;
-    }
-    printf("Loading texture: \"%s\"\n", path);
-    return loadTexture(path);
 }
 
 // Loads default map segments
@@ -282,16 +286,20 @@ Map mapLoad(char *name)
 // saves map to map->path
 void mapSave(Map *map)
 {
+    printf("Saving map\n");
     assertExpr(map && map->path && map->name);
+    printf("Map name: \"%s\"\nMap path: \"%s\"\n", map->name, map->path);
     if(map->file)
         fclose(map->file);
     assertExpr((map->file = fopen(map->path, "wb")));
     const st nameLen = strlen(map->name);
+    printf("Writing map name to file\n");
     assertExpr(fwrite(map->name, sizeof(char), nameLen, map->file) == nameLen);
     fputc('\n', map->file);
     for(SegType type = 0; type < S_N; type++){
         Seg *seg = map->seg[type];
         while(seg){
+            printPieceFields(segToPiece(seg));
             assertExpr(fwrite(seg, sizeof(Seg), 1, map->file) == 1);
             seg = seg->next;
         }
@@ -307,6 +315,7 @@ void mapSave(Map *map)
         }
     }
     fclose(map->file);
+    map->file = NULL;
 }
 
 #endif /* end of include guard: MAPIO_H */

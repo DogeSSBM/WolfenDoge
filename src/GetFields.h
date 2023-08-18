@@ -71,7 +71,6 @@ PieceFields objFields(const MapPiece piece)
             fields.field[5] = (Field){.label = "vec:    ", .type = F_COORDF, .ptr = &piece.obj->mob.vec};
             fields.field[6] = (Field){.label = "len:    ", .type = F_COORDF, .ptr = &piece.obj->mob.len};
             fields.field[7] = (Field){.label = "path: ", .type = F_PATH, .ptr = (char*)(piece.obj->mob.path)};
-            // fields.field[7] = (Field){.label = "path: ", .type = F_PATH, .ptr = &piece.obj->mob.path};
             break;
         default:
             panic("Unknown ObjType: %u", piece.obj->type);
