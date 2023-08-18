@@ -40,7 +40,7 @@ Obj* objDelete(Obj *objs, Obj *del)
 // returns the number of objects in the list
 st objListLen(Obj *objs)
 {
-    uint len = 0;
+    st len = 0;
     while(objs){
         len++;
         objs = objs->next;

@@ -44,7 +44,7 @@ PieceCoords pieceCoords(const MapPiece piece)
 
 bool pieceContainsCoord(const MapPiece piece, Coordf *pos)
 {
-    if(piece.type >= M_ANY)
+    if(piece.type >= M_ANY || !pos)
         return false;
     PieceCoords coords = pieceCoords(piece);
     for(st i = 0; i < coords.numCoord; i++)
@@ -151,6 +151,14 @@ MapPiece pieceNextSameCoord(Map *map, MapPiece piece, Coordf **pos)
     }while(!cfSame(target, *coord));
     *pos = coord;
     return piece;
+}
+
+bool pieceEmpty(const MapPiece piece)
+{
+    if(piece.type >= M_ANY)
+        return true;
+    assertExpr(piece.seg || piece.obj);
+    return false;
 }
 
 bool pieceSame(const MapPiece a, const MapPiece b)

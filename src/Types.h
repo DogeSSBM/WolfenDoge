@@ -136,6 +136,7 @@ typedef struct{
     MapPiece piece;
     Field field[10];
 }PieceFields;
+
 typedef struct{
     Offset off;
     Length wlen;
@@ -148,12 +149,14 @@ typedef struct{
         float scale;
     }prv;
 }Camera;
-typedef struct{
-    bool active;
-    Coord cursor;
+
+typedef struct Selection{
+    Coord *cursor;
     Coordf *pos;
     PieceFields fields;
+    struct Selection *next;
 }Selection;
+
 typedef struct{
     struct{
         Coordf pos;
@@ -166,6 +169,7 @@ typedef struct{
         Coord rdown;
     }win;
 }Mouse;
+
 typedef struct{
     bool active;
     float len;
@@ -173,7 +177,8 @@ typedef struct{
 
 typedef struct{
     Camera cam;
-    Selection sel;
+    Coord cursor;
+    Selection *sel;
     Mouse mouse;
     Snap snap;
 }EditorState;

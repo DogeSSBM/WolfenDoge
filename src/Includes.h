@@ -11,6 +11,7 @@
 #include "Map.h"
 #include "MapEditorDraw.h"
 #include "MapEditorSegments.h"
+#include "MapEditorSelection.h"
 // #include "MapEditorUpdate.h"
 #include "MapIO.h"
 #include "Objects.h"

@@ -1,6 +1,14 @@
 #ifndef WDDECLS_H
 #define WDDECLS_H
 
+// MapEditorSelection.h
+Selection* selNew(Coord *, Coordf *, const PieceFields);
+Selection* selAppend(Selection *, Selection *);
+st selLen(Selection *);
+Selection* selFree(Selection *);
+Selection* selFreeList(Selection *);
+Selection* selPosNearest(Map *map, Coord *cursor, const Coordf pos);
+
 // Fields.h
 void printPieceFields(const MapPiece);
 Coord drawField(const Field, const Coord, const Coord, const int);

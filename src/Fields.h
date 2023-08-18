@@ -230,14 +230,16 @@ void mapPrintFields(Map *map)
     }while(!pieceSame(cur, start));
 }
 
-void editorDrawPieceFields(const Selection sel)
+void editorDrawPieceFields(Selection *sel)
 {
-    if(!sel.active)
+    if(!sel)
         return;
-    setTextSize((getWindowLen().y/3)/12);
-    Coord pos = {0};
-    for(int i = 0; i < (int)sel.fields.numFields; i++)
-        pos = drawField(sel.fields.field[i], sel.cursor, pos, i);
+    if(!sel->next){
+        setTextSize((getWindowLen().y/3)/12);
+        Coord pos = {0};
+        for(int i = 0; i < (int)sel->fields.numFields; i++)
+            pos = drawField(sel->fields.field[i], *sel->cursor, pos, i);
+    }
 }
 
 #endif /* end of include guard: FIELDS_H */

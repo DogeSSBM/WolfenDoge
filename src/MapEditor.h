@@ -41,6 +41,14 @@ MapPiece mapPieceOfTypeAtIndex(Map *map, const MapPieceType type, const int inde
     return mapPieceFromListOfType(type, mapGetPieceListOfTypeAtIndex(map, type, index));
 }
 
+// returns true if escape pressed with no active selection
+bool editorInputExit(Selection *sel)
+{
+    if(checkCtrlKey(SC_Q))
+        exit(EXIT_SUCCESS);
+    return !sel && keyPressed(SC_ESCAPE);
+}
+
 // updates camera on window resize
 void editorInputResizeWindow(Camera *cam)
 {
@@ -53,12 +61,10 @@ void editorInputResizeWindow(Camera *cam)
 }
 
 // if there is a selection, pressing escape will clear it
-void editorInputClearSelection(Selection *sel)
+void editorInputClearSelection(Selection **sel)
 {
-    if(sel->active && keyPressed(SC_ESCAPE)){
-        sel->active = false;
-        sel->pos = NULL;
-    }
+    if(*sel && keyPressed(SC_ESCAPE))
+        *sel = selFreeList(*sel);
 }
 
 // sets mouse map / win positions
@@ -81,21 +87,20 @@ void editorInputMouseBtns(Mouse *mouse)
     }
 }
 
-// performs selection on left click when current selection inactive
-void editorInputSelect(Map *map, const Mouse mouse, Selection *sel)
+// performs single selection on left click when current selection inactive
+void editorInputSelect(Map *map, const Coordf pos, Coord *cursor, Selection **sel)
 {
-    if(!sel->active && mouseBtnPressed(MOUSE_L)){
-        const MapPiece piece = pieceNearest(map, mouse.map.pos, &sel->pos);
-        sel->active = piece.type < M_ANY;
-        if(sel->active)
-            sel->fields = pieceFields(piece);
-    }
+    assertExpr(map && sel && cursor);
+    if(!mouseBtnPressed(MOUSE_L) || *sel)
+        return;
+    *sel = selPosNearest(map, cursor, pos);
 }
 
+// if there is only a single selection
 // selects next available map piece with same coords as current selected pos
 void editorInputNextSelection(Map *map, Selection *sel)
 {
-    if(sel->active && keyPressed(SC_N)){
+    if(sel && keyPressed(SC_N) && !sel->next){
         MapPiece cur = sel->fields.piece;
         cur = pieceNextSameCoord(map, cur, &sel->pos);
         sel->fields = pieceFields(cur);
@@ -103,12 +108,12 @@ void editorInputNextSelection(Map *map, Selection *sel)
 }
 
 // while selection is active, changes the field currently highlighted by the cursor
-void editorInputMoveCursor(Selection *sel)
+void editorSingleSelMoveCursor(Selection *sel)
 {
-    if(sel->active){
-        sel->cursor = coordAdd(sel->cursor, arrowKeyPressedOffset());
-        sel->cursor.y = wrap(sel->cursor.y, 0, sel->fields.numFields);
-        sel->cursor.x = wrap(sel->cursor.x, 0, FieldTypeXlen[sel->fields.field[sel->cursor.y].type]);
+    if(sel && !sel->next){
+        *sel->cursor = coordAdd(*sel->cursor, arrowKeyPressedOffset());
+        sel->cursor->y = wrap(sel->cursor->y, 0, sel->fields.numFields);
+        sel->cursor->x = wrap(sel->cursor->x, 0, FieldTypeXlen[sel->fields.field[sel->cursor->y].type]);
     }
 }
 
@@ -159,22 +164,22 @@ void mapEdit(Map *map)
     while(1){
         const uint t = frameStart();
 
-        if(checkCtrlKey(SC_Q))
-            exit(EXIT_SUCCESS);
+        if(editorInputExit(state.sel))
+            return;
 
         editorInputResizeWindow(&state.cam);
         editorInputClearSelection(&state.sel);
         editorInputMouseMove(state.cam, &state.mouse);
         editorInputMouseBtns(&state.mouse);
-        editorInputSelect(map, state.mouse, &state.sel);
-        editorInputNextSelection(map, &state.sel);
-        editorInputMoveCursor(&state.sel);
+        editorInputSelect(map, state.mouse.map.pos, &state.cursor, &state.sel);
+        editorInputNextSelection(map, state.sel);
+        editorSingleSelMoveCursor(state.sel);
         editorInputZoom(&state.cam, state.mouse);
         editorInputPan(&state.cam.off);
         editorInputSave(map);
 
         editorDrawLines(state.snap, state.cam);
-        editorDrawMap(map, state.cam.off, state.cam.scale, state.sel.pos);
+        editorDrawMap(map, state.cam.off, state.cam.scale, state.sel ? state.sel->pos : NULL);
         editorDrawPieceFields(state.sel);
 
         frameEnd(t);
