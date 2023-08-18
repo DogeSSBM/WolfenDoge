@@ -112,6 +112,13 @@ void editorInputMoveCursor(Selection *sel)
     }
 }
 
+// saves map when ctrl s is pressed
+void editorInputSave(Map *map)
+{
+    if(checkCtrlKey(SC_S))
+        mapSave(map);
+}
+
 // zooms editor in or out focused on cursor
 void editorInputZoom(Camera *cam, const Mouse mouse)
 {
@@ -164,6 +171,7 @@ void mapEdit(Map *map)
         editorInputMoveCursor(&state.sel);
         editorInputZoom(&state.cam, state.mouse);
         editorInputPan(&state.cam.off);
+        editorInputSave(map);
 
         editorDrawLines(state.snap, state.cam);
         editorDrawMap(map, state.cam.off, state.cam.scale, state.sel.pos);
