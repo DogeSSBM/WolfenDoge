@@ -94,6 +94,7 @@ Obj* mobNew(const Coordf origin, char *path)
     printf("loaded texture :\"%s\"\n", obj->mob.path);
     // obj->mob.texture = mobListTxtrQryLoad(mobList, path);
     obj->mob.len = ffC(200.0f);
+    obj->mob.origin = origin;
     return obj;
 }
 
