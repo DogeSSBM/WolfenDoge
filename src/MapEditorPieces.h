@@ -126,6 +126,17 @@ MapPiece pieceNextCoord(Map *map, MapPiece piece, Coordf **pos)
     return piece;
 }
 
+MapPiece pieceNextSameCoord(Map *map, MapPiece piece, Coordf **pos)
+{
+    Coordf target = **pos;
+    Coordf *coord = *pos;
+    do{
+        piece = pieceNextCoord(map, piece, &coord);
+    }while(!cfSame(target, *coord));
+    *pos = coord;
+    return piece;
+}
+
 bool pieceSame(const MapPiece a, const MapPiece b)
 {
     if(a.type != b.type)

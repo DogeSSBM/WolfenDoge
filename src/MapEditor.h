@@ -113,6 +113,11 @@ void mapEdit(Map *map)
             state.selection = true;
             state.fields = pieceFields(pieceNearest(map, state.mouse.map.pos, &state.selectedPos));
         }
+        if(state.selection && keyPressed(SC_N)){
+            MapPiece cur = state.fields.piece;
+            cur = pieceNextSameCoord(map, cur, &state.selectedPos);
+            state.fields = pieceFields(cur);
+        }
         if(state.selection){
             state.cursor = coordAdd(state.cursor, arrowKeyPressedOffset());
             state.cursor.y = wrap(state.cursor.y, 0, state.fields.numFields);
