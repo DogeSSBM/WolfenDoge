@@ -110,6 +110,22 @@ MapPiece pieceNext(Map *map, MapPiece piece)
     return piece;
 }
 
+MapPiece pieceNextCoord(Map *map, MapPiece piece, Coordf **pos)
+{
+    PieceCoords coords = pieceCoords(piece);
+    st i = 0;
+    for(i = 0; i < coords.numCoord; i++){
+        if(coords.coord[i] == *pos && i+1 < coords.numCoord){
+            *pos = coords.coord[i+1];
+            return piece;
+        }
+    }
+    piece = pieceNext(map, piece);
+    coords = pieceCoords(piece);
+    *pos = coords.coord[0];
+    return piece;
+}
+
 bool pieceSame(const MapPiece a, const MapPiece b)
 {
     if(a.type != b.type)
