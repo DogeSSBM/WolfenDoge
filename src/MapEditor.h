@@ -166,10 +166,8 @@ void mapEdit(Map *map)
         editorInputPan(&state.cam.off);
 
         editorDrawLines(state.snap, state.cam);
-        setTextSize((getWindowLen().y/3)/12);
         editorDrawMap(map, state.cam.off, state.cam.scale, state.sel.pos);
-        if(state.sel.active)
-            drawPieceFields(state.sel.fields, state.sel.cursor, iiC(0));
+        editorDrawPieceFields(state.sel);
 
         frameEnd(t);
     }

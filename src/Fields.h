@@ -230,12 +230,14 @@ void mapPrintFields(Map *map)
     }while(!pieceSame(cur, start));
 }
 
-Coord drawPieceFields(const PieceFields fields, const Coord cursor, const Coord origin)
+void editorDrawPieceFields(const Selection sel)
 {
-    Coord pos = origin;
-    for(int i = 0; i < (int)fields.numFields; i++)
-        pos = drawField(fields.field[i], cursor, pos, i);
-    return pos;
+    if(!sel.active)
+        return;
+    setTextSize((getWindowLen().y/3)/12);
+    Coord pos = {0};
+    for(int i = 0; i < (int)sel.fields.numFields; i++)
+        pos = drawField(sel.fields.field[i], sel.cursor, pos, i);
 }
 
 #endif /* end of include guard: FIELDS_H */
