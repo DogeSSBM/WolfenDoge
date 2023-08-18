@@ -13,7 +13,7 @@ Seg* wallNew(const Color c, const Coordf a, const Coordf b)
 }
 
 // creates a new segment with type S_WALL that has a texture
-Seg* txtrNew(Seg *wallList, const Color c, const Coordf a, const Coordf b, char *path)
+Seg* txtrNew(const Color c, const Coordf a, const Coordf b, char *path)
 {
     Seg *w = calloc(1, sizeof(Seg));
     w->type = S_WALL;
@@ -23,7 +23,9 @@ Seg* txtrNew(Seg *wallList, const Color c, const Coordf a, const Coordf b, char 
     const st len = strlen(path);
     assertExpr(len < 127);
     memcpy(w->wall.path, path, len);
-    w->wall.texture = wallListTxtrQryLoad(wallList, path);
+    w->wall.texture = loadTexture(path);
+    printf("loaded texture :\"%s\"\n", w->wall.path);
+    // w->wall.texture = wallListTxtrQryLoad(wallList, path);
     return w;
 }
 

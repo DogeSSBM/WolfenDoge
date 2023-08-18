@@ -213,7 +213,7 @@ void mapDefaultSegments(Map *map)
     ));
 
     // Textured walls
-    map->seg[S_WALL] = segAppend(map->seg[S_WALL], txtrNew(map->seg[S_WALL], WHITE,
+    map->seg[S_WALL] = segAppend(map->seg[S_WALL], txtrNew(WHITE,
         fC(250.0f, 500.0f), fC(500.0f, 500.0f), "./Assets/Bricks.png"
     ));
 
@@ -246,7 +246,7 @@ void mapDefaultObjects(Map *map)
 {
     assertExpr(map);
     map->obj[O_SPAWN] = spawnNew(fC(125.0f, 125.0f), 0);
-    map->obj[O_MOB] = mobNew(map->obj[O_MOB], ffC(600.0f), "./Assets/Doggo.png");
+    map->obj[O_MOB] = mobNew(ffC(600.0f), "./Assets/Doggo.png");
 }
 
 // loads default map

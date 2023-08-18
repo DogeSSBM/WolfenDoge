@@ -7,8 +7,9 @@ typedef struct{
 }View;
 
 typedef enum{S_END = -1,  S_WALL,    S_WIND,     S_TRIG,     S_DOOR,     S_CONV, S_N}SegType;
-st SegTypeFields[S_N] = { 5,         7,          7,          9,          6      };
-char *SegTypeStr[S_N] = {"S_WALL",  "S_WIND",   "S_TRIG",   "S_DOOR",   "S_CONV"};
+st SegTypeFields[S_N] = {      5,         7,          7,          9,          6     };
+st SegTypeNumCoord[S_N] = {    2,         2,          4,          2,          2     };
+char *SegTypeStr[S_N] = {"S_WALL",  "S_WIND",   "S_TRIG",   "S_DOOR",   "S_CONV"    };
 typedef struct Seg{
     SegType type;
     Coordf a;
@@ -45,7 +46,8 @@ typedef struct Seg{
 }Seg;
 
 typedef enum{             O_SPAWN,       O_KEY,      O_MOB, O_N}ObjType;
-st ObjTypeFields[O_N] = { 3,             3,          8         };
+st ObjTypeFields[O_N] = {       3,           3,          8     };
+st ObjTypeNumCoord[O_N] = {     1,           1,          4     };
 char *ObjTypeStr[O_N] = {"O_SPAWN",     "O_KEY",    "O_MOB"    };
 typedef struct Obj{
     ObjType type;
@@ -114,8 +116,8 @@ typedef struct Update{
     struct Update *next;
 }Update;
 
-typedef enum              {F_MAPPIECETYPE, F_SEGTYPE, F_OBJTYPE, F_COORDF, F_COLOR, F_PATH, F_FLOAT, F_UINT, F_BOOL, F_DIR, F_N}FieldType;
-uint FieldTypeXlen[F_N] = {             1,         1,         1,        2,       3,      1,       1,      1,      1,     1};
+typedef enum              {F_MAPPIECETYPE, F_SEGTYPE, F_OBJTYPE, F_COORDF, F_COLOR, F_PATH, F_FLOAT, F_UINT, F_BOOL, F_DIR,  F_N}FieldType;
+uint FieldTypeXlen[F_N] = {             1,         1,         1,        2,       3,      1,       1,      1,      1,     1      };
 char *FieldTypeStr[F_N] = {"MapPieceType", "SegType", "ObjType", "Coordf", "Color", "Path", "float", "uint", "bool", "Direction"};
 typedef struct{
     char *label;
@@ -128,5 +130,41 @@ typedef struct{
     MapPiece piece;
     Field field[10];
 }PieceFields;
+
+typedef struct{
+    Offset off;
+    float scale;
+    Coord cursor;
+    Length wlen;
+    Lengthf mlen;
+    bool selection;
+    Coordf *selectedPos;
+    PieceFields fields;
+    struct{
+        float scale;
+        Length wlen;
+        Lengthf mlen;
+    }prv;
+    struct{
+        bool enabled;
+        float len;
+    }snap;
+    struct{
+        struct{
+            Coordf pos;
+            Coordf ldown;
+        }map;
+        struct{
+            Coord pos;
+            Coord ldown;
+        }win;
+    }mouse;
+}EditorState;
+
+typedef struct{
+    MapPiece piece;
+    st numCoord;
+    Coordf *coord[4];
+}PieceCoords;
 
 #endif /* end of include guard: TYPES_H */

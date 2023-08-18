@@ -41,38 +41,93 @@ MapPiece mapPieceOfTypeAtIndex(Map *map, const MapPieceType type, const int inde
     return mapPieceFromListOfType(type, mapGetPieceListOfTypeAtIndex(map, type, index));
 }
 
+// pans the map offset
+Offset editorInputPan(const Offset off)
+{
+    if(mouseBtnState(MOUSE_M) || keyState(SC_LSHIFT))
+        return coordAdd(off, mouseMovement());
+    return off;
+}
+
+// zooms editor in or out focused on cursor
+// returns true if zoom occured
+bool editorInputZoom(float *scale, float *oldScale, Coord *off, const Coordf mouseMapPos)
+{
+    if(!mouseScrolledY())
+        return false;
+    *oldScale = *scale;
+    *scale = fclamp(*scale * (mouseScrolledY() > 0 ? 1.2f : .8f) , .01f, 100.0f);
+    if(*oldScale != *scale){
+        const Coord ompos = mapToScreen(*off, *scale, mouseMapPos);
+        const Coord diff = coordSub(mouse.pos, ompos);
+        *off = coordAdd(*off, diff);
+        return true;
+    }
+    return false;
+}
+
+// sets left mouse button press window / map location
+// returns true on left mouse button press
+bool editorInputLmouse(const Coord off, const float scale, Coord *ldown, Coordf *ldownf)
+{
+    if(mouseBtnPressed(MOUSE_L)){
+        *ldown = mouse.pos;
+        *ldownf = screenToMap(off, scale, mouse.pos);
+        return true;
+    }
+    return false;
+}
+
 // main loop while in map editor. on save, map is saved to map->path
 void mapEdit(Map *map)
 {
     setRelativeMouse(false);
-
-    MapPiece p[4] = {
-        {.type = M_SEG, .seg = map->seg[S_WALL]},
-        {.type = M_SEG, .seg = map->seg[S_TRIG]},
-        {.type = M_OBJ, .obj = map->obj[O_MOB]},
-        {.type = M_OBJ, .obj = map->obj[O_SPAWN]}
+    EditorState state = {
+        .scale = 1.0f,
+        .wlen = getWindowLen(),
+        .snap = { .enabled = true, .len = 50.0f },
+        .mouse = { .win = {.pos = mouse.pos} }
     };
-
-    // exit(EXIT_SUCCESS);
-
-    int n = 0;
-    Coord cursor = {0};
-
+    mapPrintFields(map);
     while(1){
         const uint t = frameStart();
 
-        if(keyPressed(SC_ESCAPE) || checkCtrlKey(SC_Q))
+        if(checkCtrlKey(SC_Q))
             exit(EXIT_SUCCESS);
 
-        n = wrap(n - keyPressed(SC_PAGEUP) + keyPressed(SC_PAGEDOWN), 0, 4);
-        const PieceFields fields = pieceFields(p[n]);
-        cursor = coordAdd(cursor, arrowKeyPressedOffset());
-        cursor.y = wrap(cursor.y, 0, fields.numFields);
-        cursor.x = wrap(cursor.x, 0, FieldTypeXlen[fields.field[cursor.y].type]);
+        state.mouse.win.pos = mouse.pos;
+        state.mouse.map.pos = screenToMap(state.off, state.scale, state.mouse.win.pos);
 
+        if(windowResized()){
+            state.prv.wlen = state.wlen;
+            state.wlen = getWindowLen();
+            state.prv.mlen = state.mlen;
+            state.mlen = cfMulf(CCf(state.wlen), state.scale);
+        }
+        if(state.selection && keyPressed(SC_ESCAPE)){
+            state.selection = false;
+            state.selectedPos = NULL;
+        }
+        editorInputLmouse(state.off, state.scale, &state.mouse.win.ldown, &state.mouse.map.ldown);
+        if(!state.selection && mouseBtnReleased(MOUSE_L)){
+            state.selection = true;
+            state.fields = pieceFields(pieceNearest(map, state.mouse.map.pos, &state.selectedPos));
+        }
+        if(state.selection){
+            state.cursor = coordAdd(state.cursor, arrowKeyPressedOffset());
+            state.cursor.y = wrap(state.cursor.y, 0, state.fields.numFields);
+            state.cursor.x = wrap(state.cursor.x, 0, FieldTypeXlen[state.fields.field[state.cursor.y].type]);
+        }
 
+        editorInputZoom(&state.scale, &state.prv.scale, &state.off, state.mouse.map.pos);
+        state.off = editorInputPan(state.off);
+        if(state.snap.enabled)
+            editorDrawGrid(state.off, state.wlen, state.scale, state.snap.len);
+        editorDrawOriginLines(state.off, state.wlen);
         setTextSize((getWindowLen().y/3)/12);
-        drawPieceFields(fields, cursor, iiC(0));
+        editorDrawMap(map, state.off, state.scale, state.selectedPos);
+        if(state.selection)
+            drawPieceFields(state.fields, state.cursor, iiC(0));
 
         frameEnd(t);
     }

@@ -1,6 +1,19 @@
 #ifndef WDDECLS_H
 #define WDDECLS_H
 
+// Fields.h
+void printPieceFields(const MapPiece);
+Coord drawField(const Field, const Coord, const Coord, const int);
+void mapPrintFields(Map *);
+Coord drawPieceFields(const PieceFields, const Coord, const Coord);
+
+// MapEditorPieces.h
+PieceCoords pieceCoords(const MapPiece);
+Color pieceColor(const MapPiece);
+MapPiece pieceNext(Map *, MapPiece);
+bool pieceSame(const MapPiece, const MapPiece);
+MapPiece pieceNearest(Map *, const Coordf, Coordf **);
+
 // Map.h
 Coordf mapBoundMax(Seg *);
 Coordf mapBoundMin(Seg *);
@@ -22,7 +35,7 @@ void mapUpdateDynamics(Map *);
 
 // MapEditorSegments.h
 Seg* wallNew(const Color, const Coordf, const Coordf);
-Seg* txtrNew(Seg *, const Color, const Coordf, const Coordf, char *);
+Seg* txtrNew(const Color, const Coordf, const Coordf, char *);
 Seg* windNew(const Color, const Color, const Coordf, const Coordf, const float, const float);
 Seg* doorNew(const Color, const Coordf, const Coordf, const uint, const float, const bool, const float, const Direction);
 Seg* trigNew(const Color, const Coordf, const Coordf, const uint, const Coordf, const Coordf);
@@ -50,7 +63,7 @@ void objListFree(Obj *);
 Obj* objNew(const ObjType, const Coordf);
 Obj* keyNew(const Coordf, const Color);
 Obj* spawnNew(const Coordf, const float);
-Obj* mobNew(Obj *, const Coordf, char *);
+Obj* mobNew(const Coordf, char *);
 
 // MapEditor.h
 Coord resizeTransform(const Length, const Length, const Coord);
@@ -76,24 +89,6 @@ void newMapFileNum(Map *);
 Map mapLoad(char *);
 void mapSave(Map *);
 void mapDefault(Map*);
-
-// MapEditorDraw.h
-// void drawOriginLines(const Offset, const Length);
-// void drawGrid(const Offset, const Length, const float, const bool, const float);
-// void drawEditorMap(Map *, const Selection, const Offset, const float);
-// Coord drawSegType(const Coord, const SegType, const bool);
-// Coord drawColor(Coord, const uint, Color, const bool, const int);
-// Coord drawCoordf(const Coord, const char *, const Coordf, const bool);
-// Coord drawf(const Coord, const char *, const float, const bool);
-// Coord drawstr(const Coord, const char *, const bool);
-// Coord drawu(const Coord, const char *, const uint, const bool);
-// Coord drawSelCommon(const Selection);
-// void drawSelWall(const Selection, Coord);
-// void drawSelWind(const Selection, Coord);
-// void drawSelDoor(const Selection, Coord);
-// void drawSelTrig(const Selection, Coord);
-// void drawSelConv(const Selection, Coord);
-// void drawSel(const Selection, const Offset, const float);
 
 // WolfenDoge.h
 Coord toView(const View, const Coordf, const float);

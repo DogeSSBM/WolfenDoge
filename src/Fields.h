@@ -29,8 +29,9 @@ void printPieceFields(const MapPiece piece)
                 printf("%s(%3u,%3u,%3u)\n", fields.field[i].label, val4.r, val4.g, val4.b);
                 break;
             case F_PATH:;
-                char *val5 = ((char **)(fields.field[i].ptr)) ? (*((char **)(fields.field[i].ptr))) : "NULL";
-                printf("%s\"%s\"\n", fields.field[i].label, val5?val5:"NULL");
+                char *empty = "NULL";
+                char *val5 = fields.field[i].ptr ? fields.field[i].ptr : empty;
+                printf("%s\"%s\"\n", fields.field[i].label, val5);
                 break;
             case F_FLOAT:;
                 float val6 = *((float *)(fields.field[i].ptr));
@@ -53,6 +54,7 @@ void printPieceFields(const MapPiece piece)
                 break;
         }
     }
+    printf("\n");
 }
 
 Coord drawField(const Field field, const Coord cursor, const Coord origin, const int i)
@@ -164,8 +166,9 @@ Coord drawField(const Field field, const Coord cursor, const Coord origin, const
             pos.y += getTextYLen(buf);
             break;
         case F_PATH:;
-            char *val5 = ((char **)(field.ptr)) ? (*((char **)(field.ptr))) : "NULL";
-            sprintf(buf, "%s\"%s\"", field.label, val5?val5:"NULL");
+            char *empty = "NULL";
+            char *val5 = field.ptr ? field.ptr : empty;
+            sprintf(buf, "%s\"%s\"", field.label, val5);
             len = getTextLength(buf);
             fillRectCoordLength(pos, len);
             setTextColor(cursor.y == i ? WHITE : GREY1);
@@ -213,6 +216,18 @@ Coord drawField(const Field field, const Coord cursor, const Coord origin, const
             break;
     }
     return pos;
+}
+
+void mapPrintFields(Map *map)
+{
+    MapPiece start = pieceNext(map, (MapPiece){.type = M_ANY});
+    if(start.type >= M_ANY)
+        return;
+    MapPiece cur = start;
+    do{
+        printPieceFields(cur);
+        cur = pieceNext(map, cur);
+    }while(!pieceSame(cur, start));
 }
 
 Coord drawPieceFields(const PieceFields fields, const Coord cursor, const Coord origin)

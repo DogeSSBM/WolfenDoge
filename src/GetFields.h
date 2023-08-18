@@ -16,7 +16,7 @@ PieceFields segFields(const MapPiece piece)
     };
     switch(piece.seg->type){
         case S_WALL:
-            fields.field[4] = (Field){.label = "path: ", .type = F_PATH, .ptr = &piece.seg->wall.path};
+            fields.field[4] = (Field){.label = "path: ", .type = F_PATH, .ptr = (char*)(piece.seg->wall.path)};
             break;
         case S_WIND:
             fields.field[4] = (Field){.label = "topColor: ", .type = F_COLOR, .ptr = &piece.seg->wind.topColor};
@@ -70,7 +70,7 @@ PieceFields objFields(const MapPiece piece)
             fields.field[4] = (Field){.label = "origin: ", .type = F_COORDF, .ptr = &piece.obj->mob.origin};
             fields.field[5] = (Field){.label = "vec:    ", .type = F_COORDF, .ptr = &piece.obj->mob.vec};
             fields.field[6] = (Field){.label = "len:    ", .type = F_COORDF, .ptr = &piece.obj->mob.len};
-            fields.field[7] = (Field){.label = "path: ", .type = F_PATH, .ptr = NULL};
+            fields.field[7] = (Field){.label = "path: ", .type = F_PATH, .ptr = (char*)(piece.obj->mob.path)};
             // fields.field[7] = (Field){.label = "path: ", .type = F_PATH, .ptr = &piece.obj->mob.path};
             break;
         default:
