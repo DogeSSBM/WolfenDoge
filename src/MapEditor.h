@@ -1,170 +1,25 @@
 #ifndef MAPEDITOR_H
 #define MAPEDITOR_H
 
-// takes pos, gets its position in terms of percentage of oldLen side lengths
-// returns a new position offset by the same percentage of newLen's sides
-Coord resizeTransform(const Length oldLen, const Length newLen, const Coord pos)
+// initial struct data for editor state
+EditorState editorInitState(void)
 {
-    return CfC(cfMul(CCf(newLen), cfDiv(CCf(pos), CCf(oldLen))));
-}
-
-// takes pos, gets its position in terms of percentage of oldLen
-// returns a new position offset by the same percentage of newLen's sides
-Coordf resizeTransformf(const Lengthf oldLen, const Lengthf newLen, const Coordf pos)
-{
-    return cfMul(newLen, cfDiv(pos, oldLen));
-}
-
-// returns a MapPiece with type and its corrosponding list
-MapPiece mapPieceFromListOfType(MapPieceType type, void *list)
-{
-    assertExpr(type < M_ANY && list);
-    if(type == M_SEG)
-        return (MapPiece){.type = type, .seg = list};
-    return (MapPiece){.type = type, .obj = list};
-}
-
-// returns either a seg list or an obj list depending on type
-// returns the list corrosponding to the respective mapPiecePieceType of index
-void* mapGetPieceListOfTypeAtIndex(Map *map, const MapPieceType type, const int index)
-{
-    assertExpr(type < M_ANY);
-    assertExpr(index < PieceTypeNum[type]);
-    if(type == M_SEG)
-        return map->seg[index];
-    return map->obj[index];
-}
-
-// returns a MapPiece with type type, whos list is from map at the corrosponding map piece index
-MapPiece mapPieceOfTypeAtIndex(Map *map, const MapPieceType type, const int index)
-{
-    return mapPieceFromListOfType(type, mapGetPieceListOfTypeAtIndex(map, type, index));
-}
-
-// returns true if escape pressed with no active selection
-bool editorInputExit(Selection *sel)
-{
-    if(checkCtrlKey(SC_Q))
-        exit(EXIT_SUCCESS);
-    return !sel && keyPressed(SC_ESCAPE);
-}
-
-// updates camera on window resize
-void editorInputResizeWindow(Camera *cam)
-{
-    if(windowResized()){
-        cam->prv.wlen = cam->wlen;
-        cam->wlen = getWindowLen();
-        cam->prv.mlen = cam->mlen;
-        cam->mlen = cfMulf(CCf(cam->wlen), cam->scale);
-    }
-}
-
-// if there is a selection, pressing escape will clear it
-void editorInputClearSelection(Selection **sel)
-{
-    if(*sel && keyPressed(SC_ESCAPE))
-        *sel = selFreeList(*sel);
-}
-
-// sets mouse map / win positions
-void editorInputMouseMove(const Camera cam, Mouse *mouse)
-{
-    mouse->win.pos = mousePos();
-    mouse->map.pos = screenToMap(cam.off, cam.scale, mousePos());
-}
-
-// sets ldown / rdown map / win positions on left / right click
-void editorInputMouseBtns(Mouse *mouse)
-{
-    if(mouseBtnPressed(MOUSE_L)){
-        mouse->win.ldown = mouse->win.pos;
-        mouse->map.ldown = mouse->map.pos;
-    }
-    if(mouseBtnPressed(MOUSE_R)){
-        mouse->win.rdown = mouse->win.pos;
-        mouse->map.rdown = mouse->map.pos;
-    }
-}
-
-// performs single selection on left click when current selection inactive
-void editorInputSelect(Map *map, const Coordf pos, Coord *cursor, Selection **sel)
-{
-    assertExpr(map && sel && cursor);
-    if(!mouseBtnPressed(MOUSE_L) || *sel)
-        return;
-    *sel = selPosNearest(map, cursor, pos);
-}
-
-// if there is only a single selection
-// selects next available map piece with same coords as current selected pos
-void editorInputNextSelection(Map *map, Selection *sel)
-{
-    if(sel && keyPressed(SC_N) && !sel->next){
-        MapPiece cur = sel->fields.piece;
-        cur = pieceNextSameCoord(map, cur, &sel->pos);
-        sel->fields = pieceFields(cur);
-    }
-}
-
-// while selection is active, changes the field currently highlighted by the cursor
-void editorSingleSelMoveCursor(Selection *sel)
-{
-    if(sel && !sel->next){
-        *sel->cursor = coordAdd(*sel->cursor, arrowKeyPressedOffset());
-        sel->cursor->y = wrap(sel->cursor->y, 0, sel->fields.numFields);
-        sel->cursor->x = wrap(sel->cursor->x, 0, FieldTypeXlen[sel->fields.field[sel->cursor->y].type]);
-    }
-}
-
-// saves map when ctrl s is pressed
-void editorInputSave(Map *map)
-{
-    if(checkCtrlKey(SC_S))
-        mapSave(map);
-}
-
-// zooms editor in or out focused on cursor
-void editorInputZoom(Camera *cam, const Mouse mouse)
-{
-    if(!mouseScrolledY())
-        return;
-    cam->prv.scale = cam->scale;
-    cam->scale = fclamp(cam->scale * (mouseScrolledY() > 0 ? 1.2f : .8f) , .01f, 100.0f);
-    if(cam->prv.scale != cam->scale){
-        const Coord ompos = mapToScreen(cam->off, cam->scale, mouse.map.pos);
-        cam->off = coordAdd(cam->off, coordSub(mouse.win.pos, ompos));
-    }
-}
-
-// pans the map on mouse movement while holding middle mouse / left shift
-void editorInputPan(Offset *off)
-{
-    if(mouseBtnState(MOUSE_M) || keyState(SC_LSHIFT))
-        *off = coordAdd(*off, mouseMovement());
-}
-
-// draws x / y axies through origin and snap grid if enabled
-void editorDrawLines(const Snap snap, const Camera cam)
-{
-    if(snap.active)
-        editorDrawGrid(cam.off, cam.wlen, cam.scale, snap.len);
-    editorDrawOriginLines(cam.off, cam.wlen);
+    return (EditorState){
+        .cam = { .scale = 1.0f, .wlen = getWindowLen() },
+        .snap = { .active = true, .len = 50.0f }
+    };
 }
 
 // main loop while in map editor. on save, map is saved to map->path
 void mapEdit(Map *map)
 {
     setRelativeMouse(false);
-    EditorState state = {
-        .cam = { .scale = 1.0f, .wlen = getWindowLen() },
-        .snap = { .active = true, .len = 50.0f }
-    };
-    mapPrintFields(map);
+    EditorState state = editorInitState();
+    fieldPrintMap(map);
     while(1){
         const uint t = frameStart();
 
-        if(editorInputExit(state.sel))
+        if(editorInputExit(map, state.sel))
             return;
 
         editorInputResizeWindow(&state.cam);
@@ -173,14 +28,18 @@ void mapEdit(Map *map)
         editorInputMouseBtns(&state.mouse);
         editorInputSelect(map, state.mouse.map.pos, &state.cursor, &state.sel);
         editorInputNextSelection(map, state.sel);
-        editorSingleSelMoveCursor(state.sel);
+        editorInputSingleSelMoveCursor(state.sel);
         editorInputZoom(&state.cam, state.mouse);
         editorInputPan(&state.cam.off);
         editorInputSave(map);
 
         editorDrawLines(state.snap, state.cam);
-        editorDrawMap(map, state.cam.off, state.cam.scale, state.sel ? state.sel->pos : NULL);
+        editorDrawMap(map, state.cam.off, state.cam.scale, state.sel);
         editorDrawPieceFields(state.sel);
+        editorDrawPieceCount(map, state.cam.wlen);
+        // editorDrawNewPieceType();
+
+        editorUpdateDeleteSelection(map, &state.sel);
 
         frameEnd(t);
     }

@@ -49,13 +49,16 @@ st objListLen(Obj *objs)
 }
 
 // frees all objects in the list
-void objListFree(Obj *list)
+Obj* objListFree(Obj *list)
 {
     while(list){
         Obj *next = list->next;
+        if(list->type == O_MOB && list->mob.texture)
+            textureFree(list->mob.texture);
         free(list);
         list = next;
     }
+    return NULL;
 }
 
 // creates a new object

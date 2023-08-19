@@ -15,6 +15,32 @@ Coordf resizeTransformf(const Lengthf oldLen, const Lengthf newLen, const Coordf
     return cfMul(newLen, cfDiv(pos, oldLen));
 }
 
+// returns a MapPiece with type and its corrosponding list
+MapPiece mapPieceFromListOfType(MapPieceType type, void *list)
+{
+    assertExpr(type < M_ANY && list);
+    if(type == M_SEG)
+        return (MapPiece){.type = type, .seg = list};
+    return (MapPiece){.type = type, .obj = list};
+}
+
+// returns either a seg list or an obj list depending on type
+// returns the list corrosponding to the respective mapPiecePieceType of index
+void* mapGetPieceListOfTypeAtIndex(Map *map, const MapPieceType type, const int index)
+{
+    assertExpr(type < M_ANY);
+    assertExpr(index < PieceTypeNum[type]);
+    if(type == M_SEG)
+        return map->seg[index];
+    return map->obj[index];
+}
+
+// returns a MapPiece with type type, whos list is from map at the corrosponding map piece index
+MapPiece mapPieceOfTypeAtIndex(Map *map, const MapPieceType type, const int index)
+{
+    return mapPieceFromListOfType(type, mapGetPieceListOfTypeAtIndex(map, type, index));
+}
+
 // iterates through all segments and or objects and their coords, sets bnearest to the nearest coord
 // returns the segment containing the nearest coord
 MapPiece posNearest(Map *map, const Coordf pos, const MapPieceType pieceType, Coordf **nearest)

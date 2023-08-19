@@ -260,6 +260,30 @@ void mapDefault(Map *map)
     mapDefaultObjects(map);
 }
 
+// frees contents of map
+void mapFree(Map *map)
+{
+    assertExpr(map);
+    if(map->name){
+        free(map->name);
+        map->name = NULL;
+    }
+    if(map->path){
+        free(map->path);
+        map->path = NULL;
+    }
+    if(map->file){
+        fclose(map->file);
+        map->file = NULL;
+    }
+    for(st i = 0; i < S_N; i++)
+        if(map->seg[i])
+            map->seg[i] = segListFree(map->seg[i]);
+    for(st i = 0; i < O_N; i++)
+        if(map->obj[i])
+            map->obj[i] = objListFree(map->obj[i]);
+}
+
 // attempts to load map file at ./Maps/name if present
 // if not present, sets map.path to ../Maps/map.bork or ../Maps/map(n).bork
 // starting at n=1 and increasing until unique file path is found
@@ -299,7 +323,7 @@ void mapSave(Map *map)
     for(SegType type = 0; type < S_N; type++){
         Seg *seg = map->seg[type];
         while(seg){
-            printPieceFields(segToPiece(seg));
+            fieldPrint(segToPiece(seg));
             assertExpr(fwrite(seg, sizeof(Seg), 1, map->file) == 1);
             seg = seg->next;
         }

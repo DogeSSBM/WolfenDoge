@@ -1,7 +1,7 @@
 #ifndef FIELDS_H
 #define FIELDS_H
 
-void printPieceFields(const MapPiece piece)
+void fieldPrint(const MapPiece piece)
 {
     assertExpr(piece.type < M_ANY);
     PieceFields fields = pieceFields(piece);
@@ -57,7 +57,9 @@ void printPieceFields(const MapPiece piece)
     printf("\n");
 }
 
-Coord drawField(const Field field, const Coord cursor, const Coord origin, const int i)
+// draws field, if selected > 0, highlights field as selected
+// for fields with multiple entries, highlights entry in index of selected+1
+Coord fieldDraw(const Field field, const Coord origin, const uint selected)
 {
     Coord pos = origin;
     Length len = {0};
@@ -69,7 +71,7 @@ Coord drawField(const Field field, const Coord cursor, const Coord origin, const
             sprintf(buf, "%s%s", field.label, MapPieceTypeStr[val0]);
             len = getTextLength(buf);
             fillRectCoordLength(pos, len);
-            setTextColor(cursor.y == i ? WHITE : GREY1);
+            setTextColor(selected ? WHITE : GREY1);
             drawTextCoord(buf, pos);
             pos.y += len.y;
             break;
@@ -78,7 +80,7 @@ Coord drawField(const Field field, const Coord cursor, const Coord origin, const
             sprintf(buf, "%s%s", field.label, SegTypeStr[val1]);
             len = getTextLength(buf);
             fillRectCoordLength(pos, len);
-            setTextColor(cursor.y == i ? WHITE : GREY1);
+            setTextColor(selected ? WHITE : GREY1);
             drawTextCoord(buf, pos);
             pos.y += len.y;
             break;
@@ -87,7 +89,7 @@ Coord drawField(const Field field, const Coord cursor, const Coord origin, const
             sprintf(buf, "%s%s", field.label, ObjTypeStr[val2]);
             len = getTextLength(buf);
             fillRectCoordLength(pos, len);
-            setTextColor(cursor.y == i ? WHITE : GREY1);
+            setTextColor(selected ? WHITE : GREY1);
             drawTextCoord(buf, pos);
             pos.y += len.y;
             break;
@@ -102,7 +104,7 @@ Coord drawField(const Field field, const Coord cursor, const Coord origin, const
             drawTextCoord(buf, pos);
             pos.x += getTextXLen(buf);
 
-            setTextColor(cursor.y == i && cursor.x == 0 ? WHITE : GREY1);
+            setTextColor(selected == 1 ? WHITE : GREY1);
             sprintf(buf, "%+14.6f", val3.x);
             drawTextCoord(buf, pos);
             pos.x += getTextXLen(buf);
@@ -112,7 +114,7 @@ Coord drawField(const Field field, const Coord cursor, const Coord origin, const
             drawTextCoord(buf, pos);
             pos.x += getTextXLen(buf);
 
-            setTextColor(cursor.y == i && cursor.x == 1 ? WHITE : GREY1);
+            setTextColor(selected == 2 ? WHITE : GREY1);
             sprintf(buf, "%+14.6f", val3.y);
             drawTextCoord(buf, pos);
             pos.x += getTextXLen(buf);
@@ -129,37 +131,37 @@ Coord drawField(const Field field, const Coord cursor, const Coord origin, const
             len = getTextLength(buf);
             fillRectCoordLength(pos, len);
 
-            setTextColor(cursor.y == i ? WHITE : GREY1);
+            setTextColor(selected ? WHITE : GREY1);
             sprintf(buf, "%s(", field.label);
             drawTextCoord(buf, pos);
             pos.x += getTextXLen(buf);
 
-            setTextColor(cursor.y == i && cursor.x == 0 ? RED : GREY1);
+            setTextColor(selected == 1 ? RED : GREY1);
             sprintf(buf, "%3u", val4.r);
             drawTextCoord(buf, pos);
             pos.x += getTextXLen(buf);
 
-            setTextColor(cursor.y == i ? WHITE : GREY1);
+            setTextColor(selected ? WHITE : GREY1);
             sprintf(buf, ",");
             drawTextCoord(buf, pos);
             pos.x += getTextXLen(buf);
 
-            setTextColor(cursor.y == i && cursor.x == 1 ? GREEN : GREY1);
+            setTextColor(selected == 2 ? GREEN : GREY1);
             sprintf(buf, "%3u", val4.g);
             drawTextCoord(buf, pos);
             pos.x += getTextXLen(buf);
 
-            setTextColor(cursor.y == i ? WHITE : GREY1);
+            setTextColor(selected ? WHITE : GREY1);
             sprintf(buf, ",");
             drawTextCoord(buf, pos);
             pos.x += getTextXLen(buf);
 
-            setTextColor(cursor.y == i && cursor.x == 2 ? BLUE : GREY1);
+            setTextColor(selected == 3 ? BLUE : GREY1);
             sprintf(buf, "%3u", val4.b);
             drawTextCoord(buf, pos);
             pos.x += getTextXLen(buf);
 
-            setTextColor(cursor.y == i ? WHITE : GREY1);
+            setTextColor(selected ? WHITE : GREY1);
             sprintf(buf, ")");
             drawTextCoord(buf, pos);
             pos.x = origin.x;
@@ -171,7 +173,7 @@ Coord drawField(const Field field, const Coord cursor, const Coord origin, const
             sprintf(buf, "%s\"%s\"", field.label, val5);
             len = getTextLength(buf);
             fillRectCoordLength(pos, len);
-            setTextColor(cursor.y == i ? WHITE : GREY1);
+            setTextColor(selected ? WHITE : GREY1);
             drawTextCoord(buf, pos);
             pos.y+=len.y;
             break;
@@ -180,7 +182,7 @@ Coord drawField(const Field field, const Coord cursor, const Coord origin, const
             sprintf(buf, "%s%+14.6f", field.label, val6);
             len = getTextLength(buf);
             fillRectCoordLength(pos, len);
-            setTextColor(cursor.y == i ? WHITE : GREY1);
+            setTextColor(selected ? WHITE : GREY1);
             drawTextCoord(buf, pos);
             pos.y+=len.y;
             break;
@@ -189,7 +191,7 @@ Coord drawField(const Field field, const Coord cursor, const Coord origin, const
             sprintf(buf, "%s%3u", field.label, val7);
             len = getTextLength(buf);
             fillRectCoordLength(pos, len);
-            setTextColor(cursor.y == i ? WHITE : GREY1);
+            setTextColor(selected ? WHITE : GREY1);
             drawTextCoord(buf, pos);
             pos.y+=len.y;
             break;
@@ -198,7 +200,7 @@ Coord drawField(const Field field, const Coord cursor, const Coord origin, const
             sprintf(buf, "%s%s", field.label, val8?"true":"false");
             len = getTextLength(buf);
             fillRectCoordLength(pos, len);
-            setTextColor(cursor.y == i ? WHITE : GREY1);
+            setTextColor(selected ? WHITE : GREY1);
             drawTextCoord(buf, pos);
             pos.y+=len.y;
             break;
@@ -207,7 +209,7 @@ Coord drawField(const Field field, const Coord cursor, const Coord origin, const
             sprintf(buf, "%s%c", field.label, DirectionChar[val9]);
             len = getTextLength(buf);
             fillRectCoordLength(pos, len);
-            setTextColor(cursor.y == i ? WHITE : GREY1);
+            setTextColor(selected ? WHITE : GREY1);
             drawTextCoord(buf, pos);
             pos.y+=len.y;
             break;
@@ -218,28 +220,16 @@ Coord drawField(const Field field, const Coord cursor, const Coord origin, const
     return pos;
 }
 
-void mapPrintFields(Map *map)
+void fieldPrintMap(Map *map)
 {
     MapPiece start = pieceNext(map, (MapPiece){.type = M_ANY});
     if(start.type >= M_ANY)
         return;
     MapPiece cur = start;
     do{
-        printPieceFields(cur);
+        fieldPrint(cur);
         cur = pieceNext(map, cur);
     }while(!pieceSame(cur, start));
-}
-
-void editorDrawPieceFields(Selection *sel)
-{
-    if(!sel)
-        return;
-    if(!sel->next){
-        setTextSize((getWindowLen().y/3)/12);
-        Coord pos = {0};
-        for(int i = 0; i < (int)sel->fields.numFields; i++)
-            pos = drawField(sel->fields.field[i], *sel->cursor, pos, i);
-    }
 }
 
 #endif /* end of include guard: FIELDS_H */

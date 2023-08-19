@@ -132,14 +132,23 @@ st segListLen(Seg *segList)
     return len;
 }
 
-// frees all segments in segList
-void segListFree(Seg *segList)
+Seg* segFree(Seg *seg)
 {
-    while(segList){
-        Seg *next = segList->next;
-        free(segList);
-        segList = next;
-    }
+    if(!seg)
+        return NULL;
+    Seg *next = seg->next;
+    if(seg->type == S_WALL && seg->wall.texture)
+        textureFree(seg->wall.texture);
+    free(seg);
+    return next;
+}
+
+// frees all segments in segList
+Seg* segListFree(Seg *segList)
+{
+    while(segList)
+        segList = segFree(segList);
+    return NULL;
 }
 
 #endif /* end of include guard: MAPEDITORSEGMENTS_H */

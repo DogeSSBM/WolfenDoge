@@ -7,15 +7,17 @@ Selection* selAppend(Selection *, Selection *);
 st selLen(Selection *);
 Selection* selFree(Selection *);
 Selection* selFreeList(Selection *);
-Selection* selPosNearest(Map *map, Coord *cursor, const Coordf pos);
+Selection* selPosNearest(Map *, Coord *, const Coordf);
+bool selPosSelected(Selection *, Coordf *);
+bool selPieceSelected(Selection *, const MapPiece);
 
 // Fields.h
-void printPieceFields(const MapPiece);
-Coord drawField(const Field, const Coord, const Coord, const int);
-void mapPrintFields(Map *);
+void fieldPrint(const MapPiece);
+Coord fieldDraw(const Field, const Coord, const uint);
+void fieldPrintMap(Map *);
 Coord drawPieceFields(const PieceFields, const Coord, const Coord);
 
-// MapEditorPieces.h
+// Pieces.h
 PieceCoords pieceCoords(const MapPiece);
 Color pieceColor(const MapPiece);
 MapPiece pieceNext(Map *, MapPiece);
@@ -51,23 +53,13 @@ Seg* convNew(const Color, const Coordf, const Coordf, const uint, const uint);
 Seg* segAppend(Seg *, Seg *);
 Seg* segDelete(Seg *, Seg *);
 st segListLen(Seg *);
-void segListFree(Seg *);
-
-// MapEditorUpdate.h
-// void updateMouseCommon(Minfo *, Minfo *, Selection *, const Offset, const float, const float);
-// Minfo updateMouseL(Minfo, Selection *, Map *, const float, const bool, const float);
-// Minfo updateMouseR(Minfo, Selection *, Map *, const Color, const bool);
-// Selection updateSelCursor(Selection);
-// Selection updateSelNext(Selection, Map *);
-// bool updateDel(Map *, Selection *);
-// Length updateResize(Length, Offset *);
-// Offset updatePan(Offset, Minfo *, Minfo *);
+Seg* segListFree(Seg *);
 
 // Objects.h
 Obj* objAppend(Obj *, Obj *);
 Obj* objDelete(Obj *, Obj *);
 st objListLen(Obj *);
-void objListFree(Obj *);
+Obj* objListFree(Obj *);
 Obj* objNew(const ObjType, const Coordf);
 Obj* keyNew(const Coordf, const Color);
 Obj* spawnNew(const Coordf, const float);
@@ -94,6 +86,7 @@ Texture* wallListTxtrQryLoad(Seg *, char *);
 Seg* txtrCleanup(Seg *, Seg *);
 Seg* txtrApply(Seg *, Texture *, char *);
 void newMapFileNum(Map *);
+void mapFree(Map *);
 Map mapLoad(char *);
 void mapSave(Map *);
 void mapDefault(Map*);

@@ -18,7 +18,8 @@ int main(int argc, char **argv)
         const uint t = frameStart();
 
         if(keyPressed(SC_ESCAPE) || checkCtrlKey(SC_Q) || checkCtrlKey(SC_W)){
-            return 0;
+            mapFree(&map);
+            exit(EXIT_SUCCESS);
         }
 
         if(checkCtrlKey(SC_E)){

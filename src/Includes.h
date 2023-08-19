@@ -7,14 +7,15 @@
 #include "GetFields.h"
 #include "Fields.h"
 #include "WolfenDoge.h"
-#include "MapEditorPieces.h"
+#include "Pieces.h"
 #include "Map.h"
 #include "MapEditorDraw.h"
 #include "MapEditorSegments.h"
 #include "MapEditorSelection.h"
-// #include "MapEditorUpdate.h"
+#include "MapEditorUpdate.h"
 #include "MapIO.h"
 #include "Objects.h"
+#include "MapEditorInput.h"
 #include "MapEditor.h"
 
 #endif /* end of include guard: INCLUDES_H */

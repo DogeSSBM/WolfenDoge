@@ -58,11 +58,40 @@ Selection* selFreeList(Selection *sel)
 
 Selection* selPosNearest(Map *map, Coord *cursor, const Coordf pos)
 {
-    Coordf *nearestPos;
+    Coordf *nearestPos = NULL;
     const MapPiece piece = pieceNearest(map, pos, &nearestPos);
     if(pieceEmpty(piece))
         return NULL;
     return selNew(cursor, nearestPos, pieceFields(piece));
+}
+
+Selection* selLast(Selection *sel)
+{
+    if(!sel)
+        return NULL;
+    while(sel->next)
+        sel = sel->next;
+    return sel;
+}
+
+bool selPosSelected(Selection *list, Coordf *pos)
+{
+    while(list){
+        if(list->pos == pos)
+            return true;
+        list = list->next;
+    }
+    return false;
+}
+
+bool selPieceSelected(Selection *list, const MapPiece piece)
+{
+    while(list){
+        if(pieceContainsCoord(piece, list->pos))
+            return true;
+        list = list->next;
+    }
+    return false;
 }
 
 #endif /* end of include guard: MAPEDITORSELECTION_H */

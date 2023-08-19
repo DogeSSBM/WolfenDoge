@@ -1,5 +1,5 @@
-#ifndef MAPEDITORPIECES_H
-#define MAPEDITORPIECES_H
+#ifndef PIECES_H
+#define PIECES_H
 
 MapPiece segToPiece(Seg *seg)
 {
@@ -15,6 +15,14 @@ MapPiece objToPiece(Obj *obj)
         .type = obj ? M_OBJ : M_NONE,
         .obj = obj
     };
+}
+
+bool pieceEmpty(const MapPiece piece)
+{
+    if(piece.type >= M_ANY)
+        return true;
+    assertExpr(piece.seg || piece.obj);
+    return false;
 }
 
 PieceCoords pieceCoords(const MapPiece piece)
@@ -63,6 +71,17 @@ Color pieceColor(const MapPiece piece)
     return WHITE;
 }
 
+void pieceDelete(Map *map, MapPiece piece)
+{
+    assertExpr(map);
+    if(pieceEmpty(piece))
+        return;
+    if(piece.type == M_SEG)
+        map->seg[piece.seg->type] = segDelete(map->seg[piece.seg->type], piece.seg);
+    else
+        map->obj[piece.obj->type] = objDelete(map->obj[piece.obj->type], piece.obj);
+}
+
 MapPiece pieceNext(Map *map, MapPiece piece)
 {
     assertExpr(piece.type <= M_ANY);
@@ -92,11 +111,12 @@ MapPiece pieceNext(Map *map, MapPiece piece)
                 return piece;
             }
         }
-        return piece;
+        if(piece.type == M_SEG && !piece.seg)
+            return (MapPiece){.type = M_NONE};
     }
 
     assertExpr(piece.type == M_OBJ || piece.type == M_ANY);
-    if(piece.type != M_ANY && piece.obj->next){
+    if(piece.type != M_ANY && piece.obj && piece.obj->next){
         piece.obj = piece.obj->next;
         return piece;
     }
@@ -121,7 +141,7 @@ MapPiece pieceNext(Map *map, MapPiece piece)
             return piece;
         }
     }
-    if(piece.type == M_ANY)
+    if(piece.type == M_ANY || !piece.obj)
         piece.type = M_NONE;
     return piece;
 }
@@ -153,14 +173,6 @@ MapPiece pieceNextSameCoord(Map *map, MapPiece piece, Coordf **pos)
     return piece;
 }
 
-bool pieceEmpty(const MapPiece piece)
-{
-    if(piece.type >= M_ANY)
-        return true;
-    assertExpr(piece.seg || piece.obj);
-    return false;
-}
-
 bool pieceSame(const MapPiece a, const MapPiece b)
 {
     if(a.type != b.type)
@@ -175,8 +187,8 @@ bool pieceSame(const MapPiece a, const MapPiece b)
 MapPiece pieceNearest(Map *map, const Coordf pos, Coordf **nearestPos)
 {
     MapPiece start = pieceNext(map, (MapPiece){.type = M_ANY});
-    if(start.type == M_NONE)
-        return start;
+    if(start.type >= M_ANY)
+        return (MapPiece){.type = M_NONE};
     MapPiece cur = start;
     MapPiece nearest = start;
     *nearestPos = pieceCoords(start).coord[0];
@@ -196,4 +208,23 @@ MapPiece pieceNearest(Map *map, const Coordf pos, Coordf **nearestPos)
     return nearest;
 }
 
-#endif /* end of include guard: MAPEDITORPIECES_H */
+st pieceCountTotal(Map *map)
+{
+    const MapPiece start = pieceNext(map, (MapPiece){.type = M_ANY});
+    if(start.type == M_NONE)
+        return 0;
+    MapPiece cur = start;
+    st count = 0;
+    while(!pieceSame((cur = pieceNext(map, cur)), start))
+        count++;
+    return count;
+}
+
+// MapPiece pieceNew(const NewPieceInfo )
+// {
+//     return (NewPieceInfo){
+//         .
+//     }
+// }
+
+#endif /* end of include guard: PIECES_H */

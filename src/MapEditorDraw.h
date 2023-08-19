@@ -27,9 +27,20 @@ void editorDrawGrid(const Offset off, const Length wlen, const float scale, cons
     }
 }
 
-void editorDrawPiece(const MapPiece piece, const Offset off, const float scale, Coordf *selectedPos)
+void editorDrawPieceFields(Selection *sel)
 {
-    const bool selected = pieceContainsCoord(piece, selectedPos);
+    if(!sel)
+        return;
+    if(!sel->next){
+        Coord pos = {0};
+        for(int i = 0; i < (int)sel->fields.numFields; i++)
+            pos = fieldDraw(sel->fields.field[i], pos, (sel->cursor->y == i) ? (sel->cursor->x)+1 : 0);
+    }
+}
+
+void editorDrawPiece(const MapPiece piece, const Offset off, const float scale, Selection *sel)
+{
+    const bool selected = selPieceSelected(sel, piece);
     PieceCoords coords = pieceCoords(piece);
     setColor(pieceColor(piece));
     if(coords.numCoord >= 2){
@@ -45,11 +56,11 @@ void editorDrawPiece(const MapPiece piece, const Offset off, const float scale, 
                 drawLineThickCoords(b, d, 4);
             }
             if(selected){
-                if(selectedPos == coords.coord[2])
+                if(selPosSelected(sel, coords.coord[2]))
                     fillCircleCoord(c, 6);
                 else
                     drawCircleCoord(c, 6);
-                if(selectedPos == coords.coord[3])
+                if(selPosSelected(sel, coords.coord[3]))
                     fillCircleCoord(d, 6);
                 else
                     drawCircleCoord(d, 6);
@@ -57,11 +68,11 @@ void editorDrawPiece(const MapPiece piece, const Offset off, const float scale, 
         }
         drawLineThickCoords(a, b, selected?4:1);
         if(selected){
-            if(selectedPos == coords.coord[0])
+            if(selPosSelected(sel, coords.coord[0]))
                 fillCircleCoord(a, 6);
             else
                 drawCircleCoord(a, 6);
-            if(selectedPos == coords.coord[1])
+            if(selPosSelected(sel, coords.coord[1]))
                 fillCircleCoord(b, 6);
             else
                 drawCircleCoord(b, 6);
@@ -72,14 +83,32 @@ void editorDrawPiece(const MapPiece piece, const Offset off, const float scale, 
     fillCircleCoord(a, 6);
 }
 
-void editorDrawMap(Map *map, const Offset off, const float scale, Coordf *selectedPos)
+void editorDrawPieceCount(Map *map, const Coord wlen)
+{
+    uint count = (uint)pieceCountTotal(map);
+    const Field field = {.label = "Pieces: ", .type = F_UINT, .ptr = &count};
+    char buf[64] = {0};
+    sprintf(buf, "%s%3u", field.label, count);
+    const Length len = getTextLength(buf);
+    fieldDraw(field, coordSub(wlen, len), 0);
+}
+
+// draws x / y axies through origin and snap grid if enabled
+void editorDrawLines(const Snap snap, const Camera cam)
+{
+    if(snap.active)
+        editorDrawGrid(cam.off, cam.wlen, cam.scale, snap.len);
+    editorDrawOriginLines(cam.off, cam.wlen);
+}
+
+void editorDrawMap(Map *map, const Offset off, const float scale, Selection *sel)
 {
     MapPiece start = pieceNext(map, (MapPiece){.type = M_ANY});
     if(start.type >= M_ANY)
         return;
     MapPiece cur = start;
     do{
-        editorDrawPiece(cur, off, scale, selectedPos);
+        editorDrawPiece(cur, off, scale, sel);
         cur = pieceNext(map, cur);
     }while(!pieceSame(cur, start));
 }
