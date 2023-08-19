@@ -86,11 +86,11 @@ MapPiece pieceNext(Map *map, MapPiece piece)
 {
     assertExpr(piece.type <= M_ANY);
     if(piece.type == M_SEG || piece.type == M_ANY){
-        if(piece.type != M_ANY && piece.seg->next){
+        if(piece.type != M_ANY && piece.seg && piece.seg->next){
             piece.seg = piece.seg->next;
             return piece;
         }
-        for(SegType stype = (piece.type == M_ANY ? 0 : piece.seg->type+1); stype < S_N; stype++){
+        for(SegType stype = ((piece.type == M_ANY || !piece.seg) ? 0 : piece.seg->type+1); stype < S_N; stype++){
             if(map->seg[stype]){
                 piece.type = M_SEG;
                 piece.seg = map->seg[stype];
@@ -104,7 +104,7 @@ MapPiece pieceNext(Map *map, MapPiece piece)
                 return piece;
             }
         }
-        for(SegType stype = 0; stype <= (piece.type == M_ANY ? S_N-1 : piece.seg->type); stype++){
+        for(SegType stype = 0; stype <= ((piece.type == M_ANY || !piece.seg) ? S_N-1 : piece.seg->type); stype++){
             if(map->seg[stype]){
                 piece.type = M_SEG;
                 piece.seg = map->seg[stype];
@@ -120,7 +120,7 @@ MapPiece pieceNext(Map *map, MapPiece piece)
         piece.obj = piece.obj->next;
         return piece;
     }
-    for(ObjType otype = (piece.type == M_ANY ? 0 : piece.obj->type+1); otype < O_N; otype++){
+    for(ObjType otype = ((piece.type == M_ANY || !piece.obj) ? 0 : piece.obj->type+1); otype < O_N; otype++){
         if(map->obj[otype]){
             piece.type = M_OBJ;
             piece.obj = map->obj[otype];
@@ -134,7 +134,7 @@ MapPiece pieceNext(Map *map, MapPiece piece)
             return piece;
         }
     }
-    for(ObjType otype = 0; otype <= (piece.type == M_ANY ? O_N-1 : piece.obj->type); otype++){
+    for(ObjType otype = 0; otype <= ((piece.type == M_ANY || !piece.obj) ? O_N-1 : piece.obj->type); otype++){
         if(map->obj[otype]){
             piece.type = M_OBJ;
             piece.obj = map->obj[otype];

@@ -91,7 +91,8 @@ Ray* RayInsert(Ray *list, Ray *ins)
 // allocates a new Ray
 Ray* RayNew(const MapPiece piece, const float dst, const Coordf pos)
 {
-    assertExpr(piece.type < M_ANY);
+    if(piece.type >= M_ANY)
+        return NULL;
     Ray *rs = calloc(1, sizeof(Ray));
     rs->piece = piece;
     rs->dst = dst;
@@ -114,6 +115,9 @@ Ray* RayFree(Ray *list)
 Ray* castRayBase(const Coordf origin, const Coordf distantPoint, Map *map)
 {
     Seg *seg = map->seg[S_WALL];
+    if(!seg)
+        if(!(seg = pieceNext(map, (MapPiece){.type = M_SEG}).seg))
+            return NULL;
     float dst = 60000.0f;
     Coordf pos = distantPoint;
     for(SegType type = 0; type < S_N; type++){
@@ -177,7 +181,7 @@ Ray* castRayMax(const Coordf origin, const Coordf distantPoint, Map *map, const 
 Ray* castRay(const Coordf origin, const Coordf distantPoint, Map *map)
 {
     Ray *ray = castRayBase(origin, distantPoint, map);
-    Ray *list = castRayMax(origin, distantPoint, map, ray->dst);
+    Ray *list = castRayMax(origin, distantPoint, map, ray ? ray->dst : rayUnwrapDst(ray));
     list = RayInsert(list, ray);
     return list;
 }
@@ -190,9 +194,13 @@ Coordf rayUnwrapPos(Ray *sect)
     return pos;
 }
 
+// if there are no map segments to intersect with, no rays will be allocated
+// in this case we return a large float as if the ray traveled forever
 // frees sect, returning its dst
 float rayUnwrapDst(Ray *sect)
 {
+    if(!sect)
+        return 999999999.0f;
     const float dst = sect->dst;
     free(sect);
     return dst;
@@ -201,6 +209,8 @@ float rayUnwrapDst(Ray *sect)
 // draws vertical slice of object based on ray information
 void drawObjSlice(const View view, const Ray *rs, const int xpos, const int ymid, const int dst, const float hsec)
 {
+    if(!rs)
+        return;
     const int height = (view.len.y*120) / fmax(dst, .01f);
     assertExpr(rs->piece.type == M_OBJ && rs->piece.obj->type == O_MOB);
     const Length txtrlen = textureLen(rs->piece.obj->mob.texture);
@@ -307,6 +317,8 @@ void drawCeilFloor(const View view)
 void drawFp(const View view, Map *map, const Player player)
 {
     drawCeilFloor(view);
+    if(pieceNext(map, (MapPiece){.type = M_ANY}).type >= M_ANY)
+        return;
     const Coordf startingPos = cfAdd(player.pos, cfRotateDeg((const Coordf){.x=2048.0f,.y=-2048.0f}, player.ang));
     const float scanAng = degReduce(player.ang+90.0f);
     const float hsec = (float)view.len.x/FOV_NUM_RAYS;
@@ -348,12 +360,10 @@ void drawBv(const View view, Map *map, const Player player, const float scale, c
         }
 
         Coord ppos = coordAdd(view.pos, hlen);
-        Coord rpos = coordAdd(toView(view, cfSub(rayUnwrapPos(castRayBase(
-            player.pos, cfAdd(player.pos, degMagToCf(degReduce(player.ang + 45.0f), 6000.0f)),
-            map)), player.pos), scale), hlen);
-        Coord lpos = coordAdd(toView(view, cfSub(rayUnwrapPos(castRayBase(
-            player.pos, cfAdd(player.pos, degMagToCf(degReduce(player.ang - 45.0f), 6000.0f)),
-            map)), player.pos), scale), hlen);
+        Ray *rr = castRayBase(player.pos, cfAdd(player.pos, degMagToCf(degReduce(player.ang + 45.0f), 6000.0f)), map);
+        Ray *rl = castRayBase(player.pos, cfAdd(player.pos, degMagToCf(degReduce(player.ang - 45.0f), 6000.0f)), map);
+        Coord rpos = coordAdd(toView(view, cfSub(rr ? rayUnwrapPos(rr) : player.pos, player.pos), scale), hlen);
+        Coord lpos = coordAdd(toView(view, cfSub(rl ? rayUnwrapPos(rl) : player.pos, player.pos), scale), hlen);
         limitViewBounds(view, &ppos, &rpos);
         limitViewBounds(view, &ppos, &lpos);
         setColor(YELLOW);

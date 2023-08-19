@@ -11,7 +11,7 @@ int main(int argc, char **argv)
     winSetPosCoord(coordAddi(coordDivi(getWinDisplayLen(), 2), -400));
 
     Map map = mapLoad(argc == 2 ? argv[1] : NULL);
-    printf("path: \"%s\"\n", map.obj[O_MOB]->mob.path);
+    printf("path: \"%s\"\n", map.path);
 
     setRelativeMouse(true);
     while(1){
