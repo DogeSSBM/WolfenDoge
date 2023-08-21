@@ -213,7 +213,7 @@ Coordf cfSnap(const Coordf pos, const float scale)
 
 Coordf cfSnapMid(const Coordf pos, const float scale)
 {
-    return cfSnap(cfAddf(pos, scale/2), scale);
+    return cfSnap(cfAdd(pos, fC(scale/matchSignf(pos.x, 2.0f), scale/matchSignf(pos.y, 2.0f))), scale);
 }
 
 float cfCfToRad(const Coordf pos1, const Coordf pos2)

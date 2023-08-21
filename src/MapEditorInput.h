@@ -31,22 +31,35 @@ void editorInputClearSelection(Selection **sel)
 }
 
 // sets mouse map / win positions
-void editorInputMouseMove(const Camera cam, Mouse *mouse)
+void editorInputMouseMove(const Camera cam, Mouse *mouse, Snap *snap)
 {
+    mouse->map.prv.pos = mouse->map.pos;
+    mouse->win.prv.pos = mouse->win.pos;
     mouse->win.pos = mousePos();
-    mouse->map.pos = screenToMap(cam.off, cam.scale, mousePos());
+    mouse->map.pos = screenToMap(cam.off, cam.scale, mouse->win.pos);
+    snap->mouse.pos = cfSnapMid(mouse->map.pos, snap->len);
+    setColor(CYAN);
+    fillCircleCoord(mapToScreen(cam.off, cam.scale, snap->mouse.pos), 4);
 }
 
 // sets ldown / rdown map / win positions on left / right click
-void editorInputMouseBtns(Mouse *mouse)
+void editorInputMouseBtns(Mouse *mouse, Snap *snap)
 {
     if(mouseBtnPressed(MOUSE_L)){
-        mouse->win.ldown = mouse->win.pos;
         mouse->map.ldown = mouse->map.pos;
+        mouse->win.ldown = mouse->win.pos;
+        mouse->map.prv.ldown = mouse->map.ldown;
+        mouse->win.prv.ldown = mouse->win.ldown;
+        snap->mouse.prv.ldown = snap->mouse.ldown;
+        snap->mouse.ldown = snap->mouse.pos;
     }
     if(mouseBtnPressed(MOUSE_R)){
-        mouse->win.rdown = mouse->win.pos;
         mouse->map.rdown = mouse->map.pos;
+        mouse->win.rdown = mouse->win.pos;
+        mouse->map.prv.rdown = mouse->map.rdown;
+        mouse->win.prv.rdown = mouse->win.rdown;
+        snap->mouse.prv.rdown = snap->mouse.rdown;
+        snap->mouse.rdown = snap->mouse.pos;
     }
 }
 
@@ -91,7 +104,7 @@ void editorInputNextSelection(Map *map, Selection *sel)
 }
 
 // while selection is active, changes the field currently highlighted by the cursor
-void editorInputSingleSelMoveCursor(Selection *sel)
+void editorInputMoveCursor(Selection *sel)
 {
     if(sel && !sel->next){
         *sel->cursor = coordAdd(*sel->cursor, arrowKeyPressedOffset());
@@ -106,6 +119,10 @@ void editorInputSave(Map *map)
     if(checkCtrlKey(SC_S))
         mapSave(map);
 }
+
+
+// editorInputNewPiece(&state.pieceInfo)
+
 
 // zooms editor in or out focused on cursor
 void editorInputZoom(Camera *cam, const Mouse mouse)

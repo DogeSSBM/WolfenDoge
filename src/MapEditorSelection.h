@@ -15,6 +15,7 @@ Selection* selNew(Coord *cursor, Coordf *pos, const PieceFields fields)
     Selection *sel = calloc(1, sizeof(Selection));
     sel->cursor = cursor;
     sel->pos = pos;
+    sel->holp = pos ? *pos : (Coordf){0};
     sel->fields = fields;
     return sel;
 }

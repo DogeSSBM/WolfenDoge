@@ -1,6 +1,12 @@
 #ifndef FIELDS_H
 #define FIELDS_H
 
+FieldType fieldTypeFromMapPieceType(const MapPieceType ptype)
+{
+    assertExpr(ptype < M_ANY);
+    return ptype == M_SEG ? F_SEGTYPE : F_OBJTYPE;
+}
+
 void fieldPrint(const MapPiece piece)
 {
     assertExpr(piece.type < M_ANY);

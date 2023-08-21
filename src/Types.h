@@ -116,9 +116,9 @@ typedef struct Ray{
     struct Ray *next;
 }Ray;
 
-typedef enum              {F_MAPPIECETYPE, F_SEGTYPE, F_OBJTYPE, F_COORDF, F_COLOR, F_PATH, F_FLOAT, F_UINT, F_BOOL, F_DIR,   F_N}FieldType;
-char *FieldTypeStr[F_N] = { "MapPieceType", "SegType", "ObjType", "Coordf", "Color", "Path", "float", "uint", "bool", "Direction"};
-uint FieldTypeXlen[F_N] = {             1,         1,         1,        2,       3,      1,       1,      1,      1,           1 };
+typedef enum              {F_MAPPIECETYPE, F_SEGTYPE, F_OBJTYPE, F_COORDF, F_COLOR, F_PATH, F_FLOAT, F_UINT, F_BOOL,       F_DIR, F_N}FieldType;
+char *FieldTypeStr[F_N] = { "MapPieceType", "SegType", "ObjType", "Coordf", "Color", "Path", "float", "uint", "bool", "Direction"    };
+uint FieldTypeXlen[F_N] = {             1,         1,         1,        2,       3,      1,       1,      1,      1,           1     };
 typedef struct{
     char *label;
     FieldType type;
@@ -152,31 +152,48 @@ typedef struct{
 
 typedef struct Selection{
     Coord *cursor;
+    Coordf holp;
+    bool moved;
     Coordf *pos;
     PieceFields fields;
     struct Selection *next;
 }Selection;
 
 typedef struct{
+    Coordf pos;
+    Coordf ldown;
+    Coordf rdown;
     struct{
         Coordf pos;
         Coordf ldown;
         Coordf rdown;
-    }map;
+    }prv;
+}MouseMap;
+
+typedef struct{
+    Coord pos;
+    Coord ldown;
+    Coord rdown;
     struct{
         Coord pos;
         Coord ldown;
         Coord rdown;
-    }win;
+    }prv;
+}MouseWin;
+
+typedef struct{
+    MouseMap map;
+    MouseWin win;
 }Mouse;
 
 typedef struct{
     bool active;
     float len;
+    MouseMap mouse;
 }Snap;
 
 typedef struct{
-    MapPieceType mapType;
+    MapPieceType pieceType;
     union{
         SegType segType;
         ObjType objType;

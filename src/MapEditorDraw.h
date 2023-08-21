@@ -113,4 +113,29 @@ void editorDrawMap(Map *map, const Offset off, const float scale, Selection *sel
     }while(!pieceSame(cur, start));
 }
 
+void editorDrawNewPieceType(const NewPieceInfo pieceInfo, const Length wlen)
+{
+    assertExpr(pieceInfo.pieceType < M_ANY);
+    char qst[4] = "???";
+    void *ptr = (void*)qst;
+    FieldType type = F_PATH;
+    if(pieceInfo.pieceType == M_SEG){
+        type = F_SEGTYPE;
+        ptr = (void*)&pieceInfo.segType;
+    }
+    if(pieceInfo.pieceType == M_OBJ){
+        type = F_OBJTYPE;
+        ptr = (void*)&pieceInfo.objType;
+    }
+    const Field field = {
+        .label = "New Piece Type: ",
+        .type = type,
+        .ptr = ptr
+    };
+    char buf[64] = {0};
+    sprintf(buf, "%s%s", field.label, pieceInfo.pieceType == M_SEG ? SegTypeStr[pieceInfo.segType] : ObjTypeStr[pieceInfo.objType]);
+    const Length len = getTextLength(buf);
+    fieldDraw(field, iC(wlen.x-len.x, 0), 0);
+}
+
 #endif /* end of include guard: MAPEDITORDRAW_H */

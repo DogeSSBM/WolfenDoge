@@ -5,6 +5,7 @@
 EditorState editorInitState(void)
 {
     return (EditorState){
+        .pieceInfo = { .pieceType = M_SEG, .segType = S_WALL},
         .cam = { .scale = 1.0f, .wlen = getWindowLen() },
         .snap = { .active = true, .len = 50.0f }
     };
@@ -24,11 +25,12 @@ void mapEdit(Map *map)
 
         editorInputResizeWindow(&state.cam);
         editorInputClearSelection(&state.sel);
-        editorInputMouseMove(state.cam, &state.mouse);
-        editorInputMouseBtns(&state.mouse);
+        editorInputMouseMove(state.cam, &state.mouse, &state.snap);
+        editorInputMouseBtns(&state.mouse, &state.snap);
         editorInputSelect(map, state.mouse.map.pos, &state.cursor, &state.sel);
         editorInputNextSelection(map, state.sel);
-        editorInputSingleSelMoveCursor(state.sel);
+        editorInputMoveCursor(state.sel);
+        // editorInputNewPiece(&state.pieceInfo);
         editorInputZoom(&state.cam, state.mouse);
         editorInputPan(&state.cam.off);
         editorInputSave(map);
@@ -37,10 +39,11 @@ void mapEdit(Map *map)
         editorDrawMap(map, state.cam.off, state.cam.scale, state.sel);
         editorDrawPieceFields(state.sel);
         editorDrawPieceCount(map, state.cam.wlen);
-        // editorDrawNewPieceType();
+        editorDrawNewPieceType(state.pieceInfo, state.cam.wlen);
 
         editorUpdateDeleteSelection(map, &state.sel);
-
+        editorUpdateMoveSelection(state.cam, state.snap, state.mouse.map, state.sel);
+        // editorUpdateNewPiece()
         frameEnd(t);
     }
 }
