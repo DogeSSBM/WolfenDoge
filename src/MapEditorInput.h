@@ -120,8 +120,37 @@ void editorInputSave(Map *map)
         mapSave(map);
 }
 
+// Changed the type of new piece
+void editorInputNewPiece(NewPieceInfo *pieceInfo)
+{
+    assertExpr(pieceInfo->pieceType == M_SEG || pieceInfo->pieceType == M_OBJ);
+    if(pieceInfo->pieceType == M_SEG){
+        const int pt = pieceInfo->segType - keyPressed(SC_LEFT) + keyPressed(SC_RIGHT);
+        if(pt < 0){
+            pieceInfo->pieceType = M_OBJ;
+            pieceInfo->objType = O_N + pt;
+            return;
+        }else if(pt >= S_N){
+            pieceInfo->pieceType = M_OBJ;
+            pieceInfo->objType = pt-S_N;
+            return;
+        }
+        pieceInfo->segType = pt;
+        return;
+    }
+    const int pt = pieceInfo->objType - keyPressed(SC_LEFT) + keyPressed(SC_RIGHT);
+    if(pt < 0){
+        pieceInfo->pieceType = M_SEG;
+        pieceInfo->segType = S_N + pt;
+        return;
+    }else if(pt >= O_N){
+        pieceInfo->pieceType = M_SEG;
+        pieceInfo->segType = pt-O_N;
+        return;
+    }
+    pieceInfo->objType = pt;
+}
 
-// editorInputNewPiece(&state.pieceInfo)
 
 
 // zooms editor in or out focused on cursor

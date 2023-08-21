@@ -30,7 +30,7 @@ void mapEdit(Map *map)
         editorInputSelect(map, state.mouse.map.pos, &state.cursor, &state.sel);
         editorInputNextSelection(map, state.sel);
         editorInputMoveCursor(state.sel);
-        // editorInputNewPiece(&state.pieceInfo);
+        editorInputNewPiece(&state.pieceInfo);
         editorInputZoom(&state.cam, state.mouse);
         editorInputPan(&state.cam.off);
         editorInputSave(map);
