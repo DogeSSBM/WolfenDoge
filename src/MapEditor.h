@@ -45,7 +45,7 @@ void mapEdit(Map *map)
 
         editorUpdateDeleteSelection(map, &state.sel);
         editorUpdateMoveSelection(state.cam, state.snap, state.mouse.map, state.sel);
-        editorUpdateNewPiece(map, state.pieceInfo, state.mouse);
+        editorUpdateNewPiece(map, state.pieceInfo, state.snap, state.mouse);
         frameEnd(t);
     }
 }

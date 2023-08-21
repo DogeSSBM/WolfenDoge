@@ -53,14 +53,16 @@ void editorInputMouseMove(const Camera cam, Mouse *mouse, Snap *snap)
     mouse->win.prv.pos = mouse->win.pos;
     mouse->win.pos = mousePos();
     mouse->map.pos = screenToMap(cam.off, cam.scale, mouse->win.pos);
+    snap->mouse.map.prv.pos = snap->mouse.map.pos;
+    snap->mouse.win.prv.pos = snap->mouse.win.pos;
     if(snap->active){
-        snap->mouse.map.prv.pos = snap->mouse.map.pos;
-        snap->mouse.win.prv.pos = snap->mouse.win.pos;
         snap->mouse.map.pos = cfSnapMid(mouse->map.pos, snap->len);
         snap->mouse.win.pos = mapToScreen(cam.off, cam.scale, snap->mouse.map.pos);
         mouse->map.pos = snap->mouse.map.pos;
         mouse->win.pos = snap->mouse.win.pos;
-
+    }else{
+        snap->mouse.map.pos = mouse->map.pos;
+        snap->mouse.win.pos = mouse->win.pos;
     }
 }
 
@@ -72,8 +74,8 @@ void editorInputMouseBtns(Mouse *mouse, Snap *snap)
         mouse->win.prv.ldown = mouse->win.ldown;
         snap->mouse.map.prv.ldown = snap->mouse.map.ldown;
         snap->mouse.win.prv.ldown = snap->mouse.win.ldown;
-        mouse->map.ldown = mouse->map.pos;
-        mouse->win.ldown = mouse->win.pos;
+        mouse->map.ldown = snap->active ? snap->mouse.map.pos : mouse->map.pos;
+        mouse->win.ldown = snap->active ? snap->mouse.win.pos : mouse->win.pos;
         snap->mouse.map.ldown = snap->mouse.map.pos;
         snap->mouse.win.ldown = snap->mouse.win.pos;
     }
@@ -82,8 +84,8 @@ void editorInputMouseBtns(Mouse *mouse, Snap *snap)
         mouse->win.prv.rdown = mouse->win.rdown;
         snap->mouse.map.prv.rdown = snap->mouse.map.rdown;
         snap->mouse.win.prv.rdown = snap->mouse.win.rdown;
-        mouse->map.rdown = mouse->map.pos;
-        mouse->win.rdown = mouse->win.pos;
+        mouse->map.rdown = snap->active ? snap->mouse.map.pos : mouse->map.pos;
+        mouse->win.rdown = snap->active ? snap->mouse.win.pos : mouse->win.pos;
         snap->mouse.map.rdown = snap->mouse.map.pos;
         snap->mouse.win.rdown = snap->mouse.win.pos;
     }
