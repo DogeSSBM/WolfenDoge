@@ -23,6 +23,8 @@ Color pieceColor(const MapPiece);
 MapPiece pieceNext(Map *, MapPiece);
 bool pieceSame(const MapPiece, const MapPiece);
 MapPiece pieceNearest(Map *, const Coordf, Coordf **);
+st pieceCountTotal(Map *);
+MapPiece pieceNew(const NewPieceInfo, const Coordf, const Coordf);
 
 // Map.h
 Coordf mapBoundMax(Seg *);
@@ -43,13 +45,15 @@ Update* mapQueueUpdates(const Coordf, const Coordf, Map *);
 void mapApplyUpdates(Map *, Update *);
 void mapUpdateDynamics(Map *);
 
-// MapEditorSegments.h
+// Segments.h
 Seg* wallNew(const Color, const Coordf, const Coordf);
 Seg* txtrNew(const Color, const Coordf, const Coordf, char *);
 Seg* windNew(const Color, const Color, const Coordf, const Coordf, const float, const float);
 Seg* doorNew(const Color, const Coordf, const Coordf, const uint, const float, const bool, const float, const Direction);
 Seg* trigNew(const Color, const Coordf, const Coordf, const uint, const Coordf, const Coordf);
 Seg* convNew(const Color, const Coordf, const Coordf, const uint, const uint);
+Seg* segEndNew(void);
+Seg* segNew(const SegType, const Coordf, const Coordf);
 Seg* segAppend(Seg *, Seg *);
 Seg* segDelete(Seg *, Seg *);
 st segListLen(Seg *);

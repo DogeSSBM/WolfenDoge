@@ -1,5 +1,5 @@
-#ifndef MAPEDITORSEGMENTS_H
-#define MAPEDITORSEGMENTS_H
+#ifndef SEGMENTS_H
+#define SEGMENTS_H
 
 // creates a new segment with type S_WALL
 Seg* wallNew(const Color c, const Coordf a, const Coordf b)
@@ -86,6 +86,31 @@ Seg* segEndNew(void)
     return end;
 }
 
+Seg* segNew(const SegType type, const Coordf a, const Coordf b)
+{
+    switch(type){
+        case S_WALL:
+            return wallNew(WHITE, a, b);
+            break;
+        case S_WIND:
+            return windNew(WHITE, WHITE, a, b, .25f, .25f);
+            break;
+        case S_DOOR:
+            return doorNew(WHITE, a, b, 0, 0.0f, false, 0.01f, DIR_D);
+            break;
+        case S_TRIG:
+            return trigNew(WHITE, a, b, 0, cfAddf(a, 50.0f), cfAddf(b, 50.0f));
+            break;
+        case S_CONV:
+            return convNew(WHITE, a, b, 0, 0);
+            break;
+        default:
+            break;
+    }
+    panic("???");
+    return NULL;
+}
+
 // appends tail to the end of the list (head)
 Seg* segAppend(Seg *head, Seg *tail)
 {
@@ -151,4 +176,4 @@ Seg* segListFree(Seg *segList)
     return NULL;
 }
 
-#endif /* end of include guard: MAPEDITORSEGMENTS_H */
+#endif /* end of include guard: SEGMENTS_H */

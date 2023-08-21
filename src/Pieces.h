@@ -220,11 +220,15 @@ st pieceCountTotal(Map *map)
     return count;
 }
 
-// MapPiece pieceNew(const NewPieceInfo )
-// {
-//     return (NewPieceInfo){
-//         .
-//     }
-// }
+MapPiece pieceNew(const NewPieceInfo pieceInfo, const Coordf a, const Coordf b)
+{
+    assertExpr(pieceInfo.pieceType < M_ANY);
+    MapPiece piece = {.type = pieceInfo.pieceType};
+    if(piece.type == M_SEG)
+        piece.seg = segNew(pieceInfo.segType, a, b);
+    else
+        piece.obj = objNew(pieceInfo.objType, a);
+    return piece;
+}
 
 #endif /* end of include guard: PIECES_H */

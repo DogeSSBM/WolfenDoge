@@ -40,4 +40,20 @@ void editorUpdateMoveSelection(const Camera cam, const Snap snap, const MouseMap
     }
 }
 
+void editorUpdateNewPiece(Map *map, const NewPieceInfo pieceInfo, const Mouse mouse)
+{
+    (void)map;
+    (void)pieceInfo;
+    if(mouseBtnReleased(MOUSE_R)){
+        MapPiece piece = pieceNew(pieceInfo, mouse.map.ldown, mouse.map.pos);
+        if(piece.type == M_SEG)
+            map->seg[piece.seg->type] = segAppend(map->seg[piece.seg->type], piece.seg);
+        else if(piece.type == M_OBJ)
+            map->obj[piece.obj->type] = objAppend(map->obj[piece.obj->type], piece.obj);
+        else
+            panic("???");
+    }
+}
+
+
 #endif /* end of include guard: MAPEDITORUPDATE_H */

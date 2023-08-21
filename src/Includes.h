@@ -10,7 +10,7 @@
 #include "Pieces.h"
 #include "Map.h"
 #include "MapEditorDraw.h"
-#include "MapEditorSegments.h"
+#include "Segments.h"
 #include "MapEditorSelection.h"
 #include "MapEditorUpdate.h"
 #include "MapIO.h"

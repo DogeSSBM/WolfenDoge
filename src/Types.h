@@ -189,7 +189,7 @@ typedef struct{
 typedef struct{
     bool active;
     float len;
-    MouseMap mouse;
+    Mouse mouse;
 }Snap;
 
 typedef struct{

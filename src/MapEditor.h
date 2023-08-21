@@ -25,6 +25,7 @@ void mapEdit(Map *map)
 
         editorInputResizeWindow(&state.cam);
         editorInputClearSelection(&state.sel);
+        editorInputSnap(&state.snap);
         editorInputMouseMove(state.cam, &state.mouse, &state.snap);
         editorInputMouseBtns(&state.mouse, &state.snap);
         editorInputSelect(map, state.mouse.map.pos, &state.cursor, &state.sel);
@@ -40,10 +41,11 @@ void mapEdit(Map *map)
         editorDrawPieceFields(state.sel);
         editorDrawPieceCount(map, state.cam.wlen);
         editorDrawNewPieceType(state.pieceInfo, state.cam.wlen);
+        editorDrawNewPiecePos(state.mouse.win);
 
         editorUpdateDeleteSelection(map, &state.sel);
         editorUpdateMoveSelection(state.cam, state.snap, state.mouse.map, state.sel);
-        // editorUpdateNewPiece()
+        editorUpdateNewPiece(map, state.pieceInfo, state.mouse);
         frameEnd(t);
     }
 }

@@ -101,6 +101,7 @@ void editorDrawLines(const Snap snap, const Camera cam)
     editorDrawOriginLines(cam.off, cam.wlen);
 }
 
+// draws whole map
 void editorDrawMap(Map *map, const Offset off, const float scale, Selection *sel)
 {
     MapPiece start = pieceNext(map, (MapPiece){.type = M_ANY});
@@ -138,4 +139,14 @@ void editorDrawNewPieceType(const NewPieceInfo pieceInfo, const Length wlen)
     fieldDraw(field, iC(wlen.x-len.x, 0), 0);
 }
 
+void editorDrawNewPiecePos(const MouseWin wmouse)
+{
+    if(!mouseBtnState(MOUSE_R))
+        return;
+
+    setColor(WHITE);
+    drawLineThickCoords(wmouse.rdown, wmouse.pos, 4);
+    drawCircleCoord(wmouse.rdown, 6);
+    fillCircleCoord(wmouse.pos, 6);
+}
 #endif /* end of include guard: MAPEDITORDRAW_H */

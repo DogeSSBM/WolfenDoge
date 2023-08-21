@@ -30,6 +30,22 @@ void editorInputClearSelection(Selection **sel)
         *sel = selFreeList(*sel);
 }
 
+// toggles snap on or off
+// on ctrl + scroll, changes snap len
+void editorInputSnap(Snap *snap)
+{
+    const bool oldSnapActive = snap->active;
+    const float oldSnapLen = snap->len;
+    if(keyPressed(SC_S) && !keyCtrlState())
+        snap->active = !snap->active;
+    if(keyCtrlState() && mouseScrolledY()){
+        snap->len = (float)imax(1, (int)snap->len + mouseScrolledY());
+    }
+    snap->len = (float)imax(1, (int)snap->len + checkCtrlKey(SC_EQUALS)-checkCtrlKey(SC_MINUS));
+    if(snap->len != oldSnapLen || snap->active != oldSnapActive)
+        printf("Snap %4.0f (%s)\n", snap->len, snap->active?"On":"Off");
+}
+
 // sets mouse map / win positions
 void editorInputMouseMove(const Camera cam, Mouse *mouse, Snap *snap)
 {
@@ -37,29 +53,39 @@ void editorInputMouseMove(const Camera cam, Mouse *mouse, Snap *snap)
     mouse->win.prv.pos = mouse->win.pos;
     mouse->win.pos = mousePos();
     mouse->map.pos = screenToMap(cam.off, cam.scale, mouse->win.pos);
-    snap->mouse.pos = cfSnapMid(mouse->map.pos, snap->len);
-    setColor(CYAN);
-    fillCircleCoord(mapToScreen(cam.off, cam.scale, snap->mouse.pos), 4);
+    if(snap->active){
+        snap->mouse.map.prv.pos = snap->mouse.map.pos;
+        snap->mouse.win.prv.pos = snap->mouse.win.pos;
+        snap->mouse.map.pos = cfSnapMid(mouse->map.pos, snap->len);
+        snap->mouse.win.pos = mapToScreen(cam.off, cam.scale, snap->mouse.map.pos);
+        mouse->map.pos = snap->mouse.map.pos;
+        mouse->win.pos = snap->mouse.win.pos;
+
+    }
 }
 
 // sets ldown / rdown map / win positions on left / right click
 void editorInputMouseBtns(Mouse *mouse, Snap *snap)
 {
     if(mouseBtnPressed(MOUSE_L)){
-        mouse->map.ldown = mouse->map.pos;
-        mouse->win.ldown = mouse->win.pos;
         mouse->map.prv.ldown = mouse->map.ldown;
         mouse->win.prv.ldown = mouse->win.ldown;
-        snap->mouse.prv.ldown = snap->mouse.ldown;
-        snap->mouse.ldown = snap->mouse.pos;
+        snap->mouse.map.prv.ldown = snap->mouse.map.ldown;
+        snap->mouse.win.prv.ldown = snap->mouse.win.ldown;
+        mouse->map.ldown = mouse->map.pos;
+        mouse->win.ldown = mouse->win.pos;
+        snap->mouse.map.ldown = snap->mouse.map.pos;
+        snap->mouse.win.ldown = snap->mouse.win.pos;
     }
     if(mouseBtnPressed(MOUSE_R)){
-        mouse->map.rdown = mouse->map.pos;
-        mouse->win.rdown = mouse->win.pos;
         mouse->map.prv.rdown = mouse->map.rdown;
         mouse->win.prv.rdown = mouse->win.rdown;
-        snap->mouse.prv.rdown = snap->mouse.rdown;
-        snap->mouse.rdown = snap->mouse.pos;
+        snap->mouse.map.prv.rdown = snap->mouse.map.rdown;
+        snap->mouse.win.prv.rdown = snap->mouse.win.rdown;
+        mouse->map.rdown = mouse->map.pos;
+        mouse->win.rdown = mouse->win.pos;
+        snap->mouse.map.rdown = snap->mouse.map.pos;
+        snap->mouse.win.rdown = snap->mouse.win.pos;
     }
 }
 
@@ -151,12 +177,10 @@ void editorInputNewPiece(NewPieceInfo *pieceInfo)
     pieceInfo->objType = pt;
 }
 
-
-
 // zooms editor in or out focused on cursor
 void editorInputZoom(Camera *cam, const Mouse mouse)
 {
-    if(!mouseScrolledY())
+    if(!mouseScrolledY() || keyCtrlState())
         return;
     cam->prv.scale = cam->scale;
     cam->scale = fclamp(cam->scale * (mouseScrolledY() > 0 ? 1.2f : .8f) , .01f, 100.0f);
