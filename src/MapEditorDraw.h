@@ -27,6 +27,7 @@ void editorDrawGrid(const Offset off, const Length wlen, const float scale, cons
     }
 }
 
+// when only a single piece is selected, draws its fields
 void editorDrawPieceFields(Selection *sel)
 {
     if(!sel)
@@ -38,6 +39,7 @@ void editorDrawPieceFields(Selection *sel)
     }
 }
 
+// draw or fill in a circle at pos depending on selected state
 void circleCoord(const Coord pos, const bool selected)
 {
     const int radius = 8;
@@ -47,6 +49,7 @@ void circleCoord(const Coord pos, const bool selected)
         drawCircleCoord(pos, radius);
 }
 
+// draws a piece in the editor
 void editorDrawPiece(const MapPiece piece, const Offset off, const float scale, Selection *sel)
 {
     const int thickness = 4;
@@ -78,6 +81,7 @@ void editorDrawPiece(const MapPiece piece, const Offset off, const float scale, 
     circleCoord(mapToScreen(off, scale, *coords.coord[0]), true);
 }
 
+// draws the total number of pieces
 void editorDrawPieceCount(Map *map, const Coord wlen)
 {
     uint count = (uint)pieceCountTotal(map);
@@ -109,6 +113,7 @@ void editorDrawMap(Map *map, const Offset off, const float scale, Selection *sel
     }while(!pieceSame(cur, start));
 }
 
+// when no pieces are selected, displays the type of piece that will be created upon new piece creation
 void editorDrawNewPieceType(const NewPieceInfo pieceInfo, const Length wlen)
 {
     assertExpr(pieceInfo.pieceType < M_ANY);
@@ -134,6 +139,7 @@ void editorDrawNewPieceType(const NewPieceInfo pieceInfo, const Length wlen)
     fieldDraw(field, iC(wlen.x-len.x, 0), 0);
 }
 
+// draws circles / lines when dragging right mouse
 void editorDrawNewPiecePos(const MouseWin wmouse)
 {
     if(!mouseBtnState(MOUSE_R))
@@ -144,4 +150,5 @@ void editorDrawNewPiecePos(const MouseWin wmouse)
     drawCircleCoord(wmouse.rdown, 6);
     fillCircleCoord(wmouse.pos, 6);
 }
+
 #endif /* end of include guard: MAPEDITORDRAW_H */
