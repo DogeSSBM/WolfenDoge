@@ -1,6 +1,7 @@
 #ifndef GETFIELDS_H
 #define GETFIELDS_H
 
+// fills in fields for segment type pieces
 PieceFields segFields(const MapPiece piece)
 {
     assertExpr(piece.type == M_SEG);
@@ -46,6 +47,7 @@ PieceFields segFields(const MapPiece piece)
     return fields;
 }
 
+// fills in fields for object type pieces
 PieceFields objFields(const MapPiece piece)
 {
     assertExpr(piece.type == M_OBJ);
@@ -79,6 +81,7 @@ PieceFields objFields(const MapPiece piece)
     return fields;
 }
 
+// fills in fields for given piece
 PieceFields pieceFields(const MapPiece piece)
 {
     assertExpr(piece.type < M_ANY);
