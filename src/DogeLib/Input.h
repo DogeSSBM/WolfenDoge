@@ -37,8 +37,10 @@ void textInputAppendText(char *text)
 
 void textInputStop(void)
 {
-    if(!keys.textInputState)
-        return;
+    // if(!keys.textInputState)
+    //     return;
+    printf("Text input stop\n");
+    SDL_StopTextInput();
     keys.textInputState = false;
     keys.textInputChange = true;
     keys.textInput = NULL;
@@ -53,8 +55,8 @@ bool defaultTextInputDone(void)
 
 void textInputStart(char *buf, const st bufsize, boolFunc textInputDone)
 {
-    if(!keys.textInputState)
-        keys.textInputChange = true;
+    printf("Text input start\n");
+    SDL_StartTextInput();
     keys.textInputState = true;
     keys.textInput = buf;
     keys.textInputSize = bufsize;

@@ -9,14 +9,14 @@ void events(const uint endOfFrame)
     bool e = false;
     gfx.winFlags = SDL_GetWindowFlags(gfx.window);
     gfx.prvLen = gfx.winLen;
-    if(keys.textInputChange){
-        printf("textInputState changed to: %s\n", keys.textInputState?"true":"false");
-        keys.textInputChange = false;
-        if(keys.textInputState)
-            SDL_StartTextInput();
-        else
-            SDL_StopTextInput();
-    }
+    // if(keys.textInputChange){
+    //     printf("textInputState changed to: %s\n", keys.textInputState?"true":"false");
+    //     keys.textInputChange = false;
+    //     if(keys.textInputState)
+    //         SDL_StartTextInput();
+    //     else
+    //         SDL_StopTextInput();
+    // }
     do{
         Event event;
         if(ticksLeft > 0)

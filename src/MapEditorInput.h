@@ -131,6 +131,15 @@ void editorInputNextSelection(Map *map, Selection *sel)
     }
 }
 
+// updates state of blinking cursor
+void editorInputCursorState(bool *cursorState, uint *cursorNext, const uint t)
+{
+    if(t > *cursorNext){
+        *cursorNext = t+200;
+        *cursorState = !*cursorState;
+    }
+}
+
 // while selection is active, changes the field currently highlighted by the cursor
 void editorInputMoveCursor(Selection *sel)
 {
@@ -149,8 +158,10 @@ void editorInputSave(Map *map)
 }
 
 // Changed the type of new piece
-void editorInputNewPiece(NewPieceInfo *pieceInfo)
+void editorInputNewPiece(Selection *sel, NewPieceInfo *pieceInfo)
 {
+    if(sel)
+        return;
     assertExpr(pieceInfo->pieceType == M_SEG || pieceInfo->pieceType == M_OBJ);
     if(pieceInfo->pieceType == M_SEG){
         const int pt = pieceInfo->segType - keyPressed(SC_LEFT) + keyPressed(SC_RIGHT);

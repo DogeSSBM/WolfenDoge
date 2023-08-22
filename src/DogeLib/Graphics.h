@@ -260,6 +260,14 @@ void fillBorderCoords(const Coord pos, const Length len, const int b)
     fillRect(pos.x+len.x,   pos.y,          b,          len.y);
 }
 
+void fillBorderCenteredCoords(const Coord pos, const Length len, const int b)
+{
+    fillRect((pos.x-len.x/2)-b,       (pos.y-len.y/2)-b,        len.x+2*b,  b);
+    fillRect((pos.x-len.x/2)-b,       (pos.y-len.y/2)+len.y,    len.x+2*b,  b);
+    fillRect((pos.x-len.x/2)-b,       (pos.y-len.y/2),          b,          len.y);
+    fillRect((pos.x-len.x/2)+len.x,   (pos.y-len.y/2),          b,          len.y);
+}
+
 void fillBorderCoordSquare(const Coord pos, const int len, const int b)
 {
     fillRect(pos.x-b,       pos.y-b,        len+2*b,    b);

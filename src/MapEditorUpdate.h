@@ -40,6 +40,13 @@ void editorUpdateMoveSelection(const Camera cam, const Snap snap, const MouseMap
     }
 }
 
+char* editorUpdateSelectedFields(Selection *sel)
+{
+    if(!sel || sel->fields.field[sel->cursor->y].type != F_PATH || keyPressed(SC_RETURN))
+        return NULL;
+    return sel->fields.field[sel->cursor->y].ptr;
+}
+
 void editorUpdateNewPiece(Map *map, const NewPieceInfo pieceInfo, const Snap snap, const Mouse mouse)
 {
     if(mouseBtnReleased(MOUSE_R)){
