@@ -1,18 +1,12 @@
 #ifndef FIELDS_H
 #define FIELDS_H
 
-FieldType fieldTypeFromMapPieceType(const MapPieceType ptype)
-{
-    assertExpr(ptype < M_ANY);
-    return ptype == M_SEG ? F_SEGTYPE : F_OBJTYPE;
-}
-
+// prints field along with its label
 void fieldPrint(const MapPiece piece)
 {
     assertExpr(piece.type < M_ANY);
     PieceFields fields = pieceFields(piece);
     for(st i = 0; i < fields.numFields; i++){
-        // printf("printing type \"%s\"\n", FieldTypeStr[fields.field[i].type]);
         switch(fields.field[i].type){
             case F_MAPPIECETYPE:;
                 MapPieceType val0 = *((MapPieceType *)(fields.field[i].ptr));
@@ -63,6 +57,7 @@ void fieldPrint(const MapPiece piece)
     printf("\n");
 }
 
+// draws field with type MapPieceType
 Coord fieldDrawMapPieceType(const MapPieceType val, char *label, Coord pos, const uint selected)
 {
     char buf[256] = {0};
@@ -75,6 +70,7 @@ Coord fieldDrawMapPieceType(const MapPieceType val, char *label, Coord pos, cons
     return pos;
 }
 
+// draws field with type SegType
 Coord fieldDrawSegType(const SegType val, char *label, Coord pos, const uint selected)
 {
     char buf[256] = {0};
@@ -87,6 +83,7 @@ Coord fieldDrawSegType(const SegType val, char *label, Coord pos, const uint sel
     return pos;
 }
 
+// draws field with type ObjType
 Coord fieldDrawObjType(const ObjType val, char *label, Coord pos, const uint selected)
 {
     char buf[256] = {0};
@@ -99,6 +96,7 @@ Coord fieldDrawObjType(const ObjType val, char *label, Coord pos, const uint sel
     return pos;
 }
 
+// draws field with type Coordf
 Coord fieldDrawCoordf(const Coordf val, char *label, Coord pos, const uint selected)
 {
     const Coord origin = pos;
@@ -135,6 +133,7 @@ Coord fieldDrawCoordf(const Coordf val, char *label, Coord pos, const uint selec
     return pos;
 }
 
+// draws field with type Color
 Coord fieldDrawColor(const Color val, char *label, Coord pos, const uint selected)
 {
     const Coord origin = pos;
@@ -181,6 +180,7 @@ Coord fieldDrawColor(const Color val, char *label, Coord pos, const uint selecte
     return pos;
 }
 
+// draws field with type Path
 Coord fieldDrawPath(char *val, char *label, Coord pos, const uint selected)
 {
     char buf[256] = {0};
@@ -195,6 +195,7 @@ Coord fieldDrawPath(char *val, char *label, Coord pos, const uint selected)
     return pos;
 }
 
+// draws field with type Float
 Coord fieldDrawFloat(const float val, char *label, Coord pos, const uint selected)
 {
     char buf[256] = {0};
@@ -207,6 +208,7 @@ Coord fieldDrawFloat(const float val, char *label, Coord pos, const uint selecte
     return pos;
 }
 
+// draws field with type Uint
 Coord fieldDrawUint(const uint val, char *label, Coord pos, const uint selected)
 {
     char buf[256] = {0};
@@ -219,6 +221,7 @@ Coord fieldDrawUint(const uint val, char *label, Coord pos, const uint selected)
     return pos;
 }
 
+// draws field with type Bool
 Coord fieldDrawBool(const bool val, char *label, Coord pos, const uint selected)
 {
     char buf[256] = {0};
@@ -231,6 +234,7 @@ Coord fieldDrawBool(const bool val, char *label, Coord pos, const uint selected)
     return pos;
 }
 
+// draws field with type Dir
 Coord fieldDrawDir(const Direction val, char *label, Coord pos, const uint selected)
 {
     char buf[256] = {0};
@@ -287,6 +291,7 @@ Coord fieldDraw(const Field field, const Coord origin, const uint selected)
     return pos;
 }
 
+// prints all of the pieces of the map
 void fieldPrintMap(Map *map)
 {
     MapPiece start = pieceNext(map, (MapPiece){.type = M_ANY});
