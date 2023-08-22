@@ -225,11 +225,7 @@ void drawObjSlice(const View view, const Ray *rs, const int xpos, const int ymid
     };
     Coord p = iC(xpos-hsec/2, ymid-height/2);
     const Length l = iC(hsec+1, height);
-    // setColor(BLACK);
-    // fillRectCoordLength(p, l);
     drawTextureRectCoordResize(rs->piece.obj->mob.texture, r, p, l);
-    // p.x++;
-    // drawTextureRectCoordResize(rs->piece.obj->mob.texture, r, p, l);
     return;
 }
 
