@@ -38,6 +38,10 @@ PieceCoords pieceCoords(const MapPiece piece)
             pp.coord[2] = &piece.seg->trig.c;
             pp.coord[3] = &piece.seg->trig.d;
         }
+        if(piece.seg->type == S_PORT){
+            pp.coord[2] = &piece.seg->port.a;
+            pp.coord[3] = &piece.seg->port.b;
+        }
         return pp;
     }
     pp.numCoord = ObjTypeNumCoord[piece.obj->type];
@@ -171,6 +175,16 @@ MapPiece pieceNextSameCoord(Map *map, MapPiece piece, Coordf **pos)
     }while(!cfSame(target, *coord));
     *pos = coord;
     return piece;
+}
+
+bool cfInBounds(const Coordf pos, const Coordf min, const Coordf max)
+{
+    return (
+        pos.x >= min.x &&
+        pos.x <= max.x &&
+        pos.y >= min.y &&
+        pos.y <= max.y
+    );
 }
 
 bool pieceSame(const MapPiece a, const MapPiece b)

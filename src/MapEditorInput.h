@@ -418,45 +418,4 @@ void mapEditU8(Map *map, EditorState *state, u8 *u)
     }
 }
 
-// selects the correct edit function given the cursor position and its corrosponding field
-void editorUpdateSelectionVal(Map *map, EditorState *state)
-{
-    if(keyPressed(SC_RETURN) && state->sel && !state->sel->next){
-        switch(state->sel->fields.field[state->sel->cursor->y].type){
-            case F_PATH:
-                mapEditText(map, state, state->sel->fields.field[state->sel->cursor->y].ptr);
-                break;
-            case F_FLOAT:
-                mapEditFloat(map, state, state->sel->fields.field[state->sel->cursor->y].ptr);
-                break;
-            case F_COORDF:
-                if(state->sel->cursor->x == 0)
-                    mapEditFloat(map, state, &(((Coordf*)state->sel->fields.field[state->sel->cursor->y].ptr)->x));
-                else
-                    mapEditFloat(map, state, &(((Coordf*)state->sel->fields.field[state->sel->cursor->y].ptr)->y));
-                break;
-            case F_UINT:
-                mapEditUint(map, state, state->sel->fields.field[state->sel->cursor->y].ptr);
-                break;
-            case F_COLOR:
-                switch(state->sel->cursor->x){
-                    case 0:
-                        mapEditU8(map, state, &(((Color*)(state->sel->fields.field[state->sel->cursor->y].ptr))->r));
-                        break;
-                    case 1:
-                        mapEditU8(map, state, &(((Color*)(state->sel->fields.field[state->sel->cursor->y].ptr))->g));
-                        break;
-                    case 2:
-                        mapEditU8(map, state, &(((Color*)(state->sel->fields.field[state->sel->cursor->y].ptr))->b));
-                        break;
-                    default:
-                        panic("???");
-                }
-                break;
-            default:
-                break;
-        }
-    }
-}
-
 #endif /* end of include guard: MAPEDITORINPUT_H */

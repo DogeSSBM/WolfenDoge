@@ -1,5 +1,5 @@
 // #define FOV_NUM_RAYS        90
-#define FOV_NUM_RAYS        1080
+#define FOV_NUM_RAYS        720
 #include "Includes.h"
 
 int main(int argc, char **argv)

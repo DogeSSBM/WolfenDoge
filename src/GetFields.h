@@ -36,6 +36,10 @@ PieceFields segFields(const MapPiece piece)
             fields.field[5] = (Field){.label = "c:      ", .type = F_COORDF, .ptr = &piece.seg->trig.c};
             fields.field[6] = (Field){.label = "d:      ", .type = F_COORDF, .ptr = &piece.seg->trig.d};
             break;
+        case S_PORT:
+            fields.field[4] = (Field){.label = "a:      ", .type = F_COORDF, .ptr = &piece.seg->port.a};
+            fields.field[5] = (Field){.label = "b:      ", .type = F_COORDF, .ptr = &piece.seg->port.b};
+            break;
         case S_CONV:
             fields.field[4] = (Field){.label = "idA: ", .type = F_UINT, .ptr = &piece.seg->conv.idA};
             fields.field[5] = (Field){.label = "idB: ", .type = F_UINT, .ptr = &piece.seg->conv.idB};

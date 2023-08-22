@@ -211,6 +211,11 @@ Coordf cfSnap(const Coordf pos, const float scale)
     return cfSub(pos, cfModf(pos, scale));
 }
 
+Coordf cfMid(const Coordf a, const Coordf b)
+{
+    return fC((a.x + b.x)/2, (a.y + b.y)/2);
+}
+
 Coordf cfSnapMid(const Coordf pos, const float scale)
 {
     return cfSnap(cfAdd(pos, fC(scale/matchSignf(pos.x, 2.0f), scale/matchSignf(pos.y, 2.0f))), scale);

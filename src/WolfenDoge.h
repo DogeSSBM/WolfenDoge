@@ -319,11 +319,11 @@ void drawFp(const View view, Map *map, const Player player)
         return;
     const Coordf startingPos = cfAdd(player.pos, cfRotateDeg((const Coordf){.x=2048.0f,.y=-2048.0f}, player.ang));
     const float scanAng = degReduce(player.ang+90.0f);
-    const float hsec = (float)view.len.x/view.len.x;
+    const float hsec = (float)view.len.x/FOV_NUM_RAYS;
     const int ymid = view.pos.y+view.len.y/2;
-    for(int i = 0; i < view.len.x; i++){
-        const Coordf farpos = cfAdd(startingPos, degMagToCf(scanAng, ((float)i/(float)view.len.x)*4096.0f));
-        const float viewTan = (0.5f-i/(float)view.len.x) / 0.5f;
+    for(int i = 0; i < FOV_NUM_RAYS; i++){
+        const Coordf farpos = cfAdd(startingPos, degMagToCf(scanAng, ((float)i/(float)FOV_NUM_RAYS)*4096.0f));
+        const float viewTan = (0.5f-i/(float)FOV_NUM_RAYS) / 0.5f;
         const int xpos = view.pos.x+hsec/2+i*hsec;
         Ray *list = castRay(player.pos, farpos, map);
         while(list){

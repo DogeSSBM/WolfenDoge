@@ -1,0 +1,66 @@
+// casts ray from origin to distantPoint and returns nearest 'solid' intersection
+// where 'solid' refers to a wall segment, a fully closed door segment
+Ray* castRayBaseOld(const Coordf origin, const Coordf distantPoint, Map *map)
+{
+    Seg *seg = map->seg[S_WALL];
+    if(!seg)
+        if(!(seg = pieceNext(map, (MapPiece){.type = M_SEG}).seg))
+            return NULL;
+    float dst = 60000.0f;
+    Coordf pos = distantPoint;
+    for(SegType type = 0; type < S_N; type++){
+        if(type == S_CONV || type == S_TRIG || type == S_WIND)
+            continue;
+        Seg *curSeg = map->seg[type];
+        while(curSeg){
+            if(curSeg->type == S_DOOR && curSeg->door.pos < 1.0f){
+                curSeg = curSeg->next;
+                continue;
+            }
+            float curDst = 0;
+            Coordf curPos = {0};
+            if(lineIntersection(origin, distantPoint, curSeg->a, curSeg->b, &curPos) &&
+            (curDst = cfDist(origin, curPos)) < dst){
+                seg = curSeg;
+                dst = curDst;
+                pos = curPos;
+            }
+            curSeg = curSeg->next;
+        }
+    }
+    return RayNew((MapPiece){.type = seg?M_SEG:M_NONE, .seg = seg}, dst, pos);
+}
+
+// casts ray from origin to distantPoint and returns all intersections that are < max distance away
+Ray* castRayMaxOld(const Coordf origin, const Coordf distantPoint, Map *map, const float max)
+{
+    Ray *list = NULL;
+    for(SegType type = 0; type < S_N; type++){
+        if(type == S_CONV || type == S_TRIG)
+            continue;
+        Seg *seg = map->seg[type];
+        while(seg){
+            float dst = 0;
+            Coordf pos = {0};
+            if(
+                lineIntersection(origin, distantPoint, seg->a, seg->b, &pos) &&
+                (dst = cfDist(origin, pos)) < max
+            )
+                list = RayInsert(list, RayNew((MapPiece){.type = M_SEG, .seg = seg}, dst, pos));
+            seg = seg->next;
+        }
+    }
+
+    Obj *obj = map->obj[O_MOB];
+    while(obj){
+        float dst = 0;
+        Coordf pos = {0};
+        if(
+            lineIntersection(origin, distantPoint, obj->mob.a, obj->mob.b, &pos) &&
+            (dst = cfDist(origin, pos)) < max
+        )
+            list = RayInsert(list, RayNew((MapPiece){.type = M_OBJ, .obj = obj}, dst, pos));
+        obj = obj->next;
+    }
+    return list;
+}

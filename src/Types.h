@@ -6,10 +6,10 @@ typedef struct{
     Length len;
 }View;
 
-typedef enum   {S_END = -1, S_WALL,    S_WIND,     S_TRIG,     S_DOOR,     S_CONV, S_N}SegType;
-char *SegTypeStr[S_N] =   {"S_WALL",  "S_WIND",   "S_TRIG",   "S_DOOR",   "S_CONV"    };
-st SegTypeFields[S_N] =   {      5,         7,          7,          9,          6     };
-st SegTypeNumCoord[S_N] = {      2,         2,          4,          2,          2     };
+typedef enum   {S_END = -1, S_WALL,    S_WIND,     S_TRIG,   S_PORT,    S_DOOR,     S_CONV, S_N}SegType;
+char *SegTypeStr[S_N] =   {"S_WALL",  "S_WIND",   "S_TRIG", "S_PORT",   "S_DOOR",   "S_CONV"    };
+st SegTypeFields[S_N] =   {      5,         7,          7,        6,          9,          6     };
+st SegTypeNumCoord[S_N] = {      2,         2,          4,        4,          2,          2     };
 typedef struct Seg{
     SegType type;
     Coordf a;
@@ -20,6 +20,10 @@ typedef struct Seg{
             char path[128];
             Texture *texture;
         }wall;
+        struct{
+            Coordf a;
+            Coordf b;
+        }port;
         struct{
             Color topColor;
             float height;

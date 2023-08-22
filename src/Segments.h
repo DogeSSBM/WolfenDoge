@@ -64,6 +64,16 @@ Seg* trigNew(const Color color, const Coordf a, const Coordf b, const uint id, c
     return w;
 }
 
+// creates a new segment with type S_PORT
+Seg* portNew(const Coordf a, const Coordf b, const Coordf porta, const Coordf portb)
+{
+    Seg *w = wallNew(WHITE, a, b);
+    w->type = S_PORT;
+    w->port.a = porta;
+    w->port.b = portb;
+    return w;
+}
+
 // creates a new segment with type S_CONV
 Seg* convNew(const Color c, const Coordf a, const Coordf b, const uint idA, const uint idB)
 {
@@ -100,6 +110,9 @@ Seg* segNew(const SegType type, const Coordf a, const Coordf b)
             break;
         case S_TRIG:
             return trigNew(WHITE, a, b, 0, cfAddf(a, 50.0f), cfAddf(b, 50.0f));
+            break;
+        case S_PORT:
+            return portNew(a, b, cfAddf(a, 50.0f), cfAddf(b, 50.0f));
             break;
         case S_CONV:
             return convNew(WHITE, a, b, 0, 0);

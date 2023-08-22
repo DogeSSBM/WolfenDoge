@@ -63,10 +63,17 @@ void editorDrawPiece(const MapPiece piece, const Offset off, const float scale, 
             const Coord c = mapToScreen(off, scale, *coords.coord[2]);
             const Coord d = mapToScreen(off, scale, *coords.coord[3]);
             if(selected){
-                drawLineThickCoords(a, c, thickness);
-                drawLineThickCoords(a, d, thickness);
-                drawLineThickCoords(b, c, thickness);
-                drawLineThickCoords(b, d, thickness);
+                if(piece.type == M_SEG){
+                    if(piece.seg->type == S_TRIG){
+                        drawLineThickCoords(a, c, thickness);
+                        drawLineThickCoords(a, d, thickness);
+                        drawLineThickCoords(b, c, thickness);
+                        drawLineThickCoords(b, d, thickness);
+                    }else if(piece.seg->type == S_PORT){
+                        drawLineThickCoords(coordMid(a, b), coordMid(c, d), thickness);
+                    }
+                    drawLineThickCoords(c, d, thickness);
+                }
                 circleCoord(c, selPosSelected(sel, coords.coord[2]));
                 circleCoord(d, selPosSelected(sel, coords.coord[3]));
             }
@@ -139,16 +146,27 @@ void editorDrawNewPieceType(const NewPieceInfo pieceInfo, const Length wlen)
     fieldDraw(field, iC(wlen.x-len.x, 0), 0);
 }
 
-// draws circles / lines when dragging right mouse
+// draws circles / lines / selection box when dragging right mouse
 void editorDrawNewPiecePos(const MouseWin wmouse)
 {
     if(!mouseBtnState(MOUSE_R))
         return;
 
     setColor(WHITE);
-    drawLineThickCoords(wmouse.rdown, wmouse.pos, 4);
     drawCircleCoord(wmouse.rdown, 6);
     fillCircleCoord(wmouse.pos, 6);
+    if(!keyCtrlState()){
+        drawLineThickCoords(wmouse.rdown, wmouse.pos, 4);
+    }else{
+        const Coord a = wmouse.rdown;
+        const Coord b = {.x = wmouse.pos.x, .y = wmouse.rdown.y};
+        const Coord c = {.x = wmouse.rdown.x, .y = wmouse.pos.y};
+        const Coord d = wmouse.pos;
+        drawLineThickCoords(a, b, 2);
+        drawLineThickCoords(a, c, 2);
+        drawLineThickCoords(c, d, 2);
+        drawLineThickCoords(b, d, 2);
+    }
 }
 
 #endif /* end of include guard: MAPEDITORDRAW_H */

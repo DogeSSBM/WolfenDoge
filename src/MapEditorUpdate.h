@@ -45,7 +45,7 @@ void editorUpdateMoveSelection(const Camera cam, const Snap snap, const MouseMap
 // creates a new map piece once right mouse button is released
 void editorUpdateNewPiece(Map *map, const NewPieceInfo pieceInfo, const Snap snap, const Mouse mouse)
 {
-    if(mouseBtnReleased(MOUSE_R)){
+    if(!keyCtrlState() && mouseBtnReleased(MOUSE_R)){
         MapPiece piece = {0};
         if(snap.active)
             piece = pieceNew(pieceInfo, mouse.map.rdown, mouse.map.pos);
@@ -58,6 +58,72 @@ void editorUpdateNewPiece(Map *map, const NewPieceInfo pieceInfo, const Snap sna
         else
             panic("???");
     }
+}
+
+// selects the correct edit function given the cursor position and its corrosponding field
+void editorUpdateSelectionVal(Map *map, EditorState *state)
+{
+    if(keyPressed(SC_RETURN) && state->sel && !state->sel->next){
+        switch(state->sel->fields.field[state->sel->cursor->y].type){
+            case F_PATH:
+                mapEditText(map, state, state->sel->fields.field[state->sel->cursor->y].ptr);
+                break;
+            case F_FLOAT:
+                mapEditFloat(map, state, state->sel->fields.field[state->sel->cursor->y].ptr);
+                break;
+            case F_COORDF:
+                if(state->sel->cursor->x == 0)
+                    mapEditFloat(map, state, &(((Coordf*)state->sel->fields.field[state->sel->cursor->y].ptr)->x));
+                else
+                    mapEditFloat(map, state, &(((Coordf*)state->sel->fields.field[state->sel->cursor->y].ptr)->y));
+                break;
+            case F_UINT:
+                mapEditUint(map, state, state->sel->fields.field[state->sel->cursor->y].ptr);
+                break;
+            case F_COLOR:
+                switch(state->sel->cursor->x){
+                    case 0:
+                        mapEditU8(map, state, &(((Color*)(state->sel->fields.field[state->sel->cursor->y].ptr))->r));
+                        break;
+                    case 1:
+                        mapEditU8(map, state, &(((Color*)(state->sel->fields.field[state->sel->cursor->y].ptr))->g));
+                        break;
+                    case 2:
+                        mapEditU8(map, state, &(((Color*)(state->sel->fields.field[state->sel->cursor->y].ptr))->b));
+                        break;
+                    default:
+                        panic("???");
+                }
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+// adds all coords within selection box to selection
+void editorUpdateBoxSelect(Map *map, Coord *cursor, const Mouse mouse, Selection **list)
+{
+    assertExpr(list);
+    if(!keyCtrlState() || !mouseBtnReleased(MOUSE_R))
+        return;
+    MapPiece start = pieceNext(map, (MapPiece){.type = M_ANY});
+    if(start.type >= M_ANY)
+        return;
+
+    const Coordf min = cfLeast(mouse.map.rdown, mouse.map.pos);
+    const Coordf max = cfMost(mouse.map.rdown, mouse.map.pos);
+
+    MapPiece cur = start;
+    do{
+        PieceCoords coords = pieceCoords(cur);
+        for(st i = 0; i < coords.numCoord; i++){
+            if(cfInBounds(*coords.coord[i], min, max)){
+                *list = selAppend(*list, selNew(cursor, coords.coord[i], pieceFields(cur)));
+            }
+        }
+        cur = pieceNext(map, cur);
+    }while(!pieceSame(cur, start));
 }
 
 #endif /* end of include guard: MAPEDITORUPDATE_H */

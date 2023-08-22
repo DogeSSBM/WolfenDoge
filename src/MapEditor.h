@@ -29,6 +29,7 @@ void mapEdit(Map *map)
         editorUpdateDeleteSelection(map, &state.sel);
         editorUpdateMoveSelection(state.cam, state.snap, state.mouse.map, state.sel);
         editorUpdateNewPiece(map, state.pieceInfo, state.snap, state.mouse);
+        editorUpdateBoxSelect(map, &state.cursor, state.mouse, &state.sel);
         editorUpdateSelectionVal(map, &state);
 
         editorDrawLines(state.snap, state.cam);

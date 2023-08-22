@@ -85,6 +85,28 @@ bool checkKeyS(Map*, const bool, const float);
 void checkScroll(Offset *, const Coordf, const bool, float *, float *);
 void mapEdit(Map *);
 
+// MapEditorInput.h
+EditorState editorInitState(void);
+bool editorInputExit(Map *, Selection *);
+void editorInputResizeWindow(Camera *);
+void editorInputClearSelection(Selection **);
+void editorInputSnap(Snap *);
+void editorInputMouseMove(const Camera, Mouse *, Snap *);
+void editorInputMouseBtns(Mouse *, Snap *);
+void editorInputSelect(Map *, const Coordf, Coord *, Selection **);
+void editorInputNextSelection(Map *, Selection *);
+void editorInputMoveCursor(Selection *);
+void editorInputSave(Map *);
+void editorInputNewPiece(Selection *, NewPieceInfo *);
+void editorInputZoom(Camera *, const Mouse);
+void editorInputPan(Offset *);
+bool done(void);
+int numKeyPressed(void);
+void mapEditText(Map *, EditorState *, char *);
+void mapEditFloat(Map *, EditorState *, float *);
+void mapEditUint(Map *, EditorState *, uint *);
+void mapEditU8(Map *, EditorState *, u8 *);
+
 // MapIO.h
 Texture* wallListTxtrQryLoad(Seg *, char *);
 Seg* txtrCleanup(Seg *, Seg *);
