@@ -1,6 +1,16 @@
 #ifndef MAPEDITORINPUT_H
 #define MAPEDITORINPUT_H
 
+// initial struct data for editor state
+EditorState editorInitState(void)
+{
+    return (EditorState){
+        .pieceInfo = { .pieceType = M_SEG, .segType = S_WALL},
+        .cam = { .scale = 1.0f, .wlen = getWindowLen() },
+        .snap = { .active = true, .len = 50.0f }
+    };
+}
+
 // returns true if escape pressed with no active selection
 bool editorInputExit(Map *map, Selection *sel)
 {
@@ -201,6 +211,7 @@ void editorInputPan(Offset *off)
         *off = coordAdd(*off, mouseMovement());
 }
 
+// function that returns true when done editing current field
 bool done(void)
 {
     return keyState(SC_ESCAPE) || keyState(SC_RETURN);
@@ -229,6 +240,7 @@ int numKeyPressed(void)
     return -1;
 }
 
+// main loop while editing a text field
 void mapEditText(Map *map, EditorState *state, char *text)
 {
     if(!text || !state->sel)
@@ -241,6 +253,7 @@ void mapEditText(Map *map, EditorState *state, char *text)
             if(!textInputState()){
                 if(state->sel->fields.piece.type == M_SEG){
                     if(state->sel->fields.piece.seg->type == S_WALL){
+                        printf("Loading wall texture: \"%s\"\n", state->sel->fields.piece.seg->wall.path);
                         textureFree(state->sel->fields.piece.seg->wall.texture);
                         state->sel->fields.piece.seg->wall.texture = loadTexture(state->sel->fields.piece.seg->wall.path);
                     }else{
@@ -248,6 +261,7 @@ void mapEditText(Map *map, EditorState *state, char *text)
                     }
                 }else if(state->sel->fields.piece.type == M_OBJ){
                     if(state->sel->fields.piece.obj->type == O_MOB){
+                        printf("Loading mob texture: \"%s\"\n", state->sel->fields.piece.obj->mob.path);
                         textureFree(state->sel->fields.piece.obj->mob.texture);
                         state->sel->fields.piece.obj->mob.texture = loadTexture(state->sel->fields.piece.obj->mob.path);
                     }else{
@@ -276,6 +290,7 @@ void mapEditText(Map *map, EditorState *state, char *text)
     }
 }
 
+// main loop while editing a text field
 void mapEditFloat(Map *map, EditorState *state, float *f)
 {
     if(!f || !state->sel)
@@ -319,6 +334,7 @@ void mapEditFloat(Map *map, EditorState *state, float *f)
     }
 }
 
+// main loop while editing a uint field
 void mapEditUint(Map *map, EditorState *state, uint *u)
 {
     if(!u || !state->sel)
@@ -358,6 +374,7 @@ void mapEditUint(Map *map, EditorState *state, uint *u)
     }
 }
 
+// main loop while editing a u8 field
 void mapEditU8(Map *map, EditorState *state, u8 *u)
 {
     if(!u || !state->sel)
@@ -401,6 +418,7 @@ void mapEditU8(Map *map, EditorState *state, u8 *u)
     }
 }
 
+// selects the correct edit function given the cursor position and its corrosponding field
 void editorUpdateSelectionVal(Map *map, EditorState *state)
 {
     if(keyPressed(SC_RETURN) && state->sel && !state->sel->next){

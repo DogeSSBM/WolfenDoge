@@ -211,7 +211,7 @@ void drawObjSlice(const View view, const Ray *rs, const int xpos, const int ymid
 {
     if(!rs)
         return;
-    const int height = (view.len.y*120) / fmax(dst, .01f);
+    const int height = (view.len.y*120) / imax(dst, 1);
     assertExpr(rs->piece.type == M_OBJ && rs->piece.obj->type == O_MOB);
     const Length txtrlen = textureLen(rs->piece.obj->mob.texture);
     const float walllen = cfDist(rs->piece.obj->mob.a, rs->piece.obj->mob.b);
@@ -236,7 +236,9 @@ void drawObjSlice(const View view, const Ray *rs, const int xpos, const int ymid
 // draws vertical slice of segment based on ray information
 void drawSegSlice(const View view, const Ray *rs, const int xpos, const int ymid, const int dst, const float hsec)
 {
-    const int height = (view.len.y*120) / fmax(dst, .01f);
+    if(!rs)
+        return;
+    const int height = (view.len.y*120) / imax(dst, 1);
     if(!rs->piece.seg){
         setColor(BLACK);
         fillRectCenteredCoordLength(
@@ -321,11 +323,11 @@ void drawFp(const View view, Map *map, const Player player)
         return;
     const Coordf startingPos = cfAdd(player.pos, cfRotateDeg((const Coordf){.x=2048.0f,.y=-2048.0f}, player.ang));
     const float scanAng = degReduce(player.ang+90.0f);
-    const float hsec = (float)view.len.x/FOV_NUM_RAYS;
+    const float hsec = (float)view.len.x/view.len.x;
     const int ymid = view.pos.y+view.len.y/2;
-    for(int i = 0; i < FOV_NUM_RAYS; i++){
-        const Coordf farpos = cfAdd(startingPos, degMagToCf(scanAng, ((float)i/(float)FOV_NUM_RAYS)*4096.0f));
-        const float viewTan = (0.5f-i/(float)FOV_NUM_RAYS) / 0.5f;
+    for(int i = 0; i < view.len.x; i++){
+        const Coordf farpos = cfAdd(startingPos, degMagToCf(scanAng, ((float)i/(float)view.len.x)*4096.0f));
+        const float viewTan = (0.5f-i/(float)view.len.x) / 0.5f;
         const int xpos = view.pos.x+hsec/2+i*hsec;
         Ray *list = castRay(player.pos, farpos, map);
         while(list){
