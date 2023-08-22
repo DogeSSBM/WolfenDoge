@@ -206,8 +206,6 @@ typedef struct{
     EditorMode mode;
     NewPieceInfo pieceInfo;
     Camera cam;
-    bool cursorState;
-    uint cursorNext;
     Coord cursor;
     Selection *sel;
     Mouse mouse;

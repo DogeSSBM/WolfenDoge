@@ -131,15 +131,6 @@ void editorInputNextSelection(Map *map, Selection *sel)
     }
 }
 
-// updates state of blinking cursor
-void editorInputCursorState(bool *cursorState, uint *cursorNext, const uint t)
-{
-    if(t > *cursorNext){
-        *cursorNext = t+200;
-        *cursorState = !*cursorState;
-    }
-}
-
 // while selection is active, changes the field currently highlighted by the cursor
 void editorInputMoveCursor(Selection *sel)
 {
@@ -208,6 +199,246 @@ void editorInputPan(Offset *off)
 {
     if(mouseBtnState(MOUSE_M) || keyState(SC_LSHIFT))
         *off = coordAdd(*off, mouseMovement());
+}
+
+bool done(void)
+{
+    return keyState(SC_ESCAPE) || keyState(SC_RETURN);
+}
+
+// returns the int corrosponding to the number key pressed
+// -1 if no number keys were pressed
+int numKeyPressed(void)
+{
+    const Scancode key[10] = {
+        SC_0,
+        SC_1,
+        SC_2,
+        SC_3,
+        SC_4,
+        SC_5,
+        SC_6,
+        SC_7,
+        SC_8,
+        SC_9
+    };
+    for(int i = 0; i < 10; i++){
+        if(keyPressed(key[i]))
+            return i;
+    }
+    return -1;
+}
+
+void mapEditText(Map *map, EditorState *state, char *text)
+{
+    if(!text || !state->sel)
+        return;
+    bool once = false;
+    while(1){
+        const uint t = frameStart();
+
+        if(once){
+            if(!textInputState()){
+                if(state->sel->fields.piece.type == M_SEG){
+                    if(state->sel->fields.piece.seg->type == S_WALL){
+                        textureFree(state->sel->fields.piece.seg->wall.texture);
+                        state->sel->fields.piece.seg->wall.texture = loadTexture(state->sel->fields.piece.seg->wall.path);
+                    }else{
+                        panic("???");
+                    }
+                }else if(state->sel->fields.piece.type == M_OBJ){
+                    if(state->sel->fields.piece.obj->type == O_MOB){
+                        textureFree(state->sel->fields.piece.obj->mob.texture);
+                        state->sel->fields.piece.obj->mob.texture = loadTexture(state->sel->fields.piece.obj->mob.path);
+                    }else{
+                        panic("???");
+                    }
+                }else{
+                    panic("???");
+                }
+                return;
+            }
+        }else{
+            if(!keyState(SC_RETURN)){
+                once = true;
+                textInputStart(text, 128, done);
+            }
+        }
+
+        editorDrawLines(state->snap, state->cam);
+        editorDrawMap(map, state->cam.off, state->cam.scale, state->sel);
+        editorDrawPieceFields(state->sel);
+        editorDrawPieceCount(map, state->cam.wlen);
+        editorDrawNewPieceType(state->pieceInfo, state->cam.wlen);
+        editorDrawNewPiecePos(state->mouse.win);
+
+        frameEnd(t);
+    }
+}
+
+void mapEditFloat(Map *map, EditorState *state, float *f)
+{
+    if(!f || !state->sel)
+        return;
+    bool once = false;
+    ull u = (ull)(*f * 1000.0f);
+    while(1){
+        const uint t = frameStart();
+
+        if(once){
+            if(keyPressed(SC_RETURN) || keyPressed(SC_ESCAPE))
+                return;
+            if(keyPressed(SC_BACKSPACE)){
+                if(keyCtrlState()){
+                    u = 0;
+                }else{
+                    u /= 10;
+                }
+            }
+            int i = -1;
+            if((i = numKeyPressed()) != -1){
+                u = u*10+i;
+                if(u/1000 > 1000)
+                    u = 1000*1000;
+            }
+            *f = (float)u/1000.0f;
+        }else{
+            if(!keyState(SC_RETURN)){
+                once = true;
+            }
+        }
+
+        editorDrawLines(state->snap, state->cam);
+        editorDrawMap(map, state->cam.off, state->cam.scale, state->sel);
+        editorDrawPieceFields(state->sel);
+        editorDrawPieceCount(map, state->cam.wlen);
+        editorDrawNewPieceType(state->pieceInfo, state->cam.wlen);
+        editorDrawNewPiecePos(state->mouse.win);
+
+        frameEnd(t);
+    }
+}
+
+void mapEditUint(Map *map, EditorState *state, uint *u)
+{
+    if(!u || !state->sel)
+        return;
+    bool once = false;
+    while(1){
+        const uint t = frameStart();
+
+        if(once){
+            if(keyPressed(SC_RETURN) || keyPressed(SC_ESCAPE))
+                return;
+            if(keyPressed(SC_BACKSPACE)){
+                if(keyCtrlState()){
+                    *u = 0;
+                }else{
+                    *u /= 10;
+                }
+            }
+            int i = -1;
+            if((i = numKeyPressed()) != -1){
+                *u = *u*10+i;
+            }
+        }else{
+            if(!keyState(SC_RETURN)){
+                once = true;
+            }
+        }
+
+        editorDrawLines(state->snap, state->cam);
+        editorDrawMap(map, state->cam.off, state->cam.scale, state->sel);
+        editorDrawPieceFields(state->sel);
+        editorDrawPieceCount(map, state->cam.wlen);
+        editorDrawNewPieceType(state->pieceInfo, state->cam.wlen);
+        editorDrawNewPiecePos(state->mouse.win);
+
+        frameEnd(t);
+    }
+}
+
+void mapEditU8(Map *map, EditorState *state, u8 *u)
+{
+    if(!u || !state->sel)
+        return;
+    bool once = false;
+    while(1){
+        const uint t = frameStart();
+
+        if(once){
+            if(keyPressed(SC_RETURN) || keyPressed(SC_ESCAPE))
+                return;
+            if(keyPressed(SC_BACKSPACE)){
+                if(keyCtrlState()){
+                    *u = 0;
+                }else{
+                    *u /= 10;
+                }
+            }
+            int i = -1;
+            if((i = numKeyPressed()) != -1){
+                uint ui = *u;
+                ui = ui*10+i;
+                if(ui > 255)
+                    ui = 255;
+                *u = ui;
+            }
+        }else{
+            if(!keyState(SC_RETURN)){
+                once = true;
+            }
+        }
+
+        editorDrawLines(state->snap, state->cam);
+        editorDrawMap(map, state->cam.off, state->cam.scale, state->sel);
+        editorDrawPieceFields(state->sel);
+        editorDrawPieceCount(map, state->cam.wlen);
+        editorDrawNewPieceType(state->pieceInfo, state->cam.wlen);
+        editorDrawNewPiecePos(state->mouse.win);
+
+        frameEnd(t);
+    }
+}
+
+void editorUpdateSelectionVal(Map *map, EditorState *state)
+{
+    if(keyPressed(SC_RETURN) && state->sel && !state->sel->next){
+        switch(state->sel->fields.field[state->sel->cursor->y].type){
+            case F_PATH:
+                mapEditText(map, state, state->sel->fields.field[state->sel->cursor->y].ptr);
+                break;
+            case F_FLOAT:
+                mapEditFloat(map, state, state->sel->fields.field[state->sel->cursor->y].ptr);
+                break;
+            case F_COORDF:
+                if(state->sel->cursor->x == 0)
+                    mapEditFloat(map, state, &(((Coordf*)state->sel->fields.field[state->sel->cursor->y].ptr)->x));
+                else
+                    mapEditFloat(map, state, &(((Coordf*)state->sel->fields.field[state->sel->cursor->y].ptr)->y));
+                break;
+            case F_UINT:
+                mapEditUint(map, state, state->sel->fields.field[state->sel->cursor->y].ptr);
+                break;
+            case F_COLOR:
+                switch(state->sel->cursor->x){
+                    case 0:
+                        mapEditU8(map, state, &(((Color*)(state->sel->fields.field[state->sel->cursor->y].ptr))->r));
+                        break;
+                    case 1:
+                        mapEditU8(map, state, &(((Color*)(state->sel->fields.field[state->sel->cursor->y].ptr))->g));
+                        break;
+                    case 2:
+                        mapEditU8(map, state, &(((Color*)(state->sel->fields.field[state->sel->cursor->y].ptr))->b));
+                        break;
+                    default:
+                        panic("???");
+                }
+                break;
+            default:
+                break;
+        }
+    }
 }
 
 #endif /* end of include guard: MAPEDITORINPUT_H */

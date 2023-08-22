@@ -28,7 +28,7 @@ void fieldPrint(const MapPiece piece)
                 break;
             case F_COORDF:;
                 Coordf val3 = *((Coordf *)(fields.field[i].ptr));
-                printf("%s(%+14.6f,%+14.6f)\n", fields.field[i].label, val3.x, val3.y);
+                printf("%s(%+10.3f,%+10.3f)\n", fields.field[i].label, val3.x, val3.y);
                 break;
             case F_COLOR:;
                 Color val4 = *((Color *)(fields.field[i].ptr));
@@ -41,7 +41,7 @@ void fieldPrint(const MapPiece piece)
                 break;
             case F_FLOAT:;
                 float val6 = *((float *)(fields.field[i].ptr));
-                printf("%s%+14.6f\n", fields.field[i].label, val6);
+                printf("%s%+10.3f\n", fields.field[i].label, val6);
                 break;
             case F_UINT:;
                 uint val7 = *((uint *)(fields.field[i].ptr));
@@ -101,7 +101,7 @@ Coord fieldDraw(const Field field, const Coord origin, const uint selected)
             break;
         case F_COORDF:;
             Coordf val3 = *((Coordf *)(field.ptr));
-            sprintf(buf, "%s(%+14.6f,%+14.6f)", field.label, val3.x, val3.y);
+            sprintf(buf, "%s(%+10.3f,%+10.3f)", field.label, val3.x, val3.y);
             len = getTextLength(buf);
             fillRectCoordLength(pos, len);
 
@@ -111,7 +111,7 @@ Coord fieldDraw(const Field field, const Coord origin, const uint selected)
             pos.x += getTextXLen(buf);
 
             setTextColor(selected == 1 ? WHITE : GREY1);
-            sprintf(buf, "%+14.6f", val3.x);
+            sprintf(buf, "%+10.3f", val3.x);
             drawTextCoord(buf, pos);
             pos.x += getTextXLen(buf);
 
@@ -121,7 +121,7 @@ Coord fieldDraw(const Field field, const Coord origin, const uint selected)
             pos.x += getTextXLen(buf);
 
             setTextColor(selected == 2 ? WHITE : GREY1);
-            sprintf(buf, "%+14.6f", val3.y);
+            sprintf(buf, "%+10.3f", val3.y);
             drawTextCoord(buf, pos);
             pos.x += getTextXLen(buf);
 
@@ -185,7 +185,7 @@ Coord fieldDraw(const Field field, const Coord origin, const uint selected)
             break;
         case F_FLOAT:;
             float val6 = *((float *)(field.ptr));
-            sprintf(buf, "%s%+14.6f", field.label, val6);
+            sprintf(buf, "%s%+10.3f", field.label, val6);
             len = getTextLength(buf);
             fillRectCoordLength(pos, len);
             setTextColor(selected ? WHITE : GREY1);

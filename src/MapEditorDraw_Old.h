@@ -64,7 +64,7 @@ Coord drawColor(Coord pos, const uint tscale, Color c, const bool selected, cons
 Coord drawCoordf(const Coord pos, const char *label, const Coordf cf, const bool selected)
 {
     char buf[64] = {0};
-    sprintf(buf, "%s: %+14.6f, %+14.6f", label, cf.x, cf.y);
+    sprintf(buf, "%s: %+10.3f, %+10.3f", label, cf.x, cf.y);
     const Length len = getTextLength(buf);
     setColor(BLACK);
     fillRectCoordLength(pos, len);
@@ -77,7 +77,7 @@ Coord drawCoordf(const Coord pos, const char *label, const Coordf cf, const bool
 Coord drawf(const Coord pos, const char *label, const float f, const bool selected)
 {
     char buf[32] = {0};
-    sprintf(buf, "%s: %+14.6f", label, f);
+    sprintf(buf, "%s: %+10.3f", label, f);
     const Length len = getTextLength(buf);
     setColor(BLACK);
     fillRectCoordLength(pos, len);
