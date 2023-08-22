@@ -40,6 +40,8 @@ void editorDrawPieceFields(Selection *sel)
 
 void editorDrawPiece(const MapPiece piece, const Offset off, const float scale, Selection *sel)
 {
+    const int radius = 8;
+    const int thickness = 4;
     const bool selected = selPieceSelected(sel, piece);
     PieceCoords coords = pieceCoords(piece);
     setColor(pieceColor(piece));
@@ -50,37 +52,37 @@ void editorDrawPiece(const MapPiece piece, const Offset off, const float scale, 
             const Coord c = mapToScreen(off, scale, *coords.coord[2]);
             const Coord d = mapToScreen(off, scale, *coords.coord[3]);
             if(selected){
-                drawLineThickCoords(a, c, 4);
-                drawLineThickCoords(a, d, 4);
-                drawLineThickCoords(b, c, 4);
-                drawLineThickCoords(b, d, 4);
+                drawLineThickCoords(a, c, thickness);
+                drawLineThickCoords(a, d, thickness);
+                drawLineThickCoords(b, c, thickness);
+                drawLineThickCoords(b, d, thickness);
             }
             if(selected){
                 if(selPosSelected(sel, coords.coord[2]))
-                    fillCircleCoord(c, 6);
+                    fillCircleCoord(c, radius);
                 else
-                    drawCircleCoord(c, 6);
+                    drawCircleCoord(c, radius);
                 if(selPosSelected(sel, coords.coord[3]))
-                    fillCircleCoord(d, 6);
+                    fillCircleCoord(d, radius);
                 else
-                    drawCircleCoord(d, 6);
+                    drawCircleCoord(d, radius);
             }
         }
         drawLineThickCoords(a, b, selected?4:1);
         if(selected){
             if(selPosSelected(sel, coords.coord[0]))
-                fillCircleCoord(a, 6);
+                fillCircleCoord(a, radius);
             else
-                drawCircleCoord(a, 6);
+                drawCircleCoord(a, radius);
             if(selPosSelected(sel, coords.coord[1]))
-                fillCircleCoord(b, 6);
+                fillCircleCoord(b, radius);
             else
-                drawCircleCoord(b, 6);
+                drawCircleCoord(b, radius);
         }
         return;
     }
     const Coord a = mapToScreen(off, scale, *coords.coord[0]);
-    fillCircleCoord(a, 6);
+    fillCircleCoord(a, radius);
 }
 
 void editorDrawPieceCount(Map *map, const Coord wlen)
