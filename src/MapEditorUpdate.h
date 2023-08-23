@@ -63,41 +63,85 @@ void editorUpdateNewPiece(Map *map, const NewPieceInfo pieceInfo, const Snap sna
 // selects the correct edit function given the cursor position and its corrosponding field
 void editorUpdateSelectionVal(Map *map, EditorState *state)
 {
-    if(keyPressed(SC_RETURN) && state->sel && !state->sel->next){
+    if(!state->sel || state->sel->next)
+        return;
+    if(keyPressed(SC_RETURN)){
         switch(state->sel->fields.field[state->sel->cursor->y].type){
             case F_PATH:
                 mapEditText(map, state, state->sel->fields.field[state->sel->cursor->y].ptr);
+                return;
                 break;
             case F_FLOAT:
                 mapEditFloat(map, state, state->sel->fields.field[state->sel->cursor->y].ptr);
+                return;
                 break;
             case F_COORDF:
                 if(state->sel->cursor->x == 0)
                     mapEditFloat(map, state, &(((Coordf*)state->sel->fields.field[state->sel->cursor->y].ptr)->x));
                 else
                     mapEditFloat(map, state, &(((Coordf*)state->sel->fields.field[state->sel->cursor->y].ptr)->y));
+                return;
                 break;
             case F_UINT:
                 mapEditUint(map, state, state->sel->fields.field[state->sel->cursor->y].ptr);
+                return;
                 break;
             case F_COLOR:
                 switch(state->sel->cursor->x){
                     case 0:
                         mapEditU8(map, state, &(((Color*)(state->sel->fields.field[state->sel->cursor->y].ptr))->r));
+                        return;
                         break;
                     case 1:
                         mapEditU8(map, state, &(((Color*)(state->sel->fields.field[state->sel->cursor->y].ptr))->g));
+                        return;
                         break;
                     case 2:
                         mapEditU8(map, state, &(((Color*)(state->sel->fields.field[state->sel->cursor->y].ptr))->b));
+                        return;
                         break;
                     default:
                         panic("???");
                 }
+                return;
                 break;
             default:
+                return;
                 break;
         }
+    }
+    switch(state->sel->fields.field[state->sel->cursor->y].type){
+        case F_DIR:
+            *((Direction*)(state->sel->fields.field[state->sel->cursor->y].ptr)) = wrap(
+                *((Direction*)(state->sel->fields.field[state->sel->cursor->y].ptr)) + keyPressed(SC_LEFT) - keyPressed(SC_RIGHT),
+                0, 4
+            );
+            return;
+            break;
+        case F_CONVTYPE:
+            *((ConvType*)(state->sel->fields.field[state->sel->cursor->y].ptr)) = wrap(
+                *((ConvType*)(state->sel->fields.field[state->sel->cursor->y].ptr)) + keyPressed(SC_LEFT) - keyPressed(SC_RIGHT),
+                0, C_N
+            );
+            return;
+            break;
+        case F_TRIGTYPE:
+            *((TrigType*)(state->sel->fields.field[state->sel->cursor->y].ptr)) = wrap(
+                *((TrigType*)(state->sel->fields.field[state->sel->cursor->y].ptr)) + keyPressed(SC_LEFT) - keyPressed(SC_RIGHT),
+                0, T_N
+            );
+            return;
+            break;
+        case F_BOOL:
+            *((bool*)(state->sel->fields.field[state->sel->cursor->y].ptr)) = wrap(
+                *((bool*)(state->sel->fields.field[state->sel->cursor->y].ptr)) + keyPressed(SC_LEFT) - keyPressed(SC_RIGHT),
+                0, 2
+            );
+            return;
+            break;
+        default:
+            return;
+            break;
     }
 }
 
@@ -124,6 +168,41 @@ void editorUpdateBoxSelect(Map *map, Coord *cursor, const Mouse mouse, Selection
         }
         cur = pieceNext(map, cur);
     }while(!pieceSame(cur, start));
+}
+
+// creates a copy of all selected pieces, deselects whole selection list
+// and selects the copies
+void editorUpdateSelectionDup(Map *map, const Coordf pos, Selection **list)
+{
+    assertExpr(map && list);
+    if(!*list || !keyPressed(SC_V))
+        return;
+    selPrint(*list);
+    Selection *sel = *list;
+    Selection *newList = NULL;
+    Offsetf off = {0};
+    if(sel)
+        off = cfSub(pos, *pieceCoords(sel->fields.piece).coord[0]);
+    while(sel){
+        const bool exists = selPieceSelection(newList, sel->fields.piece);
+        Selection *dup = NULL;
+        if(exists)
+            dup = selDupShallow(sel);
+        else
+            dup = selDupDeep(sel);
+        PieceCoords c = pieceCoords(dup->fields.piece);
+        const int index = pieceCoordIndex(sel->fields.piece, sel->pos);
+        if(index >= 0 && index < (int)c.numCoord)
+            dup->pos = c.coord[index];
+
+        for(st i = 0; i < c.numCoord; i++)
+            *c.coord[i] = cfAdd(*c.coord[i], off);
+        if(!exists)
+            mapAddPiece(map, dup->fields.piece);
+        sel = selFree(sel);
+        newList = selAppend(newList, dup);
+    }
+    *list = newList;
 }
 
 #endif /* end of include guard: MAPEDITORUPDATE_H */

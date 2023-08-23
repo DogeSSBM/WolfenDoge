@@ -34,13 +34,12 @@ PieceCoords pieceCoords(const MapPiece piece)
         pp.numCoord = SegTypeNumCoord[piece.seg->type];
         pp.coord[0] = &piece.seg->a;
         pp.coord[1] = &piece.seg->b;
-        if(piece.seg->type == S_TRIG){
-            pp.coord[2] = &piece.seg->trig.c;
-            pp.coord[3] = &piece.seg->trig.d;
-        }
         if(piece.seg->type == S_PORT){
             pp.coord[2] = &piece.seg->port.a;
             pp.coord[3] = &piece.seg->port.b;
+        }else if(piece.seg->type == S_TRIG){
+            pp.coord[2] = &piece.seg->trig.c;
+            pp.coord[3] = &piece.seg->trig.d;
         }
         return pp;
     }
@@ -50,6 +49,8 @@ PieceCoords pieceCoords(const MapPiece piece)
         pp.coord[1] = &piece.obj->mob.a;
         pp.coord[2] = &piece.obj->mob.b;
         pp.coord[3] = &piece.obj->mob.origin;
+        pp.coord[4] = &piece.obj->mob.vec;
+        pp.coord[5] = &piece.obj->mob.len;
     }
     return pp;
 }
@@ -63,6 +64,17 @@ bool pieceContainsCoord(const MapPiece piece, Coordf *pos)
         if(coords.coord[i] == pos)
             return true;
     return false;
+}
+
+int pieceCoordIndex(const MapPiece piece, Coordf *pos)
+{
+    if(piece.type >= M_ANY || !pos)
+        return -1;
+    PieceCoords coords = pieceCoords(piece);
+    for(int i = 0; i < (int)coords.numCoord; i++)
+        if(coords.coord[i] == pos)
+            return i;
+    return -1;
 }
 
 Color pieceColor(const MapPiece piece)
@@ -196,6 +208,32 @@ bool pieceSame(const MapPiece a, const MapPiece b)
     if(a.type == M_OBJ)
         return a.obj == b.obj;
     return true;
+}
+
+MapPiece pieceDup(const MapPiece piece)
+{
+    assertExpr(piece.type < M_ANY);
+    if(piece.type == M_SEG){
+        assertExpr(piece.seg);
+        return (MapPiece){
+            .type = piece.type,
+            .seg = segDup(piece.seg)
+        };
+    }
+    assertExpr(piece.obj);
+    return (MapPiece){
+        .type = piece.type,
+        .obj = objDup(piece.obj)
+    };
+
+}
+
+// duplicates fields + the piece within fields
+PieceFields pieceFieldsDup(const PieceFields fields)
+{
+    PieceFields ret = fields;
+    ret.piece = pieceDup(fields.piece);
+    return ret;
 }
 
 MapPiece pieceNearest(Map *map, const Coordf pos, Coordf **nearestPos)

@@ -61,6 +61,8 @@ Seg* trigNew(const Color color, const Coordf a, const Coordf b, const uint id, c
     w->trig.id = id;
     w->trig.c = c;
     w->trig.d = d;
+    w->trig.start = false;
+    w->trig.state = false;
     return w;
 }
 
@@ -75,15 +77,17 @@ Seg* portNew(const Coordf a, const Coordf b, const Coordf porta, const Coordf po
 }
 
 // creates a new segment with type S_CONV
-Seg* convNew(const Color c, const Coordf a, const Coordf b, const uint idA, const uint idB)
+Seg* convNew(const ConvType type, const Color c, const Coordf a, const Coordf b, const uint idA, const uint idB, const uint idC)
 {
     Seg *w = calloc(1, sizeof(Seg));
     w->type = S_CONV;
     w->color = c;
     w->a = a;
     w->b = b;
+    w->conv.type = type;
     w->conv.idA = idA;
     w->conv.idB = idB;
+    w->conv.idC = idC;
     return w;
 }
 
@@ -115,13 +119,25 @@ Seg* segNew(const SegType type, const Coordf a, const Coordf b)
             return portNew(a, b, cfAddf(a, 50.0f), cfAddf(b, 50.0f));
             break;
         case S_CONV:
-            return convNew(WHITE, a, b, 0, 0);
+            return convNew(C_CONV, WHITE, a, b, 0, 0, 0);
             break;
         default:
             break;
     }
     panic("???");
     return NULL;
+}
+
+Seg* segDup(Seg *seg)
+{
+    if(!seg)
+        return NULL;
+    Seg *dup = calloc(1, sizeof(Seg));
+    memcpy(dup, seg, sizeof(Seg));
+    if(seg->type == S_WALL && seg->wall.path[0] != '\0')
+        dup->wall.texture = loadTexture(dup->wall.path);
+    dup->next = NULL;
+    return dup;
 }
 
 // appends tail to the end of the list (head)
@@ -136,6 +152,17 @@ Seg* segAppend(Seg *head, Seg *tail)
     return head;
 }
 
+Seg* segFree(Seg *seg)
+{
+    if(!seg)
+        return NULL;
+    Seg *next = seg->next;
+    if(seg->type == S_WALL && seg->wall.texture)
+        textureFree(seg->wall.texture);
+    free(seg);
+    return next;
+}
+
 // searches for del in segList, removes and frees it
 Seg* segDelete(Seg *segList, Seg *del)
 {
@@ -143,19 +170,13 @@ Seg* segDelete(Seg *segList, Seg *del)
         return segList;
     if(!segList)
         return NULL;
-    if(del == segList){
-        Seg *next = segList->next;
-        free(segList);
-        return next;
-    }
+    if(del == segList)
+        return segFree(segList);
     Seg *cur = segList;
     while(cur && cur->next != del)
         cur = cur->next;
-    if(!cur)
-        return segList;
-    Seg *next = cur->next->next;
-    free(cur->next);
-    cur->next = next;
+    if(cur)
+        cur->next = segFree(cur->next);
     return segList;
 }
 
@@ -168,17 +189,6 @@ st segListLen(Seg *segList)
         segList = segList->next;
     }
     return len;
-}
-
-Seg* segFree(Seg *seg)
-{
-    if(!seg)
-        return NULL;
-    Seg *next = seg->next;
-    if(seg->type == S_WALL && seg->wall.texture)
-        textureFree(seg->wall.texture);
-    free(seg);
-    return next;
 }
 
 // frees all segments in segList

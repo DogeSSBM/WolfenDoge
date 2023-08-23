@@ -6,10 +6,16 @@ typedef struct{
     Length len;
 }View;
 
+typedef enum             { C_CONV,   C_NOT,   C_AND,   C_OR, C_N}ConvType;
+char *ConvTypeStr[C_N] = {"C_CONV", "C_NOT", "C_AND", "C_OR"    };
+
+typedef enum             { T_ZONE,   T_FLIP,   T_ZONE_ONCE,   T_FLIP_ONCE, T_N}TrigType;
+char *TrigTypeStr[T_N] = {"T_ZONE", "T_FLIP", "T_ZONE_ONCE", "T_FLIP_ONCE"    };
+
 typedef enum   {S_END = -1, S_WALL,    S_WIND,     S_TRIG,   S_PORT,    S_DOOR,     S_CONV, S_N}SegType;
 char *SegTypeStr[S_N] =   {"S_WALL",  "S_WIND",   "S_TRIG", "S_PORT",   "S_DOOR",   "S_CONV"    };
-st SegTypeFields[S_N] =   {      5,         7,          7,        6,          9,          6     };
-st SegTypeNumCoord[S_N] = {      2,         2,          4,        4,          2,          2     };
+st SegTypeFields[S_N] =   {      5,         7,         10,        6,          9,         8      };
+st SegTypeNumCoord[S_N] = {      2,         2,          4,        4,          2,         2      };
 typedef struct Seg{
     SegType type;
     Coordf a;
@@ -37,13 +43,18 @@ typedef struct Seg{
             Direction closeDir;
         }door;
         struct{
+            TrigType type;
             uint id;
             Coordf c;
             Coordf d;
+            bool start;
+            bool state;
         }trig;
         struct{
+            ConvType type;
             uint idA;
             uint idB;
+            uint idC;
         }conv;
     };
     struct Seg *next;
@@ -52,7 +63,7 @@ typedef struct Seg{
 typedef enum              { O_SPAWN,       O_KEY,      O_MOB, O_N}ObjType;
 char *ObjTypeStr[O_N] =   {"O_SPAWN",     "O_KEY",    "O_MOB"    };
 st ObjTypeFields[O_N] =   {       3,           3,          8     };
-st ObjTypeNumCoord[O_N] = {       1,           1,          4     };
+st ObjTypeNumCoord[O_N] = {       1,           1,          6     };
 typedef struct Obj{
     ObjType type;
     Coordf pos;
@@ -120,9 +131,9 @@ typedef struct Ray{
     struct Ray *next;
 }Ray;
 
-typedef enum              {F_MAPPIECETYPE, F_SEGTYPE, F_OBJTYPE, F_COORDF, F_COLOR, F_PATH, F_FLOAT, F_UINT, F_BOOL,       F_DIR, F_N}FieldType;
-char *FieldTypeStr[F_N] = { "MapPieceType", "SegType", "ObjType", "Coordf", "Color", "Path", "float", "uint", "bool", "Direction"    };
-uint FieldTypeXlen[F_N] = {             1,         1,         1,        2,       3,      1,       1,      1,      1,           1     };
+typedef enum              {F_MAPPIECETYPE,  F_SEGTYPE,  F_OBJTYPE,   F_CONVTYPE,  F_COORDF,  F_COLOR,  F_PATH,  F_FLOAT,  F_UINT,  F_BOOL,  F_TRIGTYPE,  F_DIR,       F_N}FieldType;
+char *FieldTypeStr[F_N] = { "MapPieceType",  "SegType",  "ObjType", "F_CONVTYPE",  "Coordf",  "Color",  "Path",  "float",  "uint",  "bool",  "TrigType",  "Direction"    };
+uint FieldTypeXlen[F_N] = {             1,          1,          1,            1,         2,        3,       1,        1,       1,       1,           1,            1     };
 typedef struct{
     char *label;
     FieldType type;
@@ -132,7 +143,7 @@ typedef struct{
 typedef struct{
     MapPiece piece;
     st numCoord;
-    Coordf *coord[4];
+    Coordf *coord[10];
 }PieceCoords;
 
 typedef struct{
@@ -204,10 +215,7 @@ typedef struct{
     };
 }NewPieceInfo;
 
-typedef enum               { E_MAIN,   E_PIECE_SEL,   E_ED_TEXT,   E_ED_U8,   E_ED_UINT,   E_ED_UITVL,   E_ED_FLOAT,   E_ED_DIR,   E_ED_BOOL, E_N}EditorMode;
-char *EditorModeStr[E_N] = {"E_MAIN", "E_PIECE_SEL", "E_ED_TEXT", "E_ED_U8", "E_ED_UINT", "E_ED_UITVL", "E_ED_FLOAT", "E_ED_DIR", "E_ED_BOOL"    };
 typedef struct{
-    EditorMode mode;
     NewPieceInfo pieceInfo;
     Camera cam;
     Coord cursor;

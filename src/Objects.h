@@ -13,28 +13,33 @@ Obj* objAppend(Obj *head, Obj *tail)
     return head;
 }
 
+Obj* objFree(Obj *obj)
+{
+    if(!obj)
+        return NULL;
+    Obj *next = obj->next;
+    if(obj->type == O_MOB && obj->mob.texture)
+        textureFree(obj->mob.texture);
+    free(obj);
+    return next;
+}
+
 // frees del
 // searches for del in list, removes if found
-Obj* objDelete(Obj *objs, Obj *del)
+Obj* objDelete(Obj *objList, Obj *del)
 {
     if(!del)
-        return objs;
-    if(!objs)
+        return objList;
+    if(!objList)
         return NULL;
-    if(del == objs){
-        Obj *next = objs->next;
-        free(objs);
-        return next;
-    }
-    Obj *cur = objs;
+    if(del == objList)
+        return objFree(objList);
+    Obj *cur = objList;
     while(cur && cur->next != del)
         cur = cur->next;
-    if(!cur)
-        return objs;
-    Obj *next = cur->next->next;
-    free(cur->next);
-    cur->next = next;
-    return objs;
+    if(cur)
+        cur->next = objFree(cur->next);
+    return objList;
 }
 
 // returns the number of objects in the list
@@ -51,13 +56,8 @@ st objListLen(Obj *objs)
 // frees all objects in the list
 Obj* objListFree(Obj *list)
 {
-    while(list){
-        Obj *next = list->next;
-        if(list->type == O_MOB && list->mob.texture)
-            textureFree(list->mob.texture);
-        free(list);
-        list = next;
-    }
+    while(list)
+        list = objFree(list);
     return NULL;
 }
 
@@ -68,6 +68,19 @@ Obj* objNew(const ObjType type, const Coordf pos)
     obj->type = type;
     obj->pos = pos;
     return obj;
+}
+
+// duplicates object
+Obj* objDup(Obj *obj)
+{
+    if(!obj)
+        return NULL;
+    Obj *dup = calloc(1, sizeof(Obj));
+    memcpy(dup, obj, sizeof(Obj));
+    if(obj->type == O_MOB && obj->mob.texture)
+        dup->mob.texture = loadTexture(dup->mob.path);
+    dup->next = NULL;
+    return dup;
 }
 
 // creates a new object of type O_KEY

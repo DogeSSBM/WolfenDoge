@@ -49,6 +49,14 @@ void fieldPrint(const MapPiece piece)
                 Direction val9 = *((Direction *)(fields.field[i].ptr));
                 printf("%s%c\n", fields.field[i].label, DirectionChar[val9]);
                 break;
+            case F_TRIGTYPE:;
+                TrigType val10 = *((TrigType *)(fields.field[i].ptr));
+                printf("%s%s\n", fields.field[i].label, TrigTypeStr[val10]);
+                break;
+            case F_CONVTYPE:;
+                ConvType val11 = *((ConvType *)(fields.field[i].ptr));
+                printf("%s%s\n", fields.field[i].label, ConvTypeStr[val11]);
+                break;
             default:
                 panic("Unknown field type: %u", fields.field[i].type);
                 break;
@@ -88,6 +96,32 @@ Coord fieldDrawObjType(const ObjType val, char *label, Coord pos, const uint sel
 {
     char buf[256] = {0};
     sprintf(buf, "%s%s", label, ObjTypeStr[val]);
+    const Length len = getTextLength(buf);
+    fillRectCoordLength(pos, len);
+    setTextColor(selected ? WHITE : GREY1);
+    drawTextCoord(buf, pos);
+    pos.y += len.y;
+    return pos;
+}
+
+// draws field with type ConvType
+Coord fieldDrawConvType(const ConvType val, char *label, Coord pos, const uint selected)
+{
+    char buf[256] = {0};
+    sprintf(buf, "%s%s", label, ConvTypeStr[val]);
+    const Length len = getTextLength(buf);
+    fillRectCoordLength(pos, len);
+    setTextColor(selected ? WHITE : GREY1);
+    drawTextCoord(buf, pos);
+    pos.y += len.y;
+    return pos;
+}
+
+// draws field with type TrigType
+Coord fieldDrawTrigType(const TrigType val, char *label, Coord pos, const uint selected)
+{
+    char buf[256] = {0};
+    sprintf(buf, "%s%s", label, TrigTypeStr[val]);
     const Length len = getTextLength(buf);
     fillRectCoordLength(pos, len);
     setTextColor(selected ? WHITE : GREY1);
@@ -262,6 +296,12 @@ Coord fieldDraw(const Field field, const Coord origin, const uint selected)
             break;
         case F_OBJTYPE:
             pos = fieldDrawObjType(*((ObjType *)(field.ptr)), field.label, pos, selected);
+            break;
+        case F_CONVTYPE:
+            pos = fieldDrawConvType(*((ConvType *)(field.ptr)), field.label, pos, selected);
+            break;
+        case F_TRIGTYPE:
+            pos = fieldDrawTrigType(*((TrigType *)(field.ptr)), field.label, pos, selected);
             break;
         case F_COORDF:
             pos = fieldDrawCoordf(*((Coordf *)(field.ptr)), field.label, pos, selected);

@@ -32,17 +32,22 @@ PieceFields segFields(const MapPiece piece)
             fields.field[8] = (Field){.label = "closeDir: ", .type = F_DIR, .ptr = &piece.seg->door.closeDir};
             break;
         case S_TRIG:
-            fields.field[4] = (Field){.label = "id: ", .type = F_UINT, .ptr = &piece.seg->trig.id};
-            fields.field[5] = (Field){.label = "c:      ", .type = F_COORDF, .ptr = &piece.seg->trig.c};
-            fields.field[6] = (Field){.label = "d:      ", .type = F_COORDF, .ptr = &piece.seg->trig.d};
+            fields.field[4] = (Field){.label = "TrigType: ", .type = F_TRIGTYPE, .ptr = &piece.seg->trig.type};
+            fields.field[5] = (Field){.label = "id: ", .type = F_UINT, .ptr = &piece.seg->trig.id};
+            fields.field[6] = (Field){.label = "c:      ", .type = F_COORDF, .ptr = &piece.seg->trig.c};
+            fields.field[7] = (Field){.label = "d:      ", .type = F_COORDF, .ptr = &piece.seg->trig.d};
+            fields.field[8] = (Field){.label = "start:  ", .type = F_BOOL, .ptr = &piece.seg->trig.start};
+            fields.field[9] = (Field){.label = "state:  ", .type = F_BOOL, .ptr = &piece.seg->trig.state};
             break;
         case S_PORT:
             fields.field[4] = (Field){.label = "a:      ", .type = F_COORDF, .ptr = &piece.seg->port.a};
             fields.field[5] = (Field){.label = "b:      ", .type = F_COORDF, .ptr = &piece.seg->port.b};
             break;
         case S_CONV:
-            fields.field[4] = (Field){.label = "idA: ", .type = F_UINT, .ptr = &piece.seg->conv.idA};
-            fields.field[5] = (Field){.label = "idB: ", .type = F_UINT, .ptr = &piece.seg->conv.idB};
+            fields.field[4] = (Field){.label = "ConvType: ", .type = F_CONVTYPE, .ptr = &piece.seg->conv.type};
+            fields.field[5] = (Field){.label = "idA: ", .type = F_UINT, .ptr = &piece.seg->conv.idA};
+            fields.field[6] = (Field){.label = "idB: ", .type = F_UINT, .ptr = &piece.seg->conv.idB};
+            fields.field[7] = (Field){.label = "idC: ", .type = F_UINT, .ptr = &piece.seg->conv.idC};
             break;
         default:
             panic("Unknown SegType: %u", piece.seg->type);

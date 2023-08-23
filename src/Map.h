@@ -174,6 +174,7 @@ Update* mapQueueUpdates(const Coordf oldPos, const Coordf newPos, Map *map)
     Seg *cur = map->seg[S_TRIG];
     Update *up = NULL;
     while(cur){
+
         const bool oldState = cfInQuad(oldPos, cur->a, cur->b, cur->trig.c, cur->trig.d);
         const bool newState = cfInQuad(newPos, cur->a, cur->b, cur->trig.c, cur->trig.d);
         if(oldState != newState)
@@ -224,6 +225,19 @@ void mapUpdateDynamics(Map *map)
         mob->mob.b = cfAdd(mob->pos, degMagToCf(rang, hwidth));
         mob = mob->next;
     }
+}
+
+// adds piece to map
+void mapAddPiece(Map *map, const MapPiece piece)
+{
+    assertExpr(map && piece.type < M_ANY);
+    if(piece.type == M_SEG){
+        assertExpr(piece.seg);
+        map->seg[piece.seg->type] = segAppend(map->seg[piece.seg->type], piece.seg);
+        return;
+    }
+    assertExpr(piece.obj);
+    map->obj[piece.obj->type] = objAppend(map->obj[piece.obj->type], piece.obj);
 }
 
 #endif /* end of include guard: MAP_H */

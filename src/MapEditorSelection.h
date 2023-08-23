@@ -95,4 +95,50 @@ bool selPieceSelected(Selection *list, const MapPiece piece)
     return false;
 }
 
+Selection* selPieceSelection(Selection *list, const MapPiece piece)
+{
+    while(list){
+        if(pieceSame(piece, list->fields.piece))
+            return list;
+        list = list->next;
+    }
+    return NULL;
+}
+
+// duplicates selection such that the duplicate points to the same Seg / Obj
+Selection* selDupShallow(Selection *sel)
+{
+    if(!sel)
+        return NULL;
+    Selection *dup = calloc(1, sizeof(Selection));
+    *dup = *sel;
+    dup->next = NULL;
+    return dup;
+}
+
+// duplicates selection and the Seg / Obj
+Selection* selDupDeep(Selection *sel)
+{
+    if(!sel)
+        return NULL;
+    Selection *dup = selDupShallow(sel);
+    dup->fields =  pieceFieldsDup(sel->fields);
+    if(sel->pos == NULL)
+        return dup;
+    const int index = pieceCoordIndex(sel->fields.piece, sel->pos);
+    if(index >= 0)
+        dup->pos = pieceCoords(dup->fields.piece).coord[index];
+    return dup;
+}
+
+// prints the selection list
+void selPrint(Selection *list)
+{
+    printf("================ Selection List ================\n");
+    while(list){
+        fieldPrint(list->fields.piece);
+        list = list->next;
+    }
+}
+
 #endif /* end of include guard: MAPEDITORSELECTION_H */
