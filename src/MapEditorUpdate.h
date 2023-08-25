@@ -8,7 +8,8 @@ void editorUpdateDeleteSelection(Map *map, Selection **sel)
     if(!keyPressed(SC_DELETE))
         return;
     while(*sel){
-        pieceDelete(map, (*sel)->fields.piece);
+        if(!selPieceSelected((*sel)->next, (*sel)->fields.piece))
+            pieceDelete(map, (*sel)->fields.piece);
         *sel = selFree(*sel);
     }
 }

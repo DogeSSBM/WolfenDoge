@@ -36,7 +36,7 @@ void mapEdit(Map *map)
         editorDrawLines(state.snap, state.cam);
         editorDrawMap(map, state.cam.off, state.cam.scale, state.sel);
         editorDrawPieceFields(state.sel);
-        editorDrawPieceCount(map, state.cam.wlen);
+        editorDrawPieceCount(map, state.cam.wlen, state.sel);
         editorDrawNewPieceType(state.pieceInfo, state.cam.wlen);
         editorDrawNewPiecePos(state.mouse.win);
 

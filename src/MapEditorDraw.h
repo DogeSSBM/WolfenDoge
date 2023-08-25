@@ -89,8 +89,10 @@ void editorDrawPiece(const MapPiece piece, const Offset off, const float scale, 
 }
 
 // draws the total number of pieces
-void editorDrawPieceCount(Map *map, const Coord wlen)
+void editorDrawPieceCount(Map *map, const Coord wlen, Selection *list)
 {
+    (void)list;
+    // const uint selCount = selListLen(list);
     uint count = (uint)pieceCountTotal(map);
     const Field field = {.label = "Pieces: ", .type = F_UINT, .ptr = &count};
     char buf[64] = {0};

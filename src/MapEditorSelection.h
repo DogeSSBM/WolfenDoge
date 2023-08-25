@@ -1,6 +1,7 @@
 #ifndef MAPEDITORSELECTION_H
 #define MAPEDITORSELECTION_H
 
+// allocates and returns a new selection
 Selection* selNew(Coord *cursor, Coordf *pos, const PieceFields fields)
 {
     assertExpr(cursor);
@@ -20,6 +21,7 @@ Selection* selNew(Coord *cursor, Coordf *pos, const PieceFields fields)
     return sel;
 }
 
+// appends selection to end of list
 Selection* selAppend(Selection *head, Selection *tail)
 {
     if(!head)
@@ -31,7 +33,8 @@ Selection* selAppend(Selection *head, Selection *tail)
     return head;
 }
 
-st selLen(Selection *list)
+// returns number of selections in list
+st selListLen(Selection *list)
 {
     st len = 0;
     while(list){
@@ -41,6 +44,9 @@ st selLen(Selection *list)
     return len;
 }
 
+// frees single selection
+// returns pointer to next
+// does not free piece contained in selection
 Selection* selFree(Selection *list)
 {
     if(!list)
@@ -50,6 +56,8 @@ Selection* selFree(Selection *list)
     return next;
 }
 
+// frees selection list
+// does not free piece contained in selection
 Selection* selFreeList(Selection *sel)
 {
     while(sel)
@@ -57,6 +65,7 @@ Selection* selFreeList(Selection *sel)
     return NULL;
 }
 
+// returns a selection containing the piece and pos nearest to pos
 Selection* selPosNearest(Map *map, Coord *cursor, const Coordf pos)
 {
     Coordf *nearestPos = NULL;
@@ -66,6 +75,7 @@ Selection* selPosNearest(Map *map, Coord *cursor, const Coordf pos)
     return selNew(cursor, nearestPos, pieceFields(piece));
 }
 
+// returns last selection in list
 Selection* selLast(Selection *sel)
 {
     if(!sel)
@@ -75,26 +85,29 @@ Selection* selLast(Selection *sel)
     return sel;
 }
 
-bool selPosSelected(Selection *list, Coordf *pos)
+// returns selection containing pos in selection list else NULL
+Selection* selPosSelected(Selection *list, Coordf *pos)
 {
     while(list){
         if(list->pos == pos)
-            return true;
+            return list;
         list = list->next;
     }
-    return false;
+    return NULL;
 }
 
-bool selPieceSelected(Selection *list, const MapPiece piece)
+// returns first selection containing piece in selection list else NULL
+Selection* selPieceSelected(Selection *list, const MapPiece piece)
 {
     while(list){
         if(pieceContainsCoord(piece, list->pos))
-            return true;
+            return list;
         list = list->next;
     }
-    return false;
+    return NULL;
 }
 
+// searches for piece in selection list, if found returns selection else NULL
 Selection* selPieceSelection(Selection *list, const MapPiece piece)
 {
     while(list){
@@ -103,32 +116,6 @@ Selection* selPieceSelection(Selection *list, const MapPiece piece)
         list = list->next;
     }
     return NULL;
-}
-
-// duplicates selection such that the duplicate points to the same Seg / Obj
-Selection* selDupShallow(Selection *sel)
-{
-    if(!sel)
-        return NULL;
-    Selection *dup = calloc(1, sizeof(Selection));
-    *dup = *sel;
-    dup->next = NULL;
-    return dup;
-}
-
-// duplicates selection and the Seg / Obj
-Selection* selDupDeep(Selection *sel)
-{
-    if(!sel)
-        return NULL;
-    Selection *dup = selDupShallow(sel);
-    dup->fields =  pieceFieldsDup(sel->fields);
-    if(sel->pos == NULL)
-        return dup;
-    const int index = pieceCoordIndex(sel->fields.piece, sel->pos);
-    if(index >= 0)
-        dup->pos = pieceCoords(dup->fields.piece).coord[index];
-    return dup;
 }
 
 // returns piece if sel piece occurs in list up to sel (exclusive)
@@ -144,12 +131,13 @@ bool selPieceFieldsBefore(Selection *list, Selection *sel)
     return false;
 }
 
-void selListSetPiece(Selection *list, const PieceFields replace, const PieceFields with)
+// replaces all occurences of a with b
+void selListSetPiece(Selection *list, const PieceFields a, const PieceFields b)
 {
     while(list){
-        if(pieceSame(list->fields.piece, replace.piece)){
-            list->pos = pieceCoords(with.piece).coord[pieceCoordIndex(list->fields.piece, list->pos)];
-            list->fields = with;
+        if(pieceSame(list->fields.piece, a.piece)){
+            list->pos = pieceCoords(b.piece).coord[pieceCoordIndex(list->fields.piece, list->pos)];
+            list->fields = b;
         }
         list = list->next;
     }

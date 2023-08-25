@@ -4,12 +4,12 @@
 // MapEditorSelection.h
 Selection* selNew(Coord *, Coordf *, const PieceFields);
 Selection* selAppend(Selection *, Selection *);
-st selLen(Selection *);
+st selListLen(Selection *);
 Selection* selFree(Selection *);
 Selection* selFreeList(Selection *);
 Selection* selPosNearest(Map *, Coord *, const Coordf);
-bool selPosSelected(Selection *, Coordf *);
-bool selPieceSelected(Selection *, const MapPiece);
+Selection* selPosSelected(Selection *, Coordf *);
+Selection* selPieceSelected(Selection *, const MapPiece);
 
 // Fields.h
 void fieldPrint(const MapPiece);
