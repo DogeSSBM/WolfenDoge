@@ -55,6 +55,11 @@ PieceCoords pieceCoords(const MapPiece piece)
     return pp;
 }
 
+PieceCoords fieldCoords(const PieceFields fields)
+{
+    return pieceCoords(fields.piece);
+}
+
 bool pieceContainsCoord(const MapPiece piece, Coordf *pos)
 {
     if(piece.type >= M_ANY || !pos)

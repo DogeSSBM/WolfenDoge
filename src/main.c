@@ -9,7 +9,7 @@ int main(int argc, char **argv)
     SDL_StopTextInput();
     gfx.outlined = false;
     winSetPosCoord(coordAddi(coordDivi(getWinDisplayLen(), 2), -400));
-
+    maximizeWindow();
     Map map = mapLoad(argc == 2 ? argv[1] : NULL);
     printf("path: \"%s\"\n", map.path);
 

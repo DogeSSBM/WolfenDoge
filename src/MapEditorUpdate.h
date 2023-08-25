@@ -174,35 +174,12 @@ void editorUpdateBoxSelect(Map *map, Coord *cursor, const Mouse mouse, Selection
 // and selects the copies
 void editorUpdateSelectionDup(Map *map, const Coordf pos, Selection **list)
 {
-    assertExpr(map && list);
-    if(!*list || !keyPressed(SC_V))
+    (void)pos;
+    assertExpr(map);
+    if(!list || !keyPressed(SC_V))
         return;
-    selPrint(*list);
-    Selection *sel = *list;
-    Selection *newList = NULL;
-    Offsetf off = {0};
-    if(sel)
-        off = cfSub(pos, *pieceCoords(sel->fields.piece).coord[0]);
-    while(sel){
-        const bool exists = selPieceSelection(newList, sel->fields.piece);
-        Selection *dup = NULL;
-        if(exists)
-            dup = selDupShallow(sel);
-        else
-            dup = selDupDeep(sel);
-        PieceCoords c = pieceCoords(dup->fields.piece);
-        const int index = pieceCoordIndex(sel->fields.piece, sel->pos);
-        if(index >= 0 && index < (int)c.numCoord)
-            dup->pos = c.coord[index];
-
-        for(st i = 0; i < c.numCoord; i++)
-            *c.coord[i] = cfAdd(*c.coord[i], off);
-        if(!exists)
-            mapAddPiece(map, dup->fields.piece);
-        sel = selFree(sel);
-        newList = selAppend(newList, dup);
-    }
-    *list = newList;
+    selListDupAddUniquePieces(map, *list);
+    *list = selListAddAllPiecePos(*list);
 }
 
 #endif /* end of include guard: MAPEDITORUPDATE_H */

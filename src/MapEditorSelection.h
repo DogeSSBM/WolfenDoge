@@ -131,6 +131,65 @@ Selection* selDupDeep(Selection *sel)
     return dup;
 }
 
+// returns piece if sel piece occurs in list up to sel (exclusive)
+bool selPieceFieldsBefore(Selection *list, Selection *sel)
+{
+    assertExpr(sel);
+    Selection *cur = list;
+    while(cur && cur != sel){
+        if(pieceSame(cur->fields.piece, sel->fields.piece))
+            return true;
+        cur = cur->next;
+    }
+    return false;
+}
+
+void selListSetPiece(Selection *list, const PieceFields replace, const PieceFields with)
+{
+    while(list){
+        if(pieceSame(list->fields.piece, replace.piece)){
+            list->pos = pieceCoords(with.piece).coord[pieceCoordIndex(list->fields.piece, list->pos)];
+            list->fields = with;
+        }
+        list = list->next;
+    }
+}
+
+// ensures all positions of each piece in the selection list is selected
+// adds any missing position selections to the head of the list
+// returns head of list
+Selection* selListAddAllPiecePos(Selection *list)
+{
+    Selection *head = list;
+    while(list){
+        const PieceCoords pc = fieldCoords(list->fields);
+        for(st i = 0; i < pc.numCoord; i++){
+            if(!selPosSelected(list, pc.coord[i])){
+                Selection *next = head;
+                head = selNew(list->cursor, pc.coord[i], list->fields);
+                head->next = next;
+            }
+        }
+        list = list->next;
+    }
+    return head;
+}
+
+// duplicates each unique piece in the list, swapping them out for the old ones
+//
+void selListDupAddUniquePieces(Map *map, Selection *list)
+{
+    Selection *cur = list;
+    while(cur){
+        if(!selPieceFieldsBefore(list, cur)){
+            const PieceFields new = pieceFieldsDup(cur->fields);
+            mapAddPiece(map, new.piece);
+            selListSetPiece(cur, cur->fields, new);
+        }
+        cur = cur->next;
+    }
+}
+
 // prints the selection list
 void selPrint(Selection *list)
 {
