@@ -6,7 +6,7 @@ void mapEdit(Map *map)
 {
     setRelativeMouse(false);
     EditorState state = editorInitState();
-    fieldPrintMap(map);
+    // fieldPrintMap(map);
     while(1){
         const uint t = frameStart();
 

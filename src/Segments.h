@@ -100,6 +100,7 @@ Seg* segEndNew(void)
     return end;
 }
 
+// creates a new segment
 Seg* segNew(const SegType type, const Coordf a, const Coordf b)
 {
     switch(type){
@@ -128,6 +129,7 @@ Seg* segNew(const SegType type, const Coordf a, const Coordf b)
     return NULL;
 }
 
+// duplicates segment (deep copy)
 Seg* segDup(Seg *seg)
 {
     if(!seg)
@@ -152,6 +154,7 @@ Seg* segAppend(Seg *head, Seg *tail)
     return head;
 }
 
+// frees segment (deep free)
 Seg* segFree(Seg *seg)
 {
     if(!seg)
@@ -163,7 +166,7 @@ Seg* segFree(Seg *seg)
     return next;
 }
 
-// searches for del in segList, removes and frees it
+// searches for del in segList, removes and frees (deep)
 Seg* segDelete(Seg *segList, Seg *del)
 {
     if(!del)

@@ -13,6 +13,7 @@ Obj* objAppend(Obj *head, Obj *tail)
     return head;
 }
 
+// frees obj (deep free)
 Obj* objFree(Obj *obj)
 {
     if(!obj)
@@ -24,8 +25,7 @@ Obj* objFree(Obj *obj)
     return next;
 }
 
-// frees del
-// searches for del in list, removes if found
+// searches for del in objList, removes and frees (deep)
 Obj* objDelete(Obj *objList, Obj *del)
 {
     if(!del)

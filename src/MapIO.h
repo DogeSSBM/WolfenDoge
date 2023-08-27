@@ -85,6 +85,7 @@ Texture* mobListTxtrQryLoad(Obj *mobList, char *path)
 // parses map segments into their respective SegType index
 void mapParseSegments(Map *map)
 {
+    printf("Parsing segments -\n");
     Seg *seg = NULL;
     do{
         seg = calloc(1, sizeof(Seg));
@@ -92,20 +93,21 @@ void mapParseSegments(Map *map)
         seg->next = NULL;
         if(seg->type != S_END){
             map->seg[seg->type] = segAppend(map->seg[seg->type], seg);
-            printf("read a segment with type %s\n", SegTypeStr[seg->type]);
+            // printf("read a segment with type %s\n", SegTypeStr[seg->type]);
             if(seg->type == S_WALL && strlen(seg->wall.path)){
                 seg->wall.texture = NULL;
                 seg->wall.texture = wallListTxtrQryLoad(map->seg[S_WALL], seg->wall.path);
             }
         }
     }while(seg->type != S_END);
-    printf("done parsing segments\n");
     free(seg);
+    printf("\tDone!\n");
 }
 
 // parses map objects into their respective ObjType index
 void mapParseObjects(Map *map)
 {
+    printf("Parsing objects -\n");
     Obj *obj = NULL;
     while(!feof(map->file)){
         obj = calloc(1, sizeof(Obj));
@@ -116,23 +118,23 @@ void mapParseObjects(Map *map)
             }
             obj->next = NULL;
             map->obj[obj->type] = objAppend(map->obj[obj->type], obj);
-            printf("read an object with type %s\n", ObjTypeStr[obj->type]);
+            // printf("read an object with type %s\n", ObjTypeStr[obj->type]);
         }else{
             assertExpr(feof(map->file));
             break;
         }
     }
-    printf("done parsing objects\n");
     free(obj);
+    printf("\tDone!\n");
 }
 
 // parses map file
 void mapParseFile(Map *map)
 {
-    printf("Parsing map: \"%s\"\nat: \"%s\"\n", map->name, map->path);
+    printf("Parsing map -\n\tName:\"%s\"\n\tPath: \"%s\"\n", map->name, map->path);
     assertExpr(map && map->file);
     assertExpr(mapParseName(map) > 0);
-    printf("parsed map name: \"%s\"\n", map->name);
+    // printf("parsed map name: \"%s\"\n", map->name);
     mapParseSegments(map);
     mapParseObjects(map);
     fclose(map->file);
@@ -297,7 +299,7 @@ Map mapLoad(char *name)
     char path[256] = {0};
     sprintf(path, "./Maps/%s.bork", map.name);
     map.path = strdup(path);
-    printf("name: \"%s\"\npath: \"%s\"\n", map.name, map.path);
+    // printf("name: \"%s\"\npath: \"%s\"\n", map.name, map.path);
     if((map.file = fopen(map.path, "rb")))
         mapParseFile(&map);
     else

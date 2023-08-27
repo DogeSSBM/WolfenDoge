@@ -1,6 +1,7 @@
 #ifndef PIECES_H
 #define PIECES_H
 
+// returns a MapPiece of type M_SEG containing seg
 MapPiece segToPiece(Seg *seg)
 {
     return (MapPiece){
@@ -9,6 +10,7 @@ MapPiece segToPiece(Seg *seg)
     };
 }
 
+// returns a MapPiece of type M_OBJ containing obj
 MapPiece objToPiece(Obj *obj)
 {
     return (MapPiece){
@@ -17,6 +19,8 @@ MapPiece objToPiece(Obj *obj)
     };
 }
 
+// returns true if piece has type indicating it does not contain a seg or obj
+// panics if it should contain a piece but its respective pointer is NULL
 bool pieceEmpty(const MapPiece piece)
 {
     if(piece.type >= M_ANY)
@@ -25,6 +29,7 @@ bool pieceEmpty(const MapPiece piece)
     return false;
 }
 
+// returns struct containing all of the pieces coords
 PieceCoords pieceCoords(const MapPiece piece)
 {
     PieceCoords pp = {.piece = piece};
@@ -55,11 +60,13 @@ PieceCoords pieceCoords(const MapPiece piece)
     return pp;
 }
 
+// returns struct containing all of the piece from fields coords
 PieceCoords fieldCoords(const PieceFields fields)
 {
     return pieceCoords(fields.piece);
 }
 
+// returns true if pos is one of the pieces coords
 bool pieceContainsCoord(const MapPiece piece, Coordf *pos)
 {
     if(piece.type >= M_ANY || !pos)
@@ -71,6 +78,8 @@ bool pieceContainsCoord(const MapPiece piece, Coordf *pos)
     return false;
 }
 
+// if pos is not one of pieces coords returns -1
+// otherwise returns the index of pieces PieceCoords array that contains pos
 int pieceCoordIndex(const MapPiece piece, Coordf *pos)
 {
     if(piece.type >= M_ANY || !pos)
@@ -82,6 +91,8 @@ int pieceCoordIndex(const MapPiece piece, Coordf *pos)
     return -1;
 }
 
+// returns primary color of segment / object contained by piece
+// panics if piece is empty
 Color pieceColor(const MapPiece piece)
 {
     assertExpr(piece.type < M_ANY);
@@ -92,6 +103,7 @@ Color pieceColor(const MapPiece piece)
     return WHITE;
 }
 
+// removes piece from map and frees it (deep)
 void pieceDelete(Map *map, MapPiece piece)
 {
     assertExpr(map);
@@ -103,9 +115,12 @@ void pieceDelete(Map *map, MapPiece piece)
         map->obj[piece.obj->type] = objDelete(map->obj[piece.obj->type], piece.obj);
 }
 
+// returns the next object / segment in map (wraps)
+// if piece is M_ANY, returns first available object / segment in map
+// if map is empty, returns piece with type M_NONE
 MapPiece pieceNext(Map *map, MapPiece piece)
 {
-    assertExpr(piece.type <= M_ANY);
+    assertExpr(map && piece.type <= M_ANY);
     if(piece.type == M_SEG || piece.type == M_ANY){
         if(piece.type != M_ANY && piece.seg && piece.seg->next){
             piece.seg = piece.seg->next;
@@ -167,8 +182,11 @@ MapPiece pieceNext(Map *map, MapPiece piece)
     return piece;
 }
 
+// points *pos to the next available coord in the map
+// returns the piece that contains that coord
 MapPiece pieceNextCoord(Map *map, MapPiece piece, Coordf **pos)
 {
+    assertExpr(map && pos);
     PieceCoords coords = pieceCoords(piece);
     st i = 0;
     for(i = 0; i < coords.numCoord; i++){
@@ -183,8 +201,11 @@ MapPiece pieceNextCoord(Map *map, MapPiece piece, Coordf **pos)
     return piece;
 }
 
+// points *pos to the next available coord in the map
+// returns the piece that contains that coord
 MapPiece pieceNextSameCoord(Map *map, MapPiece piece, Coordf **pos)
 {
+    assertExpr(map && pos);
     Coordf target = **pos;
     Coordf *coord = *pos;
     do{
@@ -194,6 +215,7 @@ MapPiece pieceNextSameCoord(Map *map, MapPiece piece, Coordf **pos)
     return piece;
 }
 
+// true if both components of pos are within the bounds of min (inclusive) and max (inclusive)
 bool cfInBounds(const Coordf pos, const Coordf min, const Coordf max)
 {
     return (
@@ -204,6 +226,8 @@ bool cfInBounds(const Coordf pos, const Coordf min, const Coordf max)
     );
 }
 
+// returns true if a and b contain the same segment / object
+// or if a and b are both M_NONE / M_ANY
 bool pieceSame(const MapPiece a, const MapPiece b)
 {
     if(a.type != b.type)
@@ -215,6 +239,7 @@ bool pieceSame(const MapPiece a, const MapPiece b)
     return true;
 }
 
+// returns a copy (deep) of piece
 MapPiece pieceDup(const MapPiece piece)
 {
     assertExpr(piece.type < M_ANY);
@@ -233,7 +258,7 @@ MapPiece pieceDup(const MapPiece piece)
 
 }
 
-// duplicates fields + the piece within fields
+// returns a copy (deep) of fields
 PieceFields pieceFieldsDup(const PieceFields fields)
 {
     PieceFields ret = fields;
@@ -241,6 +266,9 @@ PieceFields pieceFieldsDup(const PieceFields fields)
     return ret;
 }
 
+// points *nearestPos to the coord of a piece that is closest to pos
+// returns the piece that contains that coord
+// returns piece with type M_NONE if map is empty
 MapPiece pieceNearest(Map *map, const Coordf pos, Coordf **nearestPos)
 {
     MapPiece start = pieceNext(map, (MapPiece){.type = M_ANY});
@@ -265,18 +293,20 @@ MapPiece pieceNearest(Map *map, const Coordf pos, Coordf **nearestPos)
     return nearest;
 }
 
+// returns total number of segments + objects in map
 st pieceCountTotal(Map *map)
 {
     const MapPiece start = pieceNext(map, (MapPiece){.type = M_ANY});
     if(start.type == M_NONE)
         return 0;
     MapPiece cur = start;
-    st count = 0;
+    st count = 1;
     while(!pieceSame((cur = pieceNext(map, cur)), start))
         count++;
     return count;
 }
 
+// returns a piece containing a new segment / object with coords a and b
 MapPiece pieceNew(const NewPieceInfo pieceInfo, const Coordf a, const Coordf b)
 {
     assertExpr(pieceInfo.pieceType < M_ANY);
