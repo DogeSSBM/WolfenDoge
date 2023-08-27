@@ -130,7 +130,7 @@ Ray* RayInsert(Ray *, Ray *);
 Ray* rayNew(const MapPiece, const float, const float, const Coordf, const Coordf);
 Ray* rayFree(Ray *);
 Ray* castRayBase(const Coordf, const Coordf, const float, Map *, const uint);
-Ray* castRayMax(const Coordf, const Coordf, const float, Map *, const float);
+Ray* castRayMax(const Coordf, const Coordf, const float, Map *, const float, const float);
 Ray* castRay(Coordf, const Coordf, const float, Map *);
 Coordf rayUnwrapPos(Ray *);
 float rayUnwrapDst(Ray *);

@@ -129,6 +129,7 @@ typedef struct Ray{
     float dst;
     Coordf origin;
     Coordf pos;
+    bool cor;
     struct Ray *next;
 }Ray;
 

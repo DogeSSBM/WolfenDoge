@@ -196,8 +196,9 @@ Ray* castRayBase(const Coordf origin, const Coordf distantPoint, const float ray
 }
 
 // casts ray from origin to distantPoint and returns all intersections that are < max distance away
-Ray* castRayMax(const Coordf origin, const Coordf distantPoint, const float rayAng, Map *map, const float max)
+Ray* castRayMax(const Coordf origin, const Coordf distantPoint, const float rayAng, Map *map, const float min, const float max)
 {
+    (void)min;
     Ray *list = NULL;
     for(SegType type = 0; type < S_N; type++){
         if(type == S_CONV || type == S_TRIG)
@@ -235,15 +236,16 @@ Ray* castRay(const Coordf origin, const Coordf distantPoint, const float rayAng,
     Ray *ray = castRayBase(origin, distantPoint, rayAng, map, 0);
     Ray *list = NULL;
     if(ray && !cfSame(origin, ray->origin)){
-        list = castRayMax(ray->origin, degMagToCf(ray->ang, 2048.0f), ray->ang, map, ray->dst);
         const float addDst = cfDist(origin, ray->origin);
+        list = castRayMax(ray->origin, degMagToCf(ray->ang, 2048.0f), ray->ang, map, addDst, ray->dst);
+        ray->dst += addDst;
         Ray *cur = list;
         while(cur){
             cur->dst += addDst;
             cur = cur->next;
         }
     }else{
-        list = castRayMax(origin, distantPoint, rayAng, map, ray ? ray->dst : rayUnwrapDst(ray));
+        list = castRayMax(origin, distantPoint, rayAng, map, 0,  ray ? ray->dst : rayUnwrapDst(ray));
     }
     list = RayInsert(list, ray);
     return list;
