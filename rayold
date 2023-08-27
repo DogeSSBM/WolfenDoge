@@ -28,7 +28,7 @@ Ray* castRayBaseOld(const Coordf origin, const Coordf distantPoint, Map *map)
             curSeg = curSeg->next;
         }
     }
-    return RayNew((MapPiece){.type = seg?M_SEG:M_NONE, .seg = seg}, dst, pos);
+    return rayNew((MapPiece){.type = seg?M_SEG:M_NONE, .seg = seg}, dst, pos);
 }
 
 // casts ray from origin to distantPoint and returns all intersections that are < max distance away
@@ -46,7 +46,7 @@ Ray* castRayMaxOld(const Coordf origin, const Coordf distantPoint, Map *map, con
                 lineIntersection(origin, distantPoint, seg->a, seg->b, &pos) &&
                 (dst = cfDist(origin, pos)) < max
             )
-                list = RayInsert(list, RayNew((MapPiece){.type = M_SEG, .seg = seg}, dst, pos));
+                list = RayInsert(list, rayNew((MapPiece){.type = M_SEG, .seg = seg}, dst, pos));
             seg = seg->next;
         }
     }
@@ -59,7 +59,7 @@ Ray* castRayMaxOld(const Coordf origin, const Coordf distantPoint, Map *map, con
             lineIntersection(origin, distantPoint, obj->mob.a, obj->mob.b, &pos) &&
             (dst = cfDist(origin, pos)) < max
         )
-            list = RayInsert(list, RayNew((MapPiece){.type = M_OBJ, .obj = obj}, dst, pos));
+            list = RayInsert(list, rayNew((MapPiece){.type = M_OBJ, .obj = obj}, dst, pos));
         obj = obj->next;
     }
     return list;

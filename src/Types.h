@@ -127,6 +127,7 @@ typedef struct Ray{
     MapPiece piece;
     float ang;
     float dst;
+    Coordf origin;
     Coordf pos;
     struct Ray *next;
 }Ray;

@@ -89,7 +89,7 @@ Ray* RayInsert(Ray *list, Ray *ins)
 }
 
 // allocates a new Ray
-Ray* RayNew(const MapPiece piece, const float dst, const float rayAng, const Coordf pos)
+Ray* rayNew(const MapPiece piece, const float dst, const float rayAng, const Coordf origin, const Coordf pos)
 {
     if(piece.type >= M_ANY)
         return NULL;
@@ -97,12 +97,13 @@ Ray* RayNew(const MapPiece piece, const float dst, const float rayAng, const Coo
     rs->piece = piece;
     rs->ang = rayAng;
     rs->dst = dst;
+    rs->origin = origin;
     rs->pos = pos;
     return rs;
 }
 
 // frees head of list, returning next
-Ray* RayFree(Ray *list)
+Ray* rayFree(Ray *list)
 {
     if(!list)
         return list;
@@ -112,12 +113,12 @@ Ray* RayFree(Ray *list)
 }
 
 // portal debugging stuff
-// bool rec = false;
-// uint temp = 0;
-// Coordf iarr1[512] = {0};
-// Coordf iarr2[512] = {0};
-// Coordf oarr1[512] = {0};
-// Coordf oarr2[512] = {0};
+bool rec = false;
+uint temp = 0;
+Coordf iarr1[512] = {0};
+Coordf iarr2[512] = {0};
+Coordf oarr1[512] = {0};
+Coordf oarr2[512] = {0};
 
 // casts ray from origin to distantPoint and returns nearest 'solid' intersection
 // where 'solid' refers to a wall segment, a fully closed door segment
@@ -146,13 +147,13 @@ Ray* castRayBase(const Coordf origin, const Coordf distantPoint, const float ray
                 Coordf inB = {0};
                 Coordf outA = {0};
                 Coordf outB = {0};
-                if(((curDst = cfDist(origin, curPos)) < dst && lineIntersection(origin, distantPoint, curSeg->a, curSeg->b, &curPos))){
+                if(lineIntersection(origin, distantPoint, curSeg->a, curSeg->b, &curPos) && (curDst = cfDist(origin, curPos)) < dst){
                     inA = curSeg->a;
                     inB = curSeg->b;
                     outA = curSeg->port.a;
                     outB = curSeg->port.b;
                     intersects = true;
-                }else if(((curDst = cfDist(origin, curPos)) < dst && lineIntersection(origin, distantPoint, curSeg->port.a, curSeg->port.b, &curPos))){
+                }else if(lineIntersection(origin, distantPoint, curSeg->port.a, curSeg->port.b, &curPos) && (curDst = cfDist(origin, curPos)) < dst){
                     inA = curSeg->port.a;
                     inB = curSeg->port.b;
                     outA = curSeg->a;
@@ -162,22 +163,23 @@ Ray* castRayBase(const Coordf origin, const Coordf distantPoint, const float ray
                 if(intersects){
                     const float inPropXoff = cfDist(inA, curPos) / cfDist(inA, inB);
                     const float inPortAng = cfCfToDeg(inA, inB);
+                    const float inAng = degReduce(inPortAng+rayAng);
                     const float outPortAng = cfCfToDeg(outA, outB);
-                    const float outAng = (inPortAng - outPortAng) + rayAng;
+                    const float outAng = degReduce(180.0f+degReduce(outPortAng + inAng));
                     Coordf outPos = cfAdd(outA, degMagToCf(outPortAng, inPropXoff * cfDist(outA, outB)));
-                    outPos = cfAdd(outPos, degMagToCf(outAng, 10.0f));
+                    outPos = cfAdd(outPos, degMagToCf(outAng, 1.0f));
                     const Coordf farpos = cfAdd(outPos, degMagToCf(outAng, 2048.0f));
 
                     // portal debugging stuff
-                    // if(rec && temp < 5120){
-                    //     if(!(temp % 10)){
-                    //         iarr1[temp/10] = curPos;
-                    //         iarr2[temp/10] = cfAdd(curPos, degMagToCf(rayAng, 100.0f));
-                    //         oarr1[temp/10] = outPos;
-                    //         oarr2[temp/10] = cfAdd(outPos, degMagToCf(outAng, 100.0f));
-                    //     }
-                    //     temp++;
-                    // }
+                    if(rec && temp < 5120){
+                        if(!(temp % 20)){
+                            iarr1[temp/20] = curPos;
+                            iarr2[temp/20] = cfAdd(curPos, degMagToCf(rayAng, 200.0f));
+                            oarr1[temp/20] = outPos;
+                            oarr2[temp/20] = cfAdd(outPos, degMagToCf(outAng, 200.0f));
+                        }
+                        temp++;
+                    }
                     return castRayBase(outPos, farpos, outAng, map, count+1);
                 }
             }
@@ -190,7 +192,7 @@ Ray* castRayBase(const Coordf origin, const Coordf distantPoint, const float ray
             curSeg = curSeg->next;
         }
     }
-    return RayNew((MapPiece){.type = seg?M_SEG:M_NONE, .seg = seg}, dst, rayAng, pos);
+    return rayNew((MapPiece){.type = seg?M_SEG:M_NONE, .seg = seg}, dst, rayAng, origin, pos);
 }
 
 // casts ray from origin to distantPoint and returns all intersections that are < max distance away
@@ -208,7 +210,7 @@ Ray* castRayMax(const Coordf origin, const Coordf distantPoint, const float rayA
                 lineIntersection(origin, distantPoint, seg->a, seg->b, &pos) &&
                 (dst = cfDist(origin, pos)) < max
             )
-                list = RayInsert(list, RayNew((MapPiece){.type = M_SEG, .seg = seg}, dst, rayAng, pos));
+                list = RayInsert(list, rayNew((MapPiece){.type = M_SEG, .seg = seg}, dst, rayAng, origin, pos));
             seg = seg->next;
         }
     }
@@ -221,7 +223,7 @@ Ray* castRayMax(const Coordf origin, const Coordf distantPoint, const float rayA
             lineIntersection(origin, distantPoint, obj->mob.a, obj->mob.b, &pos) &&
             (dst = cfDist(origin, pos)) < max
         )
-            list = RayInsert(list, RayNew((MapPiece){.type = M_OBJ, .obj = obj}, dst, rayAng, pos));
+            list = RayInsert(list, rayNew((MapPiece){.type = M_OBJ, .obj = obj}, dst, rayAng, origin, pos));
         obj = obj->next;
     }
     return list;
@@ -231,7 +233,18 @@ Ray* castRayMax(const Coordf origin, const Coordf distantPoint, const float rayA
 Ray* castRay(const Coordf origin, const Coordf distantPoint, const float rayAng, Map *map)
 {
     Ray *ray = castRayBase(origin, distantPoint, rayAng, map, 0);
-    Ray *list = castRayMax(origin, distantPoint, rayAng, map, ray ? ray->dst : rayUnwrapDst(ray));
+    Ray *list = NULL;
+    if(ray && !cfSame(origin, ray->origin)){
+        list = castRayMax(ray->origin, degMagToCf(ray->ang, 2048.0f), ray->ang, map, ray->dst);
+        const float addDst = cfDist(origin, ray->origin);
+        Ray *cur = list;
+        while(cur){
+            cur->dst += addDst;
+            cur = cur->next;
+        }
+    }else{
+        list = castRayMax(origin, distantPoint, rayAng, map, ray ? ray->dst : rayUnwrapDst(ray));
+    }
     list = RayInsert(list, ray);
     return list;
 }
@@ -293,6 +306,8 @@ void drawSegSlice(const View view, const Ray *rs, const int xpos, const int ymid
         );
         return;
     }
+    if(rs->piece.seg->type == S_PORT)
+        return;
     if(rs->piece.seg->type == S_WALL && rs->piece.seg->wall.path[0] != '\0'){
         const Length txtrlen = textureLen(rs->piece.seg->wall.texture);
         const float walllen = cfDist(rs->piece.seg->a, rs->piece.seg->b);
@@ -323,7 +338,7 @@ void drawSegSlice(const View view, const Ray *rs, const int xpos, const int ymid
     //             drawSegSlice(view, list, xpos, ymid, corDst, hsec, map);
     //         else
     //             drawObjSlice(view, list, xpos, ymid, corDst, hsec);
-    //         list = RayFree(list);
+    //         list = rayFree(list);
     //     }
     // }
     setColor((const Color){
@@ -395,17 +410,17 @@ void drawFp(const View view, Map *map, const Player player)
         const int xpos = view.pos.x+hsec/2+i*hsec;
 
         // portal debugging stuff
-        // rec = true;
+        rec = true;
         Ray *list = castRay(player.pos, farpos, rayAng, map);
         // portal debugging stuff
-        // rec = false;
+        rec = false;
         while(list){
             const int corDst = (int)(list->dst/sqrtf(viewTan*viewTan+1.0f));
             if(list->piece.type == M_SEG)
                 drawSegSlice(view, list, xpos, ymid, corDst, hsec, map);
             else
                 drawObjSlice(view, list, xpos, ymid, corDst, hsec);
-            list = RayFree(list);
+            list = rayFree(list);
         }
     }
 }
@@ -486,17 +501,17 @@ void drawBv(const View view, Map *map, const Player player, const float scale, c
     }
 
     // portal debugging stuff
-    // for(uint i = 0; i < temp/10; i++){
-    //     setColor(BLUE);
-    //     const Coord i1 = coordAdd(toView(view, cfSub(iarr1[i], player.pos), scale), hlen);
-    //     const Coord i2 = coordAdd(toView(view, cfSub(iarr2[i], player.pos), scale), hlen);
-    //     drawLineCoords(i1, i2);
-    //     setColor(RED);
-    //     const Coord o1 = coordAdd(toView(view, cfSub(oarr1[i], player.pos), scale), hlen);
-    //     const Coord o2 = coordAdd(toView(view, cfSub(oarr2[i], player.pos), scale), hlen);
-    //     drawLineCoords(o1, o2);
-    // }
-    // temp = 0;
+    for(uint i = 0; i < temp/20; i++){
+        setColor(BLUE);
+        const Coord i1 = coordAdd(toView(view, cfSub(iarr1[i], player.pos), scale), hlen);
+        const Coord i2 = coordAdd(toView(view, cfSub(iarr2[i], player.pos), scale), hlen);
+        drawLineCoords(i1, i2);
+        setColor(RED);
+        const Coord o1 = coordAdd(toView(view, cfSub(oarr1[i], player.pos), scale), hlen);
+        const Coord o2 = coordAdd(toView(view, cfSub(oarr2[i], player.pos), scale), hlen);
+        drawLineCoords(o1, o2);
+    }
+    temp = 0;
 }
 
 // moves the player
