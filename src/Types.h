@@ -123,7 +123,6 @@ typedef struct{
     Obj *obj[O_N];
 }Map;
 
-// ray intersections
 typedef struct Ray{
     MapPiece piece;
     float ang;
