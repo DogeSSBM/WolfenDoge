@@ -164,7 +164,6 @@ Selection* selListAddAllPiecePos(Selection *list)
 }
 
 // duplicates each unique piece in the list, swapping them out for the old ones
-//
 void selListDupAddUniquePieces(Map *map, Selection *list)
 {
     Selection *cur = list;

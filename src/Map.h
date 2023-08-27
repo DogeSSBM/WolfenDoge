@@ -136,6 +136,14 @@ Update* upQueryId(Update *up, const uint id)
     return up;
 }
 
+// returns update with corrosponding id and true state or NULL if none found
+Update* upQueryTrueId(Update *up, const uint id)
+{
+    while(up && up->id != id && !up->state)
+        up = up->next;
+    return up;
+}
+
 // appends update to list
 Update* upAppend(Update *head, Update *tail)
 {
@@ -174,19 +182,34 @@ Update* mapQueueUpdates(const Coordf oldPos, const Coordf newPos, Map *map)
     Seg *cur = map->seg[S_TRIG];
     Update *up = NULL;
     while(cur){
-
         const bool oldState = cfInQuad(oldPos, cur->a, cur->b, cur->trig.c, cur->trig.d);
         const bool newState = cfInQuad(newPos, cur->a, cur->b, cur->trig.c, cur->trig.d);
         if(oldState != newState)
             up = upUpdate(up, cur->trig.id, newState);
         cur = cur->next;
     }
-    cur = map->seg[S_CONV];
 
+    cur = map->seg[S_CONV];
     while(cur){
-        Update *src = upQueryId(up, cur->conv.idA);
-        if(src)
-            up = upUpdate(up, cur->conv.idB, src->state);
+        switch(cur->conv.type){
+            case C_CONV:
+                up = upUpdate(up, cur->conv.idB, upQueryTrueId(up, cur->conv.idA));
+                break;
+            case C_AND:
+                up = upUpdate(up, cur->conv.idC,
+                     upQueryTrueId(up, cur->conv.idA) && upQueryId(up, cur->conv.idB));
+                break;
+            case C_OR:
+                up = upUpdate(up, cur->conv.idC,
+                    upQueryTrueId(up, cur->conv.idA) || upQueryTrueId(up, cur->conv.idB));
+                break;
+            case C_NOT:
+                up = upUpdate(up, cur->conv.idB, upQueryTrueId(up, cur->conv.idA));
+                break;
+            default:
+                panic("???");
+                break;
+        }
         cur = cur->next;
     }
     return up;

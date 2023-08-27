@@ -126,6 +126,7 @@ typedef struct{
 // ray intersections
 typedef struct Ray{
     MapPiece piece;
+    float ang;
     float dst;
     Coordf pos;
     struct Ray *next;
