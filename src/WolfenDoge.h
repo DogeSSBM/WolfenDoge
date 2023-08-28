@@ -153,7 +153,7 @@ Ray* castRayBase(const Coordf origin, const Coordf distantPoint, const float ray
                     outA = curSeg->port.a;
                     outB = curSeg->port.b;
                     intersects = true;
-                }else if(lineIntersection(origin, distantPoint, curSeg->port.a, curSeg->port.b, &curPos) && (curDst = cfDist(origin, curPos)) < dst){
+                }if(lineIntersection(origin, distantPoint, curSeg->port.a, curSeg->port.b, &curPos) && (curDst = cfDist(origin, curPos)) < dst){
                     inA = curSeg->port.a;
                     inB = curSeg->port.b;
                     outA = curSeg->a;
@@ -163,11 +163,11 @@ Ray* castRayBase(const Coordf origin, const Coordf distantPoint, const float ray
                 if(intersects){
                     const float inPropXoff = cfDist(inA, curPos) / cfDist(inA, inB);
                     const float inPortAng = cfCfToDeg(inA, inB);
-                    const float inAng = degReduce(inPortAng+rayAng);
+                    // const float inAng = degReduce(inPortAng+rayAng);
                     const float outPortAng = cfCfToDeg(outA, outB);
-                    const float outAng = degReduce(180.0f+degReduce(outPortAng + inAng));
+                    const float outAng = degReduce(rayAng + (outPortAng - inPortAng));
                     Coordf outPos = cfAdd(outA, degMagToCf(outPortAng, inPropXoff * cfDist(outA, outB)));
-                    outPos = cfAdd(outPos, degMagToCf(outAng, 1.0f));
+                    // outPos = cfAdd(outPos, degMagToCf(outAng, 1.0f));
                     const Coordf farpos = cfAdd(outPos, degMagToCf(outAng, 2048.0f));
 
                     // portal debugging stuff
@@ -408,12 +408,11 @@ void drawFp(const View view, Map *map, const Player player)
     for(int i = 0; i < FOV_NUM_RAYS; i++){
         const Coordf farpos = cfAdd(startingPos, degMagToCf(scanAng, ((float)i/(float)FOV_NUM_RAYS)*4096.0f));
         const float viewTan = (0.5f-i/(float)FOV_NUM_RAYS) / 0.5f;
-        const float rayAng = player.ang;
         const int xpos = view.pos.x+hsec/2+i*hsec;
 
         // portal debugging stuff
         // rec = true;
-        Ray *list = castRay(player.pos, farpos, rayAng, map);
+        Ray *list = castRay(player.pos, farpos, cfCfToDeg(player.pos, farpos), map);
         // portal debugging stuff
         // rec = false;
         while(list){
