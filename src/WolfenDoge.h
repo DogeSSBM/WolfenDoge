@@ -112,14 +112,6 @@ Ray* rayFree(Ray *list)
     return next;
 }
 
-// portal debugging stuff
-// bool rec = false;
-// uint temp = 0;
-// Coordf iarr1[512] = {0};
-// Coordf iarr2[512] = {0};
-// Coordf oarr1[512] = {0};
-// Coordf oarr2[512] = {0};
-
 // casts ray from origin to distantPoint and returns nearest 'solid' intersection
 // where 'solid' refers to a wall segment, a fully closed door segment
 Ray* castRayBase(const Coordf origin, const Coordf distantPoint, const float rayAng, Map *map, const uint count)
@@ -163,23 +155,10 @@ Ray* castRayBase(const Coordf origin, const Coordf distantPoint, const float ray
                 if(intersects){
                     const float inPropXoff = cfDist(inA, curPos) / cfDist(inA, inB);
                     const float inPortAng = cfCfToDeg(inA, inB);
-                    // const float inAng = degReduce(inPortAng+rayAng);
                     const float outPortAng = cfCfToDeg(outA, outB);
                     const float outAng = degReduce(rayAng + (outPortAng - inPortAng));
                     Coordf outPos = cfAdd(outA, degMagToCf(outPortAng, inPropXoff * cfDist(outA, outB)));
-                    // outPos = cfAdd(outPos, degMagToCf(outAng, 1.0f));
                     const Coordf farpos = cfAdd(outPos, degMagToCf(outAng, 2048.0f));
-
-                    // portal debugging stuff
-                    // if(rec && temp < 5120){
-                    //     if(!(temp % 20)){
-                    //         iarr1[temp/20] = curPos;
-                    //         iarr2[temp/20] = cfAdd(curPos, degMagToCf(rayAng, 200.0f));
-                    //         oarr1[temp/20] = outPos;
-                    //         oarr2[temp/20] = cfAdd(outPos, degMagToCf(outAng, 200.0f));
-                    //     }
-                    //     temp++;
-                    // }
                     return castRayBase(outPos, farpos, outAng, map, count+1);
                 }
             }
@@ -410,11 +389,7 @@ void drawFp(const View view, Map *map, const Player player)
         const float viewTan = (0.5f-i/(float)FOV_NUM_RAYS) / 0.5f;
         const int xpos = view.pos.x+hsec/2+i*hsec;
 
-        // portal debugging stuff
-        // rec = true;
         Ray *list = castRay(player.pos, farpos, cfCfToDeg(player.pos, farpos), map);
-        // portal debugging stuff
-        // rec = false;
         while(list){
             const int corDst = (int)(list->dst/sqrtf(viewTan*viewTan+1.0f));
             if(list->piece.type == M_SEG)
@@ -500,19 +475,6 @@ void drawBv(const View view, Map *map, const Player player, const float scale, c
             drawLineCoords(a, b);
         obj = obj->next;
     }
-
-    // portal debugging stuff
-    // for(uint i = 0; i < temp/20; i++){
-    //     setColor(BLUE);
-    //     const Coord i1 = coordAdd(toView(view, cfSub(iarr1[i], player.pos), scale), hlen);
-    //     const Coord i2 = coordAdd(toView(view, cfSub(iarr2[i], player.pos), scale), hlen);
-    //     drawLineCoords(i1, i2);
-    //     setColor(RED);
-    //     const Coord o1 = coordAdd(toView(view, cfSub(oarr1[i], player.pos), scale), hlen);
-    //     const Coord o2 = coordAdd(toView(view, cfSub(oarr2[i], player.pos), scale), hlen);
-    //     drawLineCoords(o1, o2);
-    // }
-    // temp = 0;
 }
 
 // moves the player
