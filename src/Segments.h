@@ -9,6 +9,7 @@ Seg* wallNew(const Color c, const Coordf a, const Coordf b)
     w->color = c;
     w->a = a;
     w->b = b;
+    memset(w->wall.path, '\0', sizeof(w->wall.path));
     return w;
 }
 

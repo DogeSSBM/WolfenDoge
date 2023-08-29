@@ -12,7 +12,7 @@ char *ConvTypeStr[C_N] = {"C_CONV", "C_NOT", "C_AND", "C_OR"    };
 typedef enum             { T_ZONE,   T_FLIP,   T_ZONE_ONCE,   T_FLIP_ONCE, T_N}TrigType;
 char *TrigTypeStr[T_N] = {"T_ZONE", "T_FLIP", "T_ZONE_ONCE", "T_FLIP_ONCE"    };
 
-typedef enum   {S_END = -1, S_WALL,    S_WIND,     S_TRIG,   S_PORT,    S_DOOR,     S_CONV, S_N}SegType;
+typedef enum   {S_END = -1, S_WALL,    S_WIND,     S_TRIG,   S_PORT,     S_DOOR,     S_CONV, S_N}SegType;
 char *SegTypeStr[S_N] =   {"S_WALL",  "S_WIND",   "S_TRIG", "S_PORT",   "S_DOOR",   "S_CONV"    };
 st SegTypeFields[S_N] =   {      5,         7,         10,        6,          9,         8      };
 st SegTypeNumCoord[S_N] = {      2,         2,          4,        4,          2,         2      };

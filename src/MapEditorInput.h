@@ -1,16 +1,6 @@
 #ifndef MAPEDITORINPUT_H
 #define MAPEDITORINPUT_H
 
-// initial struct data for editor state
-EditorState editorInitState(void)
-{
-    return (EditorState){
-        .pieceInfo = { .pieceType = M_SEG, .segType = S_WALL},
-        .cam = { .scale = 1.0f, .wlen = getWindowLen() },
-        .snap = { .active = true, .len = 50.0f }
-    };
-}
-
 // returns true if escape pressed with no active selection
 bool editorInputExit(Map *map, Selection *sel)
 {

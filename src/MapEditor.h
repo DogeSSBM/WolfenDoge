@@ -1,12 +1,21 @@
 #ifndef MAPEDITOR_H
 #define MAPEDITOR_H
 
+// initial struct data for editor state
+EditorState editorInitState(void)
+{
+    return (EditorState){
+        .pieceInfo = { .pieceType = M_SEG, .segType = S_WALL},
+        .cam = { .scale = 1.0f, .wlen = getWindowLen() },
+        .snap = { .active = true, .len = 50.0f }
+    };
+}
+
 // main loop while in map editor. on save, map is saved to map->path
 void mapEdit(Map *map)
 {
     setRelativeMouse(false);
     EditorState state = editorInitState();
-    // fieldPrintMap(map);
     while(1){
         const uint t = frameStart();
 

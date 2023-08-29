@@ -75,22 +75,10 @@ Obj* spawnNew(const Coordf, const float);
 Obj* mobNew(const Coordf, char *);
 
 // MapEditor.h
-Coord resizeTransform(const Length, const Length, const Coord);
-Coordf resizeTransformf(const Lengthf, const Lengthf, const Coordf );
-MapPiece posNearest(Map *, const Coordf, const MapPieceType, Coordf **);
-MapPiece coordNext(MapPiece, Coordf **);
-MapPiece coordNextWrap(Map *, MapPiece, Coordf **);
-MapPiece posNext(Map *, MapPiece, Coordf **);
-Coord editColor(Coord, Color *);
-uint editUint(uint);
-float editFloat(float);
-bool checkEditorExit(void);
-bool checkKeyS(Map*, const bool, const float);
-void checkScroll(Offset *, const Coordf, const bool, float *, float *);
+EditorState editorInitState(void);
 void mapEdit(Map *);
 
 // MapEditorInput.h
-EditorState editorInitState(void);
 bool editorInputExit(Map *, Selection *);
 void editorInputResizeWindow(Camera *);
 void editorInputClearSelection(Selection **);

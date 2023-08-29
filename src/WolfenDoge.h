@@ -305,23 +305,6 @@ void drawSegSlice(const View view, const Ray *rs, const int xpos, const int ymid
         drawTextureRectCoordResize(rs->piece.seg->wall.texture, r, p, l);
         return;
     }
-    // if(rs->piece.seg->type == S_PORT){
-    //     const float portAng = cfCfToDeg(rs->piece.seg->port.a, rs->piece.seg->port.b);
-    //     const float rotDiff = portAng - cfCfToDeg(rs->piece.seg->a, rs->piece.seg->b);
-    //     const float rayAng = rotDiff + (180.0f - rs->ang);
-    //     const Coordf farpos = cfAdd(rs->pos, degMagToCf(rayAng, 2048.0f));
-    //     const float viewTan = (0.5f-((rayAng-portAng)/360.0f)) / 0.5f;
-    //     // const int xpos = view.pos.x+hsec/2+i*hsec;
-    //     // Ray *list = castRay(rs->pos, farpos, rayAng, map);
-    //     while(list){
-    //         const int corDst = (int)(list->dst/sqrtf(viewTan*viewTan+1.0f));
-    //         if(list->piece.type == M_SEG)
-    //             drawSegSlice(view, list, xpos, ymid, corDst, hsec, map);
-    //         else
-    //             drawObjSlice(view, list, xpos, ymid, corDst, hsec);
-    //         list = rayFree(list);
-    //     }
-    // }
     setColor((const Color){
         .r = clamp(rs->piece.seg->color.r-(((dst*1.2f)/2000.0f)*255), 0, 256),
         .g = clamp(rs->piece.seg->color.g-(((dst*1.2f)/2000.0f)*255), 0, 256),
@@ -454,6 +437,27 @@ void drawBv(const View view, Map *map, const Player player, const float scale, c
         map,
         0
     );
+
+    // for(int i = 0, a = -1; a <= 1; a++, i++){
+    //     Coord pos = {0};
+    //     const float ang = degReduce(player.ang + (float)a * 45.0f);
+    //     Ray *ray = castRayBase(
+    //         player.pos,
+    //         cfAdd(player.pos, degMagToCf(ang, 6000.0f)),
+    //         ang, map, 0
+    //     );
+    //     if(!cfSame(ray->origin, player.pos)){
+    //         ppos = coordAdd(ppos, toView())
+    //         Ray *portalRay = castRayMax(ray->origin, const Coordf distantPoint, const float rayAng, Map *map, const float min, const float max)
+    //
+    //     }else{
+    //         pos = coordAdd(toView(view, cfSub(ray ? rayUnwrapPos(ray) : player.pos, player.pos), scale), hlen);
+    //     }
+    //     limitViewBounds(view, &ppos, &pos);
+    //     setColor(YELLOW);
+    //     drawLineCoords(ppos, pos);
+    //     rayFree(ray);
+    // }
     Coord rpos = coordAdd(toView(view, cfSub(rr ? rayUnwrapPos(rr) : player.pos, player.pos), scale), hlen);
     Coord lpos = coordAdd(toView(view, cfSub(rl ? rayUnwrapPos(rl) : player.pos, player.pos), scale), hlen);
     Coord fpos = coordAdd(toView(view, cfSub(fl ? rayUnwrapPos(fl) : player.pos, player.pos), scale), hlen);
