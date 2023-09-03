@@ -153,13 +153,14 @@ Ray* castRayBase(const Coordf origin, const Coordf distantPoint, const float ray
                     intersects = true;
                 }
                 if(intersects){
+                    Ray *r1 = rayNew((MapPiece){.type = seg?M_SEG:M_NONE, .seg = seg}, dst, rayAng, origin, pos);
                     const float inPropXoff = cfDist(inA, curPos) / cfDist(inA, inB);
                     const float inPortAng = cfCfToDeg(inA, inB);
                     const float outPortAng = cfCfToDeg(outA, outB);
                     const float outAng = degReduce(rayAng + (outPortAng - inPortAng));
                     Coordf outPos = cfAdd(outA, degMagToCf(outPortAng, inPropXoff * cfDist(outA, outB)));
                     const Coordf farpos = cfAdd(outPos, degMagToCf(outAng, 2048.0f));
-                    return castRayBase(outPos, farpos, outAng, map, count+1);
+                    return r1->next = castRayBase(outPos, farpos, outAng, map, count+1);
                 }
             }
             if(lineIntersection(origin, distantPoint, curSeg->a, curSeg->b, &curPos) &&
@@ -216,8 +217,8 @@ Ray* castRay(const Coordf origin, const Coordf distantPoint, const float rayAng,
     Ray *list = NULL;
     if(ray && !cfSame(origin, ray->origin)){
         const float addDst = cfDist(origin, ray->origin);
-        list = castRayMax(ray->origin, degMagToCf(ray->ang, 2048.0f), ray->ang, map, addDst, ray->dst);
         ray->dst += addDst;
+        list = castRayMax(ray->origin, degMagToCf(ray->ang, 2048.0f), ray->ang, map, addDst, ray->dst);
         Ray *cur = list;
         while(cur){
             cur->dst += addDst;
@@ -412,63 +413,6 @@ void drawBv(const View view, Map *map, const Player player, const float scale, c
         }
 
     }
-    Coord ppos = coordAdd(view.pos, hlen);
-    const float rrang = degReduce(player.ang + 45.0f);
-    Ray *rr = castRayBase(
-        player.pos,
-        cfAdd(player.pos, degMagToCf(rrang, 6000.0f)),
-        rrang,
-        map,
-        0
-    );
-    const float rlang = degReduce(player.ang - 45.0f);
-    Ray *rl = castRayBase(
-        player.pos,
-        cfAdd(player.pos, degMagToCf(rlang, 6000.0f)),
-        rlang,
-        map,
-        0
-    );
-    const float fang = degReduce(player.ang);
-    Ray *fl = castRayBase(
-        player.pos,
-        cfAdd(player.pos, degMagToCf(fang, 6000.0f)),
-        fang,
-        map,
-        0
-    );
-
-    // for(int i = 0, a = -1; a <= 1; a++, i++){
-    //     Coord pos = {0};
-    //     const float ang = degReduce(player.ang + (float)a * 45.0f);
-    //     Ray *ray = castRayBase(
-    //         player.pos,
-    //         cfAdd(player.pos, degMagToCf(ang, 6000.0f)),
-    //         ang, map, 0
-    //     );
-    //     if(!cfSame(ray->origin, player.pos)){
-    //         ppos = coordAdd(ppos, toView())
-    //         Ray *portalRay = castRayMax(ray->origin, const Coordf distantPoint, const float rayAng, Map *map, const float min, const float max)
-    //
-    //     }else{
-    //         pos = coordAdd(toView(view, cfSub(ray ? rayUnwrapPos(ray) : player.pos, player.pos), scale), hlen);
-    //     }
-    //     limitViewBounds(view, &ppos, &pos);
-    //     setColor(YELLOW);
-    //     drawLineCoords(ppos, pos);
-    //     rayFree(ray);
-    // }
-    Coord rpos = coordAdd(toView(view, cfSub(rr ? rayUnwrapPos(rr) : player.pos, player.pos), scale), hlen);
-    Coord lpos = coordAdd(toView(view, cfSub(rl ? rayUnwrapPos(rl) : player.pos, player.pos), scale), hlen);
-    Coord fpos = coordAdd(toView(view, cfSub(fl ? rayUnwrapPos(fl) : player.pos, player.pos), scale), hlen);
-    limitViewBounds(view, &ppos, &rpos);
-    limitViewBounds(view, &ppos, &lpos);
-    limitViewBounds(view, &ppos, &fpos);
-    setColor(YELLOW);
-    drawLineCoords(ppos, rpos);
-    drawLineCoords(ppos, lpos);
-    drawLineCoords(ppos, fpos);
-    fillCircleCoord(ppos, 2);
 
     Obj *obj = map->obj[O_MOB];
     while(obj){
@@ -479,6 +423,19 @@ void drawBv(const View view, Map *map, const Player player, const float scale, c
             drawLineCoords(a, b);
         obj = obj->next;
     }
+
+    setColor(YELLOW);
+    for(int a = -1; a <= 1; a++){
+        if(!a)
+            continue;
+        const Coord posa = coordAdd(view.pos, hlen);
+        const float ang = degReduce(player.ang + (float)a * 45.0f);
+        const Coordf farpos = cfAdd(player.pos, degMagToCf(ang, 200.0f));
+        const Coord posb = coordAdd(toView(view, cfSub(farpos, player.pos), scale), hlen);
+        drawLineCoords(posa, posb);
+    }
+
+    fillCircleCoord(coordAdd(view.pos, hlen), 2);
 }
 
 // moves the player

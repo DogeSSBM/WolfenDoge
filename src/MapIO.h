@@ -134,7 +134,6 @@ void mapParseFile(Map *map)
     printf("Parsing map -\n\tName:\"%s\"\n\tPath: \"%s\"\n", map->name, map->path);
     assertExpr(map && map->file);
     assertExpr(mapParseName(map) > 0);
-    // printf("parsed map name: \"%s\"\n", map->name);
     mapParseSegments(map);
     mapParseObjects(map);
     fclose(map->file);
