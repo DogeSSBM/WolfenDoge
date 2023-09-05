@@ -476,7 +476,7 @@ void gfx_init(void)
         SDL_WINDOW_RESIZABLE
     );
 
-    gfx.renderer = SDL_CreateRenderer(gfx.window, -1, SDL_RENDERER_ACCELERATED);
+    gfx.renderer = SDL_CreateRenderer(gfx.window, -1, 0);
     printf("Adding gfx_quit to atexit()\n");
     atexit(gfx_quit);
 
