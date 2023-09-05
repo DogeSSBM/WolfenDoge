@@ -40,10 +40,10 @@ int main(int argc, char **argv)
         const Length bvlen = iiC(coordMin(coordDivi(wlen, 4)));
         const View birdsView = {.len = bvlen, .pos = iC(wlen.x-bvlen.x, 0)};
 
-        const Coordf oldPos = map.player.pos;
+        // const Coordf oldPos = map.player.pos;
         playerMove(&map);
-        if(!cfSame(oldPos, map.player.pos))
-            mapApplyUpdates(&map, mapQueueUpdates(oldPos, map.player.pos, &map));
+        // if(!cfSame(oldPos, map.player.pos))
+            // mapApplyUpdates(&map, mapQueueUpdates(oldPos, map.player.pos, &map));
         mapUpdateDynamics(&map);
 
         drawFp(firstView, &map, map.player);

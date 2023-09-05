@@ -43,12 +43,6 @@ PieceFields segFields(const MapPiece piece)
             fields.field[4] = (Field){.label = "a:      ", .type = F_COORDF, .ptr = &piece.seg->port.a};
             fields.field[5] = (Field){.label = "b:      ", .type = F_COORDF, .ptr = &piece.seg->port.b};
             break;
-        case S_CONV:
-            fields.field[4] = (Field){.label = "ConvType: ", .type = F_CONVTYPE, .ptr = &piece.seg->conv.type};
-            fields.field[5] = (Field){.label = "idA: ", .type = F_UINT, .ptr = &piece.seg->conv.idA};
-            fields.field[6] = (Field){.label = "idB: ", .type = F_UINT, .ptr = &piece.seg->conv.idB};
-            fields.field[7] = (Field){.label = "idC: ", .type = F_UINT, .ptr = &piece.seg->conv.idC};
-            break;
         default:
             panic("Unknown SegType: %u", piece.seg->type);
             break;
@@ -82,6 +76,12 @@ PieceFields objFields(const MapPiece piece)
             fields.field[5] = (Field){.label = "vec:    ", .type = F_COORDF, .ptr = &piece.obj->mob.vec};
             fields.field[6] = (Field){.label = "len:    ", .type = F_COORDF, .ptr = &piece.obj->mob.len};
             fields.field[7] = (Field){.label = "path: ", .type = F_PATH, .ptr = (char*)(piece.obj->mob.path)};
+            break;
+        case O_CONV:
+            fields.field[4] = (Field){.label = "ConvType: ", .type = F_CONVTYPE, .ptr = &piece.obj->conv.type};
+            fields.field[5] = (Field){.label = "idA: ", .type = F_UINT, .ptr = &piece.obj->conv.idA};
+            fields.field[6] = (Field){.label = "idB: ", .type = F_UINT, .ptr = &piece.obj->conv.idB};
+            fields.field[7] = (Field){.label = "idC: ", .type = F_UINT, .ptr = &piece.obj->conv.idC};
             break;
         default:
             panic("Unknown ObjType: %u", piece.obj->type);

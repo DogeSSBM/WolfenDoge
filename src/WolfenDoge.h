@@ -123,7 +123,7 @@ Ray* castRayBase(const Coordf origin, const Coordf distantPoint, const float ray
     float dst = 60000.0f;
     Coordf pos = distantPoint;
     for(SegType type = 0; type < S_N; type++){
-        if(type == S_CONV || type == S_TRIG || type == S_WIND)
+        if(type == S_TRIG || type == S_WIND)
             continue;
         Seg *curSeg = map->seg[type];
         while(curSeg){
@@ -181,7 +181,7 @@ Ray* castRayMax(const Coordf origin, const Coordf distantPoint, const float rayA
     (void)min;
     Ray *list = NULL;
     for(SegType type = 0; type < S_N; type++){
-        if(type == S_CONV || type == S_TRIG)
+        if(type == S_TRIG)
             continue;
         Seg *seg = map->seg[type];
         while(seg){

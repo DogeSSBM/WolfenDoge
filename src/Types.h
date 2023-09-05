@@ -1,21 +1,16 @@
 #ifndef TYPES_H
 #define TYPES_H
 
-typedef struct{
-    Coord pos;
-    Length len;
-}View;
-
 typedef enum             { C_CONV,   C_NOT,   C_AND,   C_OR, C_N}ConvType;
 char *ConvTypeStr[C_N] = {"C_CONV", "C_NOT", "C_AND", "C_OR"    };
 
 typedef enum             { T_ZONE,   T_FLIP,   T_ZONE_ONCE,   T_FLIP_ONCE, T_N}TrigType;
 char *TrigTypeStr[T_N] = {"T_ZONE", "T_FLIP", "T_ZONE_ONCE", "T_FLIP_ONCE"    };
 
-typedef enum   {S_END = -1, S_WALL,    S_WIND,     S_TRIG,   S_PORT,     S_DOOR,     S_CONV, S_N}SegType;
-char *SegTypeStr[S_N] =   {"S_WALL",  "S_WIND",   "S_TRIG", "S_PORT",   "S_DOOR",   "S_CONV"    };
-st SegTypeFields[S_N] =   {      5,         7,         10,        6,          9,         8      };
-st SegTypeNumCoord[S_N] = {      2,         2,          4,        4,          2,         2      };
+typedef enum   {S_END = -1, S_WALL,    S_WIND,     S_TRIG,   S_PORT,     S_DOOR,    S_N}SegType;
+char *SegTypeStr[S_N] =   {"S_WALL",  "S_WIND",   "S_TRIG", "S_PORT",   "S_DOOR",      };
+st SegTypeFields[S_N] =   {      5,         7,         10,        6,          9,       };
+st SegTypeNumCoord[S_N] = {      2,         2,          4,        4,          2,       };
 typedef struct Seg{
     SegType type;
     Coordf a;
@@ -50,20 +45,14 @@ typedef struct Seg{
             bool start;
             bool state;
         }trig;
-        struct{
-            ConvType type;
-            uint idA;
-            uint idB;
-            uint idC;
-        }conv;
     };
     struct Seg *next;
 }Seg;
 
-typedef enum              { O_SPAWN,       O_KEY,      O_MOB, O_N}ObjType;
-char *ObjTypeStr[O_N] =   {"O_SPAWN",     "O_KEY",    "O_MOB"    };
-st ObjTypeFields[O_N] =   {       3,           3,          8     };
-st ObjTypeNumCoord[O_N] = {       1,           1,          6     };
+typedef enum              { O_SPAWN,       O_KEY,      O_MOB,   O_CONV, O_N}ObjType;
+char *ObjTypeStr[O_N] =   {"O_SPAWN",     "O_KEY",    "O_MOB"  "O_CONV"    };
+st ObjTypeFields[O_N] =   {       3,           3,          8,        8     };
+st ObjTypeNumCoord[O_N] = {       1,           1,          6,        2     };
 typedef struct Obj{
     ObjType type;
     Coordf pos;
@@ -83,15 +72,15 @@ typedef struct Obj{
             Texture *texture;
             char path[128];
         }mob;
+        struct{
+            ConvType type;
+            uint idA;
+            uint idB;
+            uint idC;
+        }conv;
     };
     struct Obj *next;
 }Obj;
-
-typedef struct Update{
-    uint id;
-    bool state;
-    struct Update *next;
-}Update;
 
 typedef struct Player{
     Coordf pos;
@@ -100,6 +89,23 @@ typedef struct Player{
     uint health;
     uint maxHealth;
 }Player;
+
+typedef struct{
+    Player player;
+    char *name;
+    char *path;
+    File *file;
+    // each index is a list of the corrosponding SegType
+    Seg *seg[S_N];
+    // each index is a list of the corrosponding ObjType
+    Obj *obj[O_N];
+}Map;
+
+typedef struct Update{
+    uint id;
+    bool state;
+    struct Update *next;
+}Update;
 
 const int PieceTypeNum[2] =  {S_N, O_N};
 typedef enum                 { M_SEG,   M_OBJ,   M_ANY,   M_NONE, M_N}MapPieceType;
@@ -113,15 +119,9 @@ typedef struct{
 }MapPiece;
 
 typedef struct{
-    Player player;
-    char *name;
-    char *path;
-    File *file;
-    // each index is a list of the corrosponding SegType
-    Seg *seg[S_N];
-    // each index is a list of the corrosponding ObjType
-    Obj *obj[O_N];
-}Map;
+    Coord pos;
+    Length len;
+}View;
 
 typedef struct Ray{
     MapPiece piece;

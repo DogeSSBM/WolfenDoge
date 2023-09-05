@@ -52,7 +52,6 @@ Seg* windNew(const Color, const Color, const Coordf, const Coordf, const float, 
 Seg* doorNew(const Color, const Coordf, const Coordf, const uint, const float, const bool, const float, const Direction);
 Seg* trigNew(const Color, const Coordf, const Coordf, const uint, const Coordf, const Coordf);
 Seg* portNew(const Coordf, const Coordf, const Coordf, const Coordf);
-Seg* convNew(const ConvType, const Color, const Coordf, const Coordf, const uint, const uint, const uint);
 Seg* segEndNew(void);
 Seg* segNew(const SegType, const Coordf, const Coordf);
 Seg* segDup(Seg *);
@@ -73,6 +72,7 @@ Obj* objDup(Obj *);
 Obj* keyNew(const Coordf, const Color);
 Obj* spawnNew(const Coordf, const float);
 Obj* mobNew(const Coordf, char *);
+Obj* convNew(const ConvType, const Coordf, const uint, const uint, const uint);
 
 // MapEditor.h
 EditorState editorInitState(void);
