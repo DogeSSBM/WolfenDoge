@@ -50,9 +50,9 @@ typedef struct Seg{
 }Seg;
 
 typedef enum              { O_SPAWN,       O_KEY,      O_MOB,   O_CONV, O_N}ObjType;
-char *ObjTypeStr[O_N] =   {"O_SPAWN",     "O_KEY",    "O_MOB"  "O_CONV"    };
-st ObjTypeFields[O_N] =   {       3,           3,          8,        8     };
-st ObjTypeNumCoord[O_N] = {       1,           1,          6,        2     };
+char *ObjTypeStr[O_N] =   {"O_SPAWN",     "O_KEY",    "O_MOB", "O_CONV"    };
+st ObjTypeFields[O_N] =   {       3,           3,          8,        7     };
+st ObjTypeNumCoord[O_N] = {       1,           1,          6,        1     };
 typedef struct Obj{
     ObjType type;
     Coordf pos;
@@ -74,13 +74,19 @@ typedef struct Obj{
         }mob;
         struct{
             ConvType type;
-            uint idA;
-            uint idB;
-            uint idC;
+            uint inIdA;
+            uint inIdB;
+            uint outId;
+            bool outState;
         }conv;
     };
     struct Obj *next;
 }Obj;
+
+// typedef struct{
+//     Obj *obj;
+//     ConvList *next;
+// }ConvList;
 
 typedef struct Player{
     Coordf pos;
@@ -100,12 +106,6 @@ typedef struct{
     // each index is a list of the corrosponding ObjType
     Obj *obj[O_N];
 }Map;
-
-typedef struct Update{
-    uint id;
-    bool state;
-    struct Update *next;
-}Update;
 
 const int PieceTypeNum[2] =  {S_N, O_N};
 typedef enum                 { M_SEG,   M_OBJ,   M_ANY,   M_NONE, M_N}MapPieceType;

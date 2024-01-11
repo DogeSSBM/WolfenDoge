@@ -83,145 +83,34 @@ Coord mapToScreen(const Coord off, const float scale, const Coordf pos)
     return coordAdd(CfC(cfDivf(pos, scale)), off);
 }
 
-// honestly idk
-float triSign(const Coordf a, const Coordf b, const Coordf c)
+void mapDoorUpdate(Map *map, const uint id, const bool state)
 {
-    return (a.x - c.x) * (b.y - c.y) - (b.x - c.x) * (a.y - c.y);
-}
-
-// returns true if pos is within triangle abc
-bool cfInTri(const Coordf pos, const Coordf a, const Coordf b, const Coordf c)
-{
-    const float s1 = triSign(pos, a, b);
-    const float s2 = triSign(pos, b, c);
-    const float s3 = triSign(pos, c, a);
-    return !(((s1 < 0) || (s2 < 0) || (s3 < 0)) && ((s1 > 0) || (s2 > 0) || (s3 > 0)));
-}
-
-// returns true if pos is within quad
-bool cfInQuad(const Coordf pos, const Coordf a, const Coordf b, const Coordf c, const Coordf d)
-{
-    return (
-        cfInTri(pos, a, b, d) ||
-        cfInTri(pos, b, d, c) ||
-        cfInTri(pos, a, b, c) ||
-        cfInTri(pos, a, d, c)
-    );
-}
-
-// sets map segments whos id equals id with state equal to state
-void mapUpdateIdState(Map *map, const uint id, const bool state)
-{
-    Seg *cur = map->seg[S_DOOR];
-    while(cur){
-        if(cur->type == S_DOOR && cur->door.id == id)
-            cur->door.state = state;
-        cur = cur->next;
+    for(Seg *door = map->seg[S_DOOR]; door; door = door->next){
+        if(door->door.id == id)
+            door->door.state = state;
     }
 }
 
-// returns update with corrosponding id or NULL if none found
-Update* upQueryId(Update *up, const uint id)
+void mapDoorReset(Map *map)
 {
-    while(up && up->id != id)
-        up = up->next;
-    return up;
+    for(Seg *door = map->seg[S_DOOR]; door; door = door->next)
+        door->door.state = false;
 }
-
-// returns update with corrosponding id and true state or NULL if none found
-Update* upQueryTrueId(Update *up, const uint id)
-{
-    while(up && up->id != id && !up->state)
-        up = up->next;
-    return up;
-}
-
-// appends update to list
-Update* upAppend(Update *head, Update *tail)
-{
-    if(!head)
-        return tail;
-    Update *cur = head;
-    while(cur->next)
-        cur = cur->next;
-    cur->next = tail;
-    return head;
-}
-
-// allocates and returns a new argument
-Update* upNew(const uint id, const bool state)
-{
-    Update *up = calloc(1, sizeof(Update));
-    up->id = id;
-    up->state = state;
-    return up;
-}
-
-// modifies an existing update if an update with id already exists, otherwise appends a new update
-Update* upUpdate(Update *up, const uint id, const bool state)
-{
-    Update *existing = upQueryId(up, id);
-    if(existing)
-        existing->state |= state;
-    else
-        up = upAppend(up, upNew(id, state));
-    return up;
-}
-
-// // constructs and returns a list of updates that occured on the current frame
-// Update* mapQueueUpdates(const Coordf oldPos, const Coordf newPos, Map *map)
-// {
-//     Seg *cur = map->seg[S_TRIG];
-//     Update *up = NULL;
-//     while(cur){
-//         const bool oldState = cfInQuad(oldPos, cur->a, cur->b, cur->trig.c, cur->trig.d);
-//         const bool newState = cfInQuad(newPos, cur->a, cur->b, cur->trig.c, cur->trig.d);
-//         if(oldState != newState)
-//             up = upUpdate(up, cur->trig.id, newState);
-//         cur = cur->next;
-//     }
-//
-//     cur = map->seg[S_CONV];
-//     while(cur){
-//         switch(cur->conv.type){
-//             case C_CONV:
-//                 up = upUpdate(up, cur->conv.idB, upQueryTrueId(up, cur->conv.idA));
-//                 break;
-//             case C_AND:
-//                 up = upUpdate(up, cur->conv.idC,
-//                      upQueryTrueId(up, cur->conv.idA) && upQueryId(up, cur->conv.idB));
-//                 break;
-//             case C_OR:
-//                 up = upUpdate(up, cur->conv.idC,
-//                     upQueryTrueId(up, cur->conv.idA) || upQueryTrueId(up, cur->conv.idB));
-//                 break;
-//             case C_NOT:
-//                 up = upUpdate(up, cur->conv.idB, upQueryTrueId(up, cur->conv.idA));
-//                 break;
-//             default:
-//                 panic("???");
-//                 break;
-//         }
-//         cur = cur->next;
-//     }
-//     return up;
-// }
-//
-// // applys and frees all updates in list to map
-// void mapApplyUpdates(Map *map, Update *up)
-// {
-//     while(up){
-//         Update *next = up->next;
-//         mapUpdateIdState(map, up->id, up->state);
-//         free(up);
-//         up = next;
-//     }
-// }
 
 // updates the dynamic segments of the map
 void mapUpdateDynamics(Map *map)
 {
-    Seg *cur = map->seg[S_DOOR];
+    assertExpr(map);
+    mapDoorReset(map);
+    Seg *cur = map->seg[S_TRIG];
+    while(cur){
+        cur->trig.state = cfInTrig(map->player.pos, cur);
+        if(cur->trig.state)
+            mapDoorUpdate(map, cur->trig.id, cur->trig.state);
+        cur = cur->next;
+    }
+
+    cur = map->seg[S_DOOR];
     while(cur){
         cur->door.pos += cur->door.state ? -cur->door.speed : cur->door.speed;
         if(cur->door.pos < 0.0f)

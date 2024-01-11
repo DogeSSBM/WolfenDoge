@@ -330,12 +330,20 @@ void mapEditUint(Map *map, EditorState *state, uint *u)
     if(!u || !state->sel)
         return;
     bool once = false;
+    const uint old = *u;
     while(1){
         const uint t = frameStart();
 
         if(once){
-            if(keyPressed(SC_RETURN) || keyPressed(SC_ESCAPE))
+            if(keyPressed(SC_RETURN) || keyPressed(SC_ESCAPE)){
+                if(
+                    state->sel->fields.piece.type == M_OBJ &&
+                    state->sel->fields.piece.obj->type == O_CONV
+                    // hasCycle(map, state->sel->fields.piece->obj)
+                )
+                    *u = old;
                 return;
+            }
             if(keyPressed(SC_BACKSPACE)){
                 if(keyCtrlState()){
                     *u = 0;

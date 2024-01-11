@@ -115,16 +115,63 @@ Obj* mobNew(const Coordf origin, char *path)
 }
 
 // creates a new segment with type S_CONV
-Obj* convNew(const ConvType type, const Coordf pos, const uint idA, const uint idB, const uint idC)
+Obj* convNew(const ConvType type, const Coordf pos, const uint inIdA, const uint inIdB, const uint outId)
 {
-    Obj *obj = calloc(1, sizeof(Obj));
-    obj->type = O_CONV;
-    obj->pos = pos;
+    Obj *obj = objNew(O_CONV, pos);
     obj->conv.type = type;
-    obj->conv.idA = idA;
-    obj->conv.idB = idB;
-    obj->conv.idC = idC;
+    obj->conv.inIdA = inIdA;
+    obj->conv.inIdB = inIdB;
+    obj->conv.outId = outId;
+    obj->conv.outState = false;
     return obj;
 }
+
+// searches for next converter with specified input / output id
+// returns NULL if none found
+// Obj* convQueryNextId(Map *map, Obj *cur, const uint id, const bool isInput)
+// {
+//     if(cur == NULL)
+//         cur = map->obj[0];
+//     if(!cur)
+//         return NULL;
+//     cur = cur->next;
+//     while(cur){
+//         if(isInput)
+//             if(cur->conv.inIdA == id || cur->conv.inIdB == id)
+//                 return cur;
+//         else
+//             if(cur->conv.outId == id)
+//                 return cur;
+//         cur = cur->next;
+//     }
+//     return NULL;
+// }
+//
+// bool hasChildOutId(Map *map, const uint id, Obj *obj)
+// {
+//     assertExpr(map && parent && parent->type == O_CONV);
+//     if(!obj)
+//         return false;
+//     assertExpr(obj->type == O_CONV);
+//     if(id == cur->conv.outId)
+//         return true;
+//     const uint outId = obj->outId;
+//     obj = convQueryNextId(map, NULL, outId, true);
+//     while(obj){
+//         if(hasChildOutId(map, id, obj))
+//             return true;
+//         obj = convQueryNextId(map, obj, outId, true);
+//     };
+//     return false;
+// }
+//
+// // verifies converters do not have cyclical dependancies
+// bool hasCycle(Map *map, Obj *obj)
+// {
+//     assertExpr(map && obj && obj->type == O_CONV);
+//     if(obj->conv.inIdA == obj->conv.outId || obj->conv.inIdB == obj->conv.outId)
+//         return true;
+//     return(hasChildOutId(map, obj->conv.inIdA, obj) || hasChildOutId(map, obj->conv.inIdB, obj);
+// }
 
 #endif /* end of include guard: OBJECTS_H */

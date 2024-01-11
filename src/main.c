@@ -44,6 +44,7 @@ int main(int argc, char **argv)
         playerMove(&map);
         // if(!cfSame(oldPos, map.player.pos))
             // mapApplyUpdates(&map, mapQueueUpdates(oldPos, map.player.pos, &map));
+        // const bool oldb = map.seg[S_TRIG]->next->trig.state;
         mapUpdateDynamics(&map);
 
         drawFp(firstView, &map, map.player);

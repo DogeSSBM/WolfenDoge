@@ -33,16 +33,6 @@ Coordf mapLength(Seg *);
 Coordf screenToMap(const Coord, const float, const Coord);
 Coord mapToScreen(const Coord, const float, const Coordf);
 Seg* mapQueryObjId(Map *, Seg *, const uint);
-float triSign(const Coordf, const Coordf, const Coordf);
-bool cfInTri(Coordf, Coordf, Coordf, Coordf);
-bool cfInQuad(const Coordf, const Coordf, const Coordf, const Coordf, const Coordf);
-void mapUpdateIdState(Map *, const uint, const bool);
-Update* upQueryId(Update *, const uint);
-Update* upAppend(Update *, Update *);
-Update* upNew(const uint, const bool);
-Update* upUpdate(Update *, const uint, const bool);
-Update* mapQueueUpdates(const Coordf, const Coordf, Map *);
-void mapApplyUpdates(Map *, Update *);
 void mapUpdateDynamics(Map *);
 
 // Segments.h
@@ -60,6 +50,10 @@ Seg* segFree(Seg *);
 Seg* segDelete(Seg *, Seg *);
 st segListLen(Seg *);
 Seg* segListFree(Seg *);
+float triSign(const Coordf, const Coordf, const Coordf);
+bool cfInTri(const Coordf, const Coordf, const Coordf, const Coordf);
+bool cfInQuad(const Coordf, const Coordf, const Coordf, const Coordf, const Coordf);
+bool cfInTrig(const Coordf, Seg *);
 
 // Objects.h
 Obj* objAppend(Obj *, Obj *);

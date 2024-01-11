@@ -59,6 +59,7 @@ Seg* trigNew(const Color color, const Coordf a, const Coordf b, const uint id, c
 {
     Seg *w = wallNew(color, a, b);
     w->type = S_TRIG;
+    w->trig.type = T_ZONE;
     w->trig.id = id;
     w->trig.c = c;
     w->trig.d = d;
@@ -182,6 +183,57 @@ Seg* segListFree(Seg *segList)
 {
     while(segList)
         segList = segFree(segList);
+    return NULL;
+}
+
+// honestly idk
+float triSign(const Coordf a, const Coordf b, const Coordf c)
+{
+    return (a.x - c.x) * (b.y - c.y) - (b.x - c.x) * (a.y - c.y);
+}
+
+// returns true if pos is within triangle abc
+bool cfInTri(const Coordf pos, const Coordf a, const Coordf b, const Coordf c)
+{
+    const float s1 = triSign(pos, a, b);
+    const float s2 = triSign(pos, b, c);
+    const float s3 = triSign(pos, c, a);
+    return !(((s1 < 0) || (s2 < 0) || (s3 < 0)) && ((s1 > 0) || (s2 > 0) || (s3 > 0)));
+}
+
+// returns true if pos is within quad
+bool cfInQuad(const Coordf pos, const Coordf a, const Coordf b, const Coordf c, const Coordf d)
+{
+    return (
+        cfInTri(pos, a, b, d) ||
+        cfInTri(pos, b, d, c) ||
+        cfInTri(pos, a, b, c) ||
+        cfInTri(pos, a, d, c)
+    );
+}
+
+// returns true if pos in trigger zone
+bool cfInTrig(const Coordf pos, Seg *trig)
+{
+    assertExpr(trig && trig->type == S_TRIG);
+    return cfInQuad(pos, trig->a, trig->b, trig->trig.c, trig->trig.d);
+}
+
+// returns first available trigger in map if cur is NULL
+// returns first trigger after cur if cur is not NULL
+// returns NULL if none left
+Seg* trigQueryId(Map *map, Seg *cur, const uint id)
+{
+    assertExpr(map);
+    if(cur){
+        assertExpr(cur->type == S_TRIG);
+        cur = cur->next;
+    }
+    while(cur){
+        if(cur->trig.id == id)
+            return cur;
+        cur = cur->next;
+    }
     return NULL;
 }
 

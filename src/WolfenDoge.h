@@ -294,9 +294,8 @@ void drawSegSlice(const View view, const Ray *rs, const int xpos, const int ymid
         const Length txtrlen = textureLen(rs->piece.seg->wall.texture);
         const float walllen = cfDist(rs->piece.seg->a, rs->piece.seg->b);
         const float poslen = cfDist(rs->piece.seg->a, rs->pos);
-        const float xdst = poslen/walllen;
         const Rect r = {
-            .x = (int)((float)txtrlen.x * xdst),
+            .x = (int)((float)txtrlen.x * (poslen/walllen)),
             .y = 0,
             .w = 1,
             .h = txtrlen.y
@@ -364,6 +363,7 @@ void drawFp(const View view, Map *map, const Player player)
     drawCeilFloor(view);
     if(pieceNext(map, (MapPiece){.type = M_ANY}).type >= M_ANY)
         return;
+
     const Coordf startingPos = cfAdd(player.pos, cfRotateDeg((const Coordf){.x=2048.0f,.y=-2048.0f}, player.ang));
     const float scanAng = degReduce(player.ang+90.0f);
     const float hsec = (float)view.len.x/FOV_NUM_RAYS;
