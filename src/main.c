@@ -23,7 +23,6 @@ int main(int argc, char **argv)
 {
     assertExpr(argc <= 2);
     init();
-    SDL_StopTextInput();
     gfx.outlined = false;
     winSetPosCoord(coordAddi(coordDivi(getWinDisplayLen(), 2), -400));
     maximizeWindow();
@@ -40,11 +39,7 @@ int main(int argc, char **argv)
         const Length bvlen = iiC(coordMin(coordDivi(wlen, 4)));
         const View birdsView = {.len = bvlen, .pos = iC(wlen.x-bvlen.x, 0)};
 
-        // const Coordf oldPos = map.player.pos;
         playerMove(&map);
-        // if(!cfSame(oldPos, map.player.pos))
-            // mapApplyUpdates(&map, mapQueueUpdates(oldPos, map.player.pos, &map));
-        // const bool oldb = map.seg[S_TRIG]->next->trig.state;
         mapUpdateDynamics(&map);
 
         drawFp(firstView, &map, map.player);

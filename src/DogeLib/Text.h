@@ -222,6 +222,7 @@ void text_init(void)
         exit(0);
     }
     printf("Adding text_quit to atexit()\n");
+    SDL_StopTextInput();
     atexit(text_quit);
 }
 

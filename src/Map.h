@@ -83,6 +83,7 @@ Coord mapToScreen(const Coord off, const float scale, const Coordf pos)
     return coordAdd(CfC(cfDivf(pos, scale)), off);
 }
 
+// updates all doors with matching id to state
 void mapDoorUpdate(Map *map, const uint id, const bool state)
 {
     for(Seg *door = map->seg[S_DOOR]; door; door = door->next){
@@ -106,8 +107,22 @@ void mapUpdateDynamics(Map *map)
     Seg *cur = map->seg[S_TRIG];
     while(cur){
         cur->trig.state = cfInTrig(map->player.pos, cur);
+        // if true, updates doors with matching id to true
         if(cur->trig.state)
             mapDoorUpdate(map, cur->trig.id, cur->trig.state);
+        // otherwise checks to see if any other triggers with matching id are true, if none are, sets door to false
+        // else keeps door true
+        else{
+            bool on = false;
+            for(Seg *prv = map->seg[S_TRIG]; prv && prv != cur; prv = prv->next){
+                if(prv->trig.id == cur->trig.id && prv->trig.state){
+                    on = true;
+                    break;
+                }
+            }
+            if(!on)
+                mapDoorUpdate(map, cur->trig.id, cur->trig.state);
+        }
         cur = cur->next;
     }
 
