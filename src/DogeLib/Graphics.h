@@ -487,6 +487,10 @@ void gfx_init(void)
     setWindowResizable(true);
     gfx.prvLen.x = DEFAULT_WINDOW_XLEN;
     gfx.prvLen.y = DEFAULT_WINDOW_YLEN;
+    gfx.outlined = false;
+
+    winSetPosCoord(coordAddi(coordDivi(getWinDisplayLen(), 2), -400));
+    maximizeWindow();
 
     clear();
     draw();

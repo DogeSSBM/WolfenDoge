@@ -23,9 +23,6 @@ int main(int argc, char **argv)
 {
     assertExpr(argc <= 2);
     init();
-    gfx.outlined = false;
-    winSetPosCoord(coordAddi(coordDivi(getWinDisplayLen(), 2), -400));
-    maximizeWindow();
     Map map = mapLoad(argc == 2 ? argv[1] : NULL);
 
     setRelativeMouse(true);
