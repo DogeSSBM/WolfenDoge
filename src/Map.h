@@ -91,6 +91,7 @@ void mapDoorUpdate(Map *map, const uint id, const bool state)
     }
 }
 
+// resets all door states to false
 void mapDoorReset(Map *map)
 {
     for(Seg *door = map->seg[S_DOOR]; door; door = door->next)
@@ -101,7 +102,7 @@ void mapDoorReset(Map *map)
 void mapUpdateDynamics(Map *map)
 {
     assertExpr(map);
-    mapDoorReset(map);
+    // mapDoorReset(map);
     Seg *cur = map->seg[S_TRIG];
     while(cur){
         cur->trig.state = cfInTrig(map->player.pos, cur);
