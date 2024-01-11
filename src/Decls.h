@@ -32,7 +32,12 @@ Coordf mapBoundMin(Seg *);
 Coordf mapLength(Seg *);
 Coordf screenToMap(const Coord, const float, const Coord);
 Coord mapToScreen(const Coord, const float, const Coordf);
-Seg* mapQueryObjId(Map *, Seg *, const uint);
+void mapDoorSet(Map *, const uint, const bool);
+void mapDoorReset(Map *);
+bool mapTrigQuery(Map *, const uint);
+void mapDoorUpdate(Map *);
+void mapTrigUpdate(Map *);
+void mapObjUpdate(Map *);
 void mapUpdateDynamics(Map *);
 
 // Segments.h
