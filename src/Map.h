@@ -83,7 +83,7 @@ Coord mapToScreen(const Coord off, const float scale, const Coordf pos)
     return coordAdd(CfC(cfDivf(pos, scale)), off);
 }
 
-// updates all doors with matching id to state
+// sets state of all doors with matching id
 void mapDoorSet(Map *map, const uint id, const bool state)
 {
     for(Seg *door = map->seg[S_DOOR]; door; door = door->next){
@@ -99,6 +99,7 @@ void mapDoorReset(Map *map)
         door->door.state = false;
 }
 
+// returns true if any triggers with matching id are true
 bool mapTrigQuery(Map *map, const uint id)
 {
     Seg *cur = map->seg[S_TRIG];
@@ -110,6 +111,7 @@ bool mapTrigQuery(Map *map, const uint id)
     return false;
 }
 
+// updates all doors on map
 void mapDoorUpdate(Map *map)
 {
     Seg *cur = map->seg[S_DOOR];
@@ -124,6 +126,7 @@ void mapDoorUpdate(Map *map)
     }
 }
 
+// updates all map triggers
 void mapTrigUpdate(Map *map)
 {
     Seg *cur = map->seg[S_TRIG];
@@ -155,6 +158,7 @@ void mapTrigUpdate(Map *map)
     }
 }
 
+// updates all map objects
 void mapObjUpdate(Map *map)
 {
     Obj *mob = map->obj[O_MOB];
@@ -169,7 +173,7 @@ void mapObjUpdate(Map *map)
     }
 }
 
-// updates the dynamic segments of the map
+// updates map
 void mapUpdateDynamics(Map *map)
 {
     assertExpr(map);
