@@ -83,11 +83,6 @@ typedef struct Obj{
     struct Obj *next;
 }Obj;
 
-// typedef struct{
-//     Obj *obj;
-//     ConvList *next;
-// }ConvList;
-
 typedef struct Player{
     Coordf pos;
     float ang;
