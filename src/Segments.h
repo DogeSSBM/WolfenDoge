@@ -55,11 +55,11 @@ Seg* doorNew(const Color c, const Coordf a, const Coordf b, const uint id, const
 }
 
 // creates a new segment with type S_TRIG
-Seg* trigNew(const Color color, const Coordf a, const Coordf b, const uint id, const Coordf c, const Coordf d)
+Seg* trigNew(const Color color, const TrigType type, const Coordf a, const Coordf b, const uint id, const Coordf c, const Coordf d)
 {
     Seg *w = wallNew(color, a, b);
     w->type = S_TRIG;
-    w->trig.type = T_ZONE;
+    w->trig.type = type;
     w->trig.id = id;
     w->trig.c = c;
     w->trig.d = d;
@@ -101,7 +101,7 @@ Seg* segNew(const SegType type, const Coordf a, const Coordf b)
             return doorNew(WHITE, a, b, 0, 0.0f, false, 0.01f, DIR_D);
             break;
         case S_TRIG:
-            return trigNew(WHITE, a, b, 0, cfAddf(a, 50.0f), cfAddf(b, 50.0f));
+            return trigNew(WHITE, T_ZONE, a, b, 0, cfAddf(a, 50.0f), cfAddf(b, 50.0f));
             break;
         case S_PORT:
             return portNew(a, b, cfAddf(a, 50.0f), cfAddf(b, 50.0f));

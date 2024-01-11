@@ -9,14 +9,15 @@ void checkQuit(Map *map){
     }
 }
 
-void checkEdit(Map *map)
+EditorState checkEdit(Map *map, EditorState editor)
 {
     if(checkCtrlKey(SC_E)){
         printf("Editing map -\n\tName:\"%s\"\n\tPath: \"%s\"\n", map->name, map->path);
-        mapEdit(map);
+        editor = mapEdit(map, editor);
         printf("\tDone!\n");
         setRelativeMouse(true);
     }
+    return editor;
 }
 
 int main(int argc, char **argv)
@@ -24,13 +25,13 @@ int main(int argc, char **argv)
     assertExpr(argc <= 2);
     init();
     Map map = mapLoad(argc == 2 ? argv[1] : NULL);
-
+    EditorState editor = editorInitState();
     setRelativeMouse(true);
     while(1){
         const uint t = frameStart();
 
         checkQuit(&map);
-        checkEdit(&map);
+        editor = checkEdit(&map, editor);
         const Length wlen = getWindowLen();
         const View firstView = {.len = wlen};
         const Length bvlen = iiC(coordMin(coordDivi(wlen, 4)));

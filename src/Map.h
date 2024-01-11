@@ -84,7 +84,7 @@ Coord mapToScreen(const Coord off, const float scale, const Coordf pos)
 }
 
 // updates all doors with matching id to state
-void mapDoorUpdate(Map *map, const uint id, const bool state)
+void mapDoorSet(Map *map, const uint id, const bool state)
 {
     for(Seg *door = map->seg[S_DOOR]; door; door = door->next){
         if(door->door.id == id)
@@ -99,35 +99,22 @@ void mapDoorReset(Map *map)
         door->door.state = false;
 }
 
-// updates the dynamic segments of the map
-void mapUpdateDynamics(Map *map)
+bool mapTrigQuery(Map *map, const uint id)
 {
-    assertExpr(map);
-    // mapDoorReset(map);
     Seg *cur = map->seg[S_TRIG];
     while(cur){
-        cur->trig.state = cfInTrig(map->player.pos, cur);
-        // if true, updates doors with matching id to true
-        if(cur->trig.state)
-            mapDoorUpdate(map, cur->trig.id, cur->trig.state);
-        // otherwise checks to see if any other triggers with matching id are true, if none are, sets door to false
-        // else keeps door true
-        else{
-            bool on = false;
-            for(Seg *prv = map->seg[S_TRIG]; prv && prv != cur; prv = prv->next){
-                if(prv->trig.id == cur->trig.id && prv->trig.state){
-                    on = true;
-                    break;
-                }
-            }
-            if(!on)
-                mapDoorUpdate(map, cur->trig.id, cur->trig.state);
-        }
+        if(cur->trig.id == id && cur->trig.state)
+            return true;
         cur = cur->next;
     }
+    return false;
+}
 
-    cur = map->seg[S_DOOR];
+void mapDoorUpdate(Map *map)
+{
+    Seg *cur = map->seg[S_DOOR];
     while(cur){
+        cur->door.state = mapTrigQuery(map, cur->door.id);
         cur->door.pos += cur->door.state ? -cur->door.speed : cur->door.speed;
         if(cur->door.pos < 0.0f)
             cur->door.pos = 0.0f;
@@ -135,6 +122,41 @@ void mapUpdateDynamics(Map *map)
             cur->door.pos = 1.0f;
         cur = cur->next;
     }
+}
+
+void mapTrigUpdate(Map *map)
+{
+    Seg *cur = map->seg[S_TRIG];
+    while(cur){
+        switch(cur->trig.type){
+            case T_FLIP:
+                if(keyPressed(SC_E) && cfInTrig(map->player.pos, cur))
+                    cur->trig.state = !cur->trig.state;
+                break;
+            case T_ZONE_ONCE:
+                if(cur->trig.start == cur->trig.state && cfInTrig(map->player.pos, cur) != cur->trig.start)
+                    cur->trig.state = !cur->trig.state;
+                break;
+            case T_FLIP_ONCE:
+            if(
+                keyPressed(SC_E) && cur->trig.start == cur->trig.state &&
+                cfInTrig(map->player.pos, cur) != cur->trig.start
+            ){
+                cur->trig.state = !cur->trig.state;
+            }
+                break;
+            case T_ZONE:
+            default:
+                cur->trig.state = cfInTrig(map->player.pos, cur);
+                break;
+        }
+
+        cur = cur->next;
+    }
+}
+
+void mapObjUpdate(Map *map)
+{
     Obj *mob = map->obj[O_MOB];
     while(mob){
         const float hwidth = mob->mob.len.x/2.0f;
@@ -145,6 +167,15 @@ void mapUpdateDynamics(Map *map)
         mob->mob.b = cfAdd(mob->pos, degMagToCf(rang, hwidth));
         mob = mob->next;
     }
+}
+
+// updates the dynamic segments of the map
+void mapUpdateDynamics(Map *map)
+{
+    assertExpr(map);
+    mapTrigUpdate(map);
+    mapDoorUpdate(map);
+    mapObjUpdate(map);
 }
 
 // adds piece to map

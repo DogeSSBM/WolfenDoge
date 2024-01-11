@@ -40,7 +40,7 @@ Seg* wallNew(const Color, const Coordf, const Coordf);
 Seg* txtrNew(const Color, const Coordf, const Coordf, char *);
 Seg* windNew(const Color, const Color, const Coordf, const Coordf, const float, const float);
 Seg* doorNew(const Color, const Coordf, const Coordf, const uint, const float, const bool, const float, const Direction);
-Seg* trigNew(const Color, const Coordf, const Coordf, const uint, const Coordf, const Coordf);
+Seg* trigNew(const Color, const TrigType, const Coordf, const Coordf, const uint, const Coordf, const Coordf);
 Seg* portNew(const Coordf, const Coordf, const Coordf, const Coordf);
 Seg* segEndNew(void);
 Seg* segNew(const SegType, const Coordf, const Coordf);
@@ -70,7 +70,7 @@ Obj* convNew(const ConvType, const Coordf, const uint, const uint, const uint);
 
 // MapEditor.h
 EditorState editorInitState(void);
-void mapEdit(Map *);
+EditorState mapEdit(Map *, EditorState);
 
 // MapEditorInput.h
 bool editorInputExit(Map *, Selection *);

@@ -443,14 +443,14 @@ void playerMove(Map *map)
 {
     map->player.ang = degReduce(map->player.ang + (float)(mouse.vec.x*2)/3.0f);
     map->player.ang = degReduce(map->player.ang + (keyState(SC_RIGHT) - keyState(SC_LEFT)));
-    // const float ang = map->player.ang+90.0f;
-    // if(rayUnwrapDst(castRayBase(
-    //     map->player.pos,
-    //     cfAdd(map->player.pos, cfRotateDeg(cfMulf(CCf(wasdKeyStateOffset()), 6000.0f), ang)),
-    //     ang,
-    //     map,
-    //     0
-    // )) > 10.0f)
+    const float ang = map->player.ang+90.0f;
+    if(rayUnwrapDst(castRayBase(
+        map->player.pos,
+        cfAdd(map->player.pos, cfRotateDeg(cfMulf(CCf(wasdKeyStateOffset()), 6000.0f), ang)),
+        ang,
+        map,
+        0
+    )) > 10.0f)
         map->player.pos = cfAdd(map->player.pos, cfRotateDeg(CCf(coordMuli(wasdKeyStateOffset(), 2)), map->player.ang+90.0f));
 }
 

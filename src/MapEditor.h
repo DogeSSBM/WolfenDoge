@@ -12,15 +12,14 @@ EditorState editorInitState(void)
 }
 
 // main loop while in map editor. on save, map is saved to map->path
-void mapEdit(Map *map)
+EditorState mapEdit(Map *map, EditorState state)
 {
     setRelativeMouse(false);
-    EditorState state = editorInitState();
     while(1){
         const uint t = frameStart();
 
         if(editorInputExit(map, state.sel))
-            return;
+            return state;
 
         editorInputResizeWindow(&state.cam);
         editorInputClearSelection(&state.sel);

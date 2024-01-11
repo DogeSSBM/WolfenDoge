@@ -236,11 +236,11 @@ void mapDefaultSegments(Map *map)
     ));
 
     // Trigger Zones
-    map->seg[S_TRIG] = segAppend(map->seg[S_TRIG], trigNew(YELLOW,
+    map->seg[S_TRIG] = segAppend(map->seg[S_TRIG], trigNew(YELLOW, T_ZONE,
         fC(250.0f,   0.0f), fC(500.0f,   0.0f), 0,
         fC(250.0f, 250.0f), fC(500.0f, 250.0f)
     ));
-    map->seg[S_TRIG] = segAppend(map->seg[S_TRIG], trigNew(YELLOW,
+    map->seg[S_TRIG] = segAppend(map->seg[S_TRIG], trigNew(YELLOW, T_ZONE,
         fC(250.0f, 250.0f), fC(500.0f, 250.0f), 0,
         fC(250.0f, 500.0f), fC(500.0f, 500.0f)
     ));
