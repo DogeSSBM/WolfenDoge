@@ -14,7 +14,7 @@ EditorState checkEdit(Map *map, EditorState editor)
     if(checkCtrlKey(SC_E)){
         printf("Editing map -\n\tName:\"%s\"\n\tPath: \"%s\"\n", map->name, map->path);
         editor = mapEdit(map, editor);
-        printf("\tDone!\n");
+        printf("\tDone editing map\n");
         setRelativeMouse(true);
     }
     return editor;
