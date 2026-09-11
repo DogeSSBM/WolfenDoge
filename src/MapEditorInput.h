@@ -334,6 +334,8 @@ void mapEditUint(Map *map, EditorState *state, uint *u)
         const uint t = frameStart();
 
         if(once){
+            if(keyPressed(SC_RETURN) || keyPressed(SC_ESCAPE))
+                return;
             if(keyPressed(SC_BACKSPACE)){
                 if(keyCtrlState()){
                     *u = 0;
