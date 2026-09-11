@@ -98,7 +98,7 @@ st objListLen(Obj *objs);
 // frees all objects in the list
 Obj* objListFree(Obj *list);
 // creates a new object
-Obj* objNew(const ObjType type, const Coordf pos);
+Obj* objNew(const ObjType type, const Coordf a, const Coordf b);
 // duplicates object
 Obj* objDup(Obj *obj);
 // creates a new object of type O_KEY

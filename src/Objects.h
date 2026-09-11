@@ -61,15 +61,6 @@ Obj* objListFree(Obj *list)
     return NULL;
 }
 
-// creates a new object
-Obj* objNew(const ObjType type, const Coordf pos)
-{
-    Obj *obj = calloc(1, sizeof(Obj));
-    obj->type = type;
-    obj->pos = pos;
-    return obj;
-}
-
 // duplicates object
 Obj* objDup(Obj *obj)
 {
@@ -86,7 +77,9 @@ Obj* objDup(Obj *obj)
 // creates a new object of type O_KEY
 Obj* keyNew(const Coordf pos, const Color c)
 {
-    Obj *obj = objNew(O_KEY, pos);
+    Obj *obj = calloc(1, sizeof(Obj));
+    obj->type = O_KEY;
+    obj->pos = pos;
     obj->key.c = c;
     return obj;
 }
@@ -94,7 +87,9 @@ Obj* keyNew(const Coordf pos, const Color c)
 // creates a new object of type O_SPAWN
 Obj* spawnNew(const Coordf pos, const float ang)
 {
-    Obj *obj = objNew(O_SPAWN, pos);
+    Obj *obj = calloc(1, sizeof(Obj));
+    obj->pos = pos;
+    obj->type = O_SPAWN;
     obj->spawn.ang = ang;
     return obj;
 }
@@ -102,7 +97,9 @@ Obj* spawnNew(const Coordf pos, const float ang)
 // creates a new object of type O_MOB
 Obj* mobNew(const Coordf origin, char *path)
 {
-    Obj *obj = objNew(O_MOB, origin);
+    Obj *obj = calloc(1, sizeof(Obj));
+    obj->pos = origin;
+    obj->type = O_MOB;
     const st txtlen = strlen(path);
     assertExpr(txtlen < 127);
     memcpy(obj->mob.path, path, txtlen);
@@ -112,8 +109,28 @@ Obj* mobNew(const Coordf origin, char *path)
     obj->mob.len = ffC(200.0f);
     obj->mob.origin = origin;
     obj->mob.vec = origin;
-    obj->pos = origin;
     return obj;
+}
+
+// creates a new object
+Obj* objNew(const ObjType type, const Coordf a, const Coordf b)
+{
+    (void)b;
+    switch(type){
+        case O_KEY:
+            return keyNew(a, GREEN);
+            break;
+        case O_MOB:
+            return mobNew(a, "./Assets/Doggo.png");
+            break;
+        case O_SPAWN:
+            return spawnNew(a, 0);
+            break;
+        default:
+            panic("Unspecified ObjType");
+            break;
+    }
+    return NULL;
 }
 
 #endif /* end of include guard: OBJECTS_H */
