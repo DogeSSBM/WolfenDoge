@@ -308,10 +308,24 @@ MapPiece pieceNew(const NewPieceInfo pieceInfo, const Coordf a, const Coordf b)
 {
     assertExpr(pieceInfo.pieceType < M_ANY);
     MapPiece piece = {.type = pieceInfo.pieceType};
-    if(piece.type == M_SEG)
+    if(piece.type == M_SEG){
         piece.seg = segNew(pieceInfo.segType, a, b);
-    else
-        piece.obj = objNew(pieceInfo.objType, a);
+    }else{
+        switch(pieceInfo.objType){
+            case O_KEY:
+                piece.obj = keyNew(a, GREEN);
+                break;
+            case O_MOB:
+                piece.obj = mobNew(a, "./Assets/Doggo.png");
+                break;
+            case O_SPAWN:
+                piece.obj = spawnNew(a, 0);
+                break;
+            default:
+                panic("Unspecified ObjType");
+                break;
+        }
+    }
     return piece;
 }
 
