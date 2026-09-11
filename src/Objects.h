@@ -124,7 +124,7 @@ Obj* objNew(const ObjType type, const Coordf a, const Coordf b)
             return mobNew(a, "./Assets/Doggo.png");
             break;
         case O_SPAWN:
-            return spawnNew(a, 0);
+            return spawnNew(a, cfCfToDeg(a, b));
             break;
         default:
             panic("Unspecified ObjType");
