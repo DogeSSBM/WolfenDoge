@@ -114,9 +114,9 @@ typedef struct Ray{
     struct Ray *next;
 }Ray;
 
-typedef enum              {F_MAPPIECETYPE,  F_SEGTYPE,  F_OBJTYPE,   F_CONVTYPE,  F_COORDF,  F_COLOR,  F_PATH,  F_FLOAT,  F_UINT,  F_BOOL,  F_TRIGTYPE,  F_DIR,       F_N}FieldType;
-char *FieldTypeStr[F_N] = { "MapPieceType",  "SegType",  "ObjType", "F_CONVTYPE",  "Coordf",  "Color",  "Path",  "float",  "uint",  "bool",  "TrigType",  "Direction"    };
-uint FieldTypeXlen[F_N] = {             1,          1,          1,            1,         2,        3,       1,        1,       1,       1,           1,            1     };
+typedef enum              {F_MAPPIECETYPE,  F_SEGTYPE,  F_OBJTYPE,  F_COORDF,  F_COLOR,  F_PATH,  F_FLOAT,  F_UINT,  F_BOOL,  F_TRIGTYPE,  F_DIR,       F_N}FieldType;
+char *FieldTypeStr[F_N] = { "MapPieceType",  "SegType",  "ObjType",  "Coordf",  "Color",  "Path",  "float",  "uint",  "bool",  "TrigType",  "Direction"    };
+uint FieldTypeXlen[F_N] = {             1,          1,          1,         2,        3,       1,        1,       1,       1,           1,            1     };
 typedef struct{
     char *label;
     FieldType type;
