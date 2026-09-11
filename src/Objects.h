@@ -114,16 +114,4 @@ Obj* mobNew(const Coordf origin, char *path)
     return obj;
 }
 
-// creates a new segment with type S_CONV
-Obj* convNew(const ConvType type, const Coordf pos, const uint inIdA, const uint inIdB, const uint outId)
-{
-    Obj *obj = objNew(O_CONV, pos);
-    obj->conv.type = type;
-    obj->conv.inIdA = inIdA;
-    obj->conv.inIdB = inIdB;
-    obj->conv.outId = outId;
-    obj->conv.outState = false;
-    return obj;
-}
-
 #endif /* end of include guard: OBJECTS_H */

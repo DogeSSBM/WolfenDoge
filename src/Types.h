@@ -1,9 +1,6 @@
 #ifndef TYPES_H
 #define TYPES_H
 
-typedef enum             { C_CONV,   C_NOT,   C_AND,   C_OR, C_N}ConvType;
-char *ConvTypeStr[C_N] = {"C_CONV", "C_NOT", "C_AND", "C_OR"    };
-
 typedef enum             { T_ZONE,   T_FLIP,   T_ZONE_ONCE,   T_FLIP_ONCE, T_N}TrigType;
 char *TrigTypeStr[T_N] = {"T_ZONE", "T_FLIP", "T_ZONE_ONCE", "T_FLIP_ONCE"    };
 
@@ -45,10 +42,10 @@ typedef struct Seg{
     struct Seg *next;
 }Seg;
 
-typedef enum              { O_SPAWN,       O_KEY,      O_MOB,   O_CONV, O_N}ObjType;
-char *ObjTypeStr[O_N] =   {"O_SPAWN",     "O_KEY",    "O_MOB", "O_CONV"    };
-st ObjTypeFields[O_N] =   {       3,           3,          8,        7     };
-st ObjTypeNumCoord[O_N] = {       1,           1,          6,        1     };
+typedef enum              { O_SPAWN,       O_KEY,      O_MOB,     O_N}ObjType;
+char *ObjTypeStr[O_N] =   {"O_SPAWN",     "O_KEY",    "O_MOB",       };
+st ObjTypeFields[O_N] =   {       3,           3,          8,        };
+st ObjTypeNumCoord[O_N] = {       1,           1,          6,        };
 typedef struct Obj{
     ObjType type;
     Coordf pos;
@@ -68,13 +65,6 @@ typedef struct Obj{
             Texture *texture;
             char path[128];
         }mob;
-        struct{
-            ConvType type;
-            uint inIdA;
-            uint inIdB;
-            uint outId;
-            bool outState;
-        }conv;
     };
     struct Obj *next;
 }Obj;

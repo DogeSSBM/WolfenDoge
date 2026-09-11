@@ -71,13 +71,6 @@ PieceFields objFields(const MapPiece piece)
             fields.field[6] = (Field){.label = "len:    ", .type = F_COORDF, .ptr = &piece.obj->mob.len};
             fields.field[7] = (Field){.label = "path: ", .type = F_PATH, .ptr = (char*)(piece.obj->mob.path)};
             break;
-        case O_CONV:
-            fields.field[2] = (Field){.label = "ConvType: ", .type = F_CONVTYPE, .ptr = &piece.obj->conv.type};
-            fields.field[3] = (Field){.label = "inIdA: ", .type = F_UINT, .ptr = &piece.obj->conv.inIdA};
-            fields.field[4] = (Field){.label = "inIdB: ", .type = F_UINT, .ptr = &piece.obj->conv.inIdB};
-            fields.field[5] = (Field){.label = "outId: ", .type = F_UINT, .ptr = &piece.obj->conv.outId};
-            fields.field[6] = (Field){.label = "out: ", .type = F_BOOL, .ptr = &piece.obj->conv.outId};
-            break;
         default:
             panic("Unknown ObjType: %u", piece.obj->type);
             break;

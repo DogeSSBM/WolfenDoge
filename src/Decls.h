@@ -107,8 +107,6 @@ Obj* keyNew(const Coordf pos, const Color c);
 Obj* spawnNew(const Coordf pos, const float ang);
 // creates a new object of type O_MOB
 Obj* mobNew(const Coordf origin, char *path);
-// creates a new segment with type S_CONV
-Obj* convNew(const ConvType type, const Coordf pos, const uint inIdA, const uint inIdB, const uint outId);
 
 // Pieces.h
 // --------------------------------------------------------------------------------------
@@ -171,8 +169,6 @@ Coord fieldDrawMapPieceType(const MapPieceType val, char *label, Coord pos, cons
 Coord fieldDrawSegType(const SegType val, char *label, Coord pos, const uint selected);
 // draws field with type ObjType
 Coord fieldDrawObjType(const ObjType val, char *label, Coord pos, const uint selected);
-// draws field with type ConvType
-Coord fieldDrawConvType(const ConvType val, char *label, Coord pos, const uint selected);
 // draws field with type TrigType
 Coord fieldDrawTrigType(const TrigType val, char *label, Coord pos, const uint selected);
 // draws field with type Coordf

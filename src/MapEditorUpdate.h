@@ -112,13 +112,6 @@ void editorUpdateSelectionVal(Map *map, EditorState *state)
             );
             return;
             break;
-        case F_CONVTYPE:
-            *((ConvType*)(state->sel->fields.field[state->sel->cursor->y].ptr)) = wrap(
-                *((ConvType*)(state->sel->fields.field[state->sel->cursor->y].ptr)) + keyPressed(SC_LEFT) - keyPressed(SC_RIGHT),
-                0, C_N
-            );
-            return;
-            break;
         case F_TRIGTYPE:
             *((TrigType*)(state->sel->fields.field[state->sel->cursor->y].ptr)) = wrap(
                 *((TrigType*)(state->sel->fields.field[state->sel->cursor->y].ptr)) + keyPressed(SC_LEFT) - keyPressed(SC_RIGHT),
