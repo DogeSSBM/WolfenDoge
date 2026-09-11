@@ -47,17 +47,24 @@ void editorUpdateMoveSelection(const Camera cam, const Snap snap, const MouseMap
 void editorUpdateNewPiece(Map *map, const NewPieceInfo pieceInfo, const Snap snap, const Mouse mouse)
 {
     if(!keyCtrlState() && mouseBtnReleased(MOUSE_R)){
+        // MapPiece piece = {0};
+        // if(snap.active)
+        //     piece = pieceNew(pieceInfo, mouse.map.rdown, mouse.map.pos);
+        // else
+        //     piece = pieceNew(pieceInfo, snap.mouse.map.rdown, snap.mouse.map.pos);
+        // if(piece.type == M_SEG)
+        //     map->seg[piece.seg->type] = segAppend(map->seg[piece.seg->type], piece.seg);
+        // else if(piece.type == M_OBJ)
+        //     map->obj[piece.obj->type] = objAppend(map->obj[piece.obj->type], piece.obj);
+        // else
+        //     panic("???");
         MapPiece piece = {0};
         if(snap.active)
             piece = pieceNew(pieceInfo, mouse.map.rdown, mouse.map.pos);
         else
             piece = pieceNew(pieceInfo, snap.mouse.map.rdown, snap.mouse.map.pos);
-        if(piece.type == M_SEG)
-            map->seg[piece.seg->type] = segAppend(map->seg[piece.seg->type], piece.seg);
-        else if(piece.type == M_OBJ)
-            map->obj[piece.obj->type] = objAppend(map->obj[piece.obj->type], piece.obj);
-        else
-            panic("???");
+        
+        mapAddPiece(map, piece);
     }
 }
 

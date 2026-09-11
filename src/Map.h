@@ -185,14 +185,16 @@ void mapUpdateDynamics(Map *map)
 // adds piece to map
 void mapAddPiece(Map *map, const MapPiece piece)
 {
-    assertExpr(map && piece.type < M_ANY);
     if(piece.type == M_SEG){
         assertExpr(piece.seg);
         map->seg[piece.seg->type] = segAppend(map->seg[piece.seg->type], piece.seg);
         return;
+    }else if(piece.type == M_OBJ){
+        assertExpr(piece.obj);
+        map->obj[piece.obj->type] = objAppend(map->obj[piece.obj->type], piece.obj);
+        return;
     }
-    assertExpr(piece.obj);
-    map->obj[piece.obj->type] = objAppend(map->obj[piece.obj->type], piece.obj);
+    panic("Unknown MapPieceType");
 }
 
 #endif /* end of include guard: MAP_H */
