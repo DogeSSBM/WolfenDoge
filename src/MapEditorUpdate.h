@@ -50,7 +50,7 @@ void editorUpdateNewPiece(Map *map, const NewPieceInfo pieceInfo, const Snap sna
         if(snap.active)
             mapAddPiece(map, pieceNew(pieceInfo, mouse.map.rdown, mouse.map.pos));
         else
-            mapAddPiece(map, pieceNew(pieceInfo, snap.mouse.map.rdown, snap.mouse.map.pos));        
+            mapAddPiece(map, pieceNew(pieceInfo, snap.mouse.map.rdown, snap.mouse.map.pos));
     }
 }
 
