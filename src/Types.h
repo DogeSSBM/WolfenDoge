@@ -7,10 +7,10 @@ char *ConvTypeStr[C_N] = {"C_CONV", "C_NOT", "C_AND", "C_OR"    };
 typedef enum             { T_ZONE,   T_FLIP,   T_ZONE_ONCE,   T_FLIP_ONCE, T_N}TrigType;
 char *TrigTypeStr[T_N] = {"T_ZONE", "T_FLIP", "T_ZONE_ONCE", "T_FLIP_ONCE"    };
 
-typedef enum   {S_END = -1, S_WALL,    S_WIND,     S_TRIG,   S_PORT,     S_DOOR,    S_N}SegType;
-char *SegTypeStr[S_N] =   {"S_WALL",  "S_WIND",   "S_TRIG", "S_PORT",   "S_DOOR",      };
-st SegTypeFields[S_N] =   {      5,         7,         10,        6,          9,       };
-st SegTypeNumCoord[S_N] = {      2,         2,          4,        4,          2,       };
+typedef enum   {S_END = -1, S_WALL,    S_WIND,     S_TRIG,     S_DOOR,    S_N}SegType;
+char *SegTypeStr[S_N] =   {"S_WALL",  "S_WIND",   "S_TRIG",   "S_DOOR",      };
+st SegTypeFields[S_N] =   {      5,         7,         10,          9,       };
+st SegTypeNumCoord[S_N] = {      2,         2,          4,          2,       };
 typedef struct Seg{
     SegType type;
     Coordf a;
@@ -21,10 +21,6 @@ typedef struct Seg{
             char path[128];
             Texture *texture;
         }wall;
-        struct{
-            Coordf a;
-            Coordf b;
-        }port;
         struct{
             Color topColor;
             float height;

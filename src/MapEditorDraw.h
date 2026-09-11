@@ -62,9 +62,6 @@ void editorDrawPiece(const MapPiece piece, const Offset off, const float scale, 
         if(coords.numCoord == 4){
             const Coord c = mapToScreen(off, scale, *coords.coord[2]);
             const Coord d = mapToScreen(off, scale, *coords.coord[3]);
-            if(piece.seg->type == S_PORT){
-                drawLineThickCoords(c, d, selected?thickness:1);
-            }
             if(selected){
                 if(piece.type == M_SEG){
                     if(piece.seg->type == S_TRIG){
@@ -72,8 +69,6 @@ void editorDrawPiece(const MapPiece piece, const Offset off, const float scale, 
                         drawLineThickCoords(a, d, thickness);
                         drawLineThickCoords(b, c, thickness);
                         drawLineThickCoords(b, d, thickness);
-                    }else if(piece.seg->type == S_PORT){
-                        drawLineThickCoords(coordMid(a, b), coordMid(c, d), thickness);
                     }
                     drawLineThickCoords(c, d, thickness);
                 }

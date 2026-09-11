@@ -68,16 +68,6 @@ Seg* trigNew(const Color color, const TrigType type, const Coordf a, const Coord
     return w;
 }
 
-// creates a new segment with type S_PORT
-Seg* portNew(const Coordf a, const Coordf b, const Coordf porta, const Coordf portb)
-{
-    Seg *w = wallNew(WHITE, a, b);
-    w->type = S_PORT;
-    w->port.a = porta;
-    w->port.b = portb;
-    return w;
-}
-
 // creates a new segment with type S_END
 // (for denoting end of segment portion of map when saving / reading to file)
 Seg* segEndNew(void)
@@ -102,9 +92,6 @@ Seg* segNew(const SegType type, const Coordf a, const Coordf b)
             break;
         case S_TRIG:
             return trigNew(WHITE, T_ZONE, a, b, 0, cfAddf(a, 50.0f), cfAddf(b, 50.0f));
-            break;
-        case S_PORT:
-            return portNew(a, b, cfAddf(a, 50.0f), cfAddf(b, 50.0f));
             break;
         default:
             break;

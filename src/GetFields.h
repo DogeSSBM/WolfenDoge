@@ -39,10 +39,6 @@ PieceFields segFields(const MapPiece piece)
             fields.field[8] = (Field){.label = "start:  ", .type = F_BOOL, .ptr = &piece.seg->trig.start};
             fields.field[9] = (Field){.label = "state:  ", .type = F_BOOL, .ptr = &piece.seg->trig.state};
             break;
-        case S_PORT:
-            fields.field[4] = (Field){.label = "a:      ", .type = F_COORDF, .ptr = &piece.seg->port.a};
-            fields.field[5] = (Field){.label = "b:      ", .type = F_COORDF, .ptr = &piece.seg->port.b};
-            break;
         default:
             panic("Unknown SegType: %u", piece.seg->type);
             break;

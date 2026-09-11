@@ -39,10 +39,7 @@ PieceCoords pieceCoords(const MapPiece piece)
         pp.numCoord = SegTypeNumCoord[piece.seg->type];
         pp.coord[0] = &piece.seg->a;
         pp.coord[1] = &piece.seg->b;
-        if(piece.seg->type == S_PORT){
-            pp.coord[2] = &piece.seg->port.a;
-            pp.coord[3] = &piece.seg->port.b;
-        }else if(piece.seg->type == S_TRIG){
+        if(piece.seg->type == S_TRIG){
             pp.coord[2] = &piece.seg->trig.c;
             pp.coord[3] = &piece.seg->trig.d;
         }
