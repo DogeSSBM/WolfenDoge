@@ -316,7 +316,7 @@ void editorInputMoveCursor(Selection *sel);
 // saves map when ctrl s is pressed
 void editorInputSave(Map *map);
 // Changed the type of new piece
-void editorInputNewPiece(Selection *sel, NewPieceInfo *pieceInfo);
+void editorInputChangeNewPiece(Selection *sel, NewPieceInfo *pieceInfo);
 // zooms editor in or out focused on cursor
 void editorInputZoom(Camera *cam, const Mouse mouse);
 // pans the map on mouse movement while holding middle mouse / left shift

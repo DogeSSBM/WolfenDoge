@@ -149,7 +149,7 @@ void editorInputSave(Map *map)
 }
 
 // Changed the type of new piece
-void editorInputNewPiece(Selection *sel, NewPieceInfo *pieceInfo)
+void editorInputChangeNewPiece(Selection *sel, NewPieceInfo *pieceInfo)
 {
     if(sel)
         return;

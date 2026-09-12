@@ -29,7 +29,7 @@ EditorState mapEdit(Map *map, EditorState state)
         editorInputSelect(map, state.mouse.map.pos, &state.cursor, &state.sel);
         editorInputNextSelection(map, state.sel);
         editorInputMoveCursor(state.sel);
-        editorInputNewPiece(state.sel, &state.pieceInfo);
+        editorInputChangeNewPiece(state.sel, &state.pieceInfo);
         editorInputZoom(&state.cam, state.mouse);
         editorInputPan(&state.cam.off);
         editorInputSave(map);
