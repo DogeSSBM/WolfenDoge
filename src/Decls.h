@@ -55,9 +55,6 @@ Seg* windNew(const Color c, const Color topColor, const Coordf a, const Coordf b
 Seg* doorNew(const Color c, const Coordf a, const Coordf b, const uint id, const float pos, const bool state, const float speed, const Direction closeDir);
 // creates a new segment with type S_TRIG
 Seg* trigNew(const Color color, const TrigType type, const Coordf a, const Coordf b, const uint id, const Coordf c, const Coordf d);
-// creates a new segment with type S_END
-// (for denoting end of segment portion of map when saving / reading to file)
-Seg* segEndNew(void);
 // creates a new segment
 Seg* segNew(const SegType type, const Coordf a, const Coordf b);
 // duplicates segment (deep copy)
@@ -80,10 +77,6 @@ bool cfInTri(const Coordf pos, const Coordf a, const Coordf b, const Coordf c);
 bool cfInQuad(const Coordf pos, const Coordf a, const Coordf b, const Coordf c, const Coordf d);
 // returns true if pos in trigger zone
 bool cfInTrig(const Coordf pos, Seg *trig);
-// returns first available trigger in map if cur is NULL
-// returns first trigger after cur if cur is not NULL
-// returns NULL if none left
-Seg* trigQueryId(Map *map, Seg *cur, const uint id);
 
 // Objects.h
 // --------------------------------------------------------------------------------------
@@ -216,10 +209,6 @@ Coordf mapSegBoundLen(Seg *seg[S_N]);
 Coordf screenToMap(const Coord off, const float scale, const Coord pos);
 // converts a map coordinate to a coordinate relative to the window
 Coord mapToScreen(const Coord off, const float scale, const Coordf pos);
-// sets state of all doors with matching id
-void mapDoorSet(Map *map, const uint id, const bool state);
-// resets all door states to false
-void mapDoorReset(Map *map);
 // returns true if any triggers with matching id are true
 bool mapTrigQuery(Map *map, const uint id);
 // updates all doors on map
@@ -257,11 +246,6 @@ void mapParseFile(Map *map);
 // attempts to open ../Maps/map.bork then ../Maps/map(n).bork with n starting at 1 and increasing
 // once a file name that doesnt exist is found sets map.name to it
 void newMapFileNum(Map *map);
-// sets seg's texture to NULL, checks to see if any other segments in map have
-// same texture, if none do, the texture is freed
-Seg* wallListTxtrCleanup(Seg *wallList, Seg *seg);
-// applys a texture to all wall segments that match path
-Seg* wallListTxtrApply(Seg *wallList, Texture *txtr, char *path);
 // Loads default map segments
 void mapDefaultSegments(Map *map);
 // loads default map objects

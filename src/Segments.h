@@ -68,15 +68,6 @@ Seg* trigNew(const Color color, const TrigType type, const Coordf a, const Coord
     return w;
 }
 
-// creates a new segment with type S_END
-// (for denoting end of segment portion of map when saving / reading to file)
-Seg* segEndNew(void)
-{
-    Seg *end = calloc(1, sizeof(Seg));
-    end->type = S_END;
-    return end;
-}
-
 // creates a new segment
 Seg* segNew(const SegType type, const Coordf a, const Coordf b)
 {
@@ -204,24 +195,6 @@ bool cfInTrig(const Coordf pos, Seg *trig)
 {
     assertExpr(trig && trig->type == S_TRIG);
     return cfInQuad(pos, trig->a, trig->b, trig->trig.c, trig->trig.d);
-}
-
-// returns first available trigger in map if cur is NULL
-// returns first trigger after cur if cur is not NULL
-// returns NULL if none left
-Seg* trigQueryId(Map *map, Seg *cur, const uint id)
-{
-    assertExpr(map);
-    if(cur){
-        assertExpr(cur->type == S_TRIG);
-        cur = cur->next;
-    }
-    while(cur){
-        if(cur->trig.id == id)
-            return cur;
-        cur = cur->next;
-    }
-    return NULL;
 }
 
 #endif /* end of include guard: SEGMENTS_H */

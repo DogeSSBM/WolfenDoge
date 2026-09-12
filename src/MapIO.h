@@ -164,41 +164,6 @@ void newMapFileNum(Map *map)
     map->name = strdup(name);
 }
 
-// sets seg's texture to NULL, checks to see if any other segments in map have
-// same texture, if none do, the texture is freed
-Seg* wallListTxtrCleanup(Seg *wallList, Seg *seg)
-{
-    if(!wallList || !seg || !seg->wall.texture)
-        return wallList;
-    assertExpr(seg->type == S_WALL);
-    Texture *txtr = seg->wall.texture;
-    seg->wall.texture = NULL;
-    Seg *cur = wallList;
-    while(cur){
-        assertExpr(cur->type == S_WALL);
-        if(cur->wall.texture == txtr)
-            return wallList;
-        cur = cur->next;
-    }
-    textureFree(txtr);
-    return wallList;
-}
-
-// applys a texture to all wall segments that match path
-Seg* wallListTxtrApply(Seg *wallList, Texture *txtr, char *path)
-{
-    if(!wallList || !path)
-        return wallList;
-    Seg *cur = wallList;
-    while(cur){
-        assertExpr(cur->type == S_WALL);
-        if(!strcmp(wallList->wall.path, path))
-            wallList->wall.texture = txtr;
-        cur = cur->next;
-    }
-    return wallList;
-}
-
 // Loads default map segments
 void mapDefaultSegments(Map *map)
 {
@@ -324,7 +289,6 @@ void mapSave(Map *map)
     for(SegType type = 0; type < S_N; type++){
         Seg *seg = map->seg[type];
         while(seg){
-            fieldPrint(segToPiece(seg));
             assertExpr(fwrite(seg, sizeof(Seg), 1, map->file) == 1);
             seg = seg->next;
         }

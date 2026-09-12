@@ -83,22 +83,6 @@ Coord mapToScreen(const Coord off, const float scale, const Coordf pos)
     return coordAdd(CfC(cfDivf(pos, scale)), off);
 }
 
-// sets state of all doors with matching id
-void mapDoorSet(Map *map, const uint id, const bool state)
-{
-    for(Seg *door = map->seg[S_DOOR]; door; door = door->next){
-        if(door->door.id == id)
-            door->door.state = state;
-    }
-}
-
-// resets all door states to false
-void mapDoorReset(Map *map)
-{
-    for(Seg *door = map->seg[S_DOOR]; door; door = door->next)
-        door->door.state = false;
-}
-
 // returns true if any triggers with matching id are true
 bool mapTrigQuery(Map *map, const uint id)
 {
