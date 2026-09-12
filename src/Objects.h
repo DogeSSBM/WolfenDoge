@@ -110,7 +110,6 @@ Obj* mobNew(const Coordf origin, char *path)
     obj->mob.a = origin;
     obj->mob.b = fC(origin.x + 200.0f, origin.y);
     obj->mob.origin = origin;
-    obj->mob.vec = origin;
     return obj;
 }
 

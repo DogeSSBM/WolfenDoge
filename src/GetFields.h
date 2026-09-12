@@ -6,9 +6,9 @@ PieceFields segFields(const MapPiece piece)
 {
     assertExpr(piece.type == M_SEG);
     PieceFields fields = {
-        SegTypeFields[piece.seg->type],
-        piece,
-        {
+        .numFields = SegTypeFields[piece.seg->type],
+        .piece = piece,
+        .field = {
             (Field){.label = "SegType: ", .type = F_SEGTYPE, .ptr = &piece.seg->type},
             (Field){.label = "a:      ", .type = F_COORDF, .ptr = &piece.seg->a},
             (Field){.label = "b:      ", .type = F_COORDF, .ptr = &piece.seg->b},
@@ -51,10 +51,12 @@ PieceFields objFields(const MapPiece piece)
 {
     assertExpr(piece.type == M_OBJ);
     PieceFields fields = {
-        ObjTypeFields[piece.obj->type],
-        piece,
-        .field[0] = (Field){.label = "ObjType: ", .type = F_OBJTYPE, .ptr = &piece.obj->type},
-        .field[1] = (Field){.label = "pos:    ", .type = F_COORDF, .ptr = &piece.obj->pos}
+        .numFields = ObjTypeFields[piece.obj->type],
+        .piece = piece,
+        .field = {
+            (Field){.label = "ObjType: ", .type = F_OBJTYPE, .ptr = &piece.obj->type},
+            (Field){.label = "pos:    ", .type = F_COORDF, .ptr = &piece.obj->pos},
+        }
     };
     switch(piece.obj->type){
         case O_SPAWN:
