@@ -302,9 +302,15 @@ void drawSegSlice(const View view, const Ray *rs, const int xpos, const int ymid
             const int boundL = xpos-hsec/2;
             const int boundR = boundL+hsec+1.0f;
             const int doorHeight = height * rs->piece.seg->door.pos;
-            const int boundTop = ymid-height/2;
-            const int boundBot = boundTop + doorHeight;
-            fillRectCoords(iC(boundL, boundTop), iC(boundR, boundBot));
+            if(rs->piece.seg->door.closeDir == DIR_D){
+                const int boundTop = ymid-height/2;
+                const int boundBot = boundTop + doorHeight;
+                fillRectCoords(iC(boundL, boundTop), iC(boundR, boundBot));
+            }else{
+                const int boundBot = ymid+height/2;
+                const int boundTop = boundBot-doorHeight;
+                fillRectCoords(iC(boundL, boundTop), iC(boundR, boundBot));
+            }
         }
         
         return;
